@@ -1,12 +1,24 @@
 #include <IRsend.h>
 #include <DHT.h>
 
-DHT dht1(4, DHT22);
-IRsend irsend(16);
+const int tempPin = 0;
+const int irPin = 16;
+const int buttonPin = 4;
+
+DHT dht1(tempPin, DHT22);
+IRsend irsend(irPin);
 
 String acState = "";
+unsigned long acTime = 0;
+
 int tempState = 0;
-const int tempThreshold = 200;
+const int tempTarget = 20.5 * 10;
+const int tempThresholdUp = 0.5 * 10;
+const int tempThresholdDown = 1 * 10;
+unsigned long tempTime = 0;
+
+bool buttonEnabled = false;
+unsigned long buttonTime = 0;
 
 void setup() {
   delay(150);
@@ -19,18 +31,14 @@ void setup() {
 
   dht1.begin();
   irsend.begin();
-
   irReceiverSetup();
-
-  // start after setting up
-  irTransmitterSendCommandByTemp(0);
+  pinMode(buttonPin, INPUT);
 }
 
 void loop() {
-  // get temp readings every 2 seconds
-  delay(2 * 1000);
+  buttonCheck();
 
-  irTransmitterSendCommandByTemp(tempGet(dht1, 1));
+  irTransmitterSendCommandByTemp();
 
   if (Serial.available()) {
     irTransmitterSendCommand(Serial.readStringUntil('\n'));
@@ -39,7 +47,35 @@ void loop() {
   irReceiverRead();
 }
 
+void buttonCheck() {
+  if (digitalRead(buttonPin) != HIGH) {
+    return;
+  }
+
+  if (millis() - buttonTime < 2 * 1000) {
+    // get button readings every 2 seconds
+    return;
+  }
+  buttonTime = millis();
+
+  buttonEnabled = !buttonEnabled;
+
+  acTime = 99999;
+
+  if (!buttonEnabled) {
+    irTransmitterSendCommand("off");
+  } else {
+    irTransmitterSendCommand("heatStart");
+  }
+}
+
 int tempGet(DHT dht, int sensor) {
+  if (millis() - tempTime < 2 * 1000) {
+    // get temp readings every 2 seconds
+    return -1;
+  }
+  tempTime = millis();
+
   float tempFloat = dht.readTemperature();
 
   if (isnan(tempFloat)) {
@@ -53,48 +89,81 @@ int tempGet(DHT dht, int sensor) {
   if (tempInt != tempState) {
     Serial.printf("Sensor %d: %.2f°C, %d\n", sensor, tempFloat, tempInt);
   }
-
   tempState = tempInt;
 
   return tempInt;
 }
 
-void irTransmitterSendCommandByTemp(int temp) {
+void irTransmitterSendCommandByTemp() {
+  if (!buttonEnabled) {
+    return;
+  }
+
+  int temp = tempGet(dht1, 1);
   if (temp < 0) {
     return;
   }
 
-  irTransmitterSendCommand(temp < tempThreshold ? "start" : "stop");
+  if (acState == "heatStart") {
+    if (temp >= (tempTarget + tempThresholdUp)) {
+      irTransmitterSendCommand("heatStop");
+    }
+  } else if (acState == "heatStop") {
+    if (temp <= (tempTarget - tempThresholdDown)) {
+      irTransmitterSendCommand("heatStart");
+    }
+  } else {
+    irTransmitterSendCommand("heatStart");
+  }
 }
 
+struct ACData {
+  // off
+  uint8_t off[kHaierAC160StateLength];
+
+  // heat 30°C
+  uint8_t heatStart[kHaierAC160StateLength];
+  // heat 16°C
+  uint8_t heatStop[kHaierAC160StateLength];
+};
+
+ACData acData = {
+  // off
+  { 0xA6, 0xE8, 0xB7, 0x00, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x05, 0xEA, 0xB5, 0x00, 0x40, 0x00, 0x00, 0xF5 },
+
+  // heatStart -> 30°C
+  { 0xA6, 0xE8, 0xB6, 0x00, 0x7B, 0x20, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5F, 0xB5, 0x00, 0x40, 0x00, 0x00, 0xF5 },
+  // heatStop -> 16°C
+  // @TODO: check ac led light is disabled in remote control
+  { 0xA6, 0x08, 0xB7, 0x00, 0x45, 0x20, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x01, 0x4B, 0xB5, 0x00, 0x40, 0x00, 0x00, 0xF5 },
+};
+
 void irTransmitterSendCommand(String command) {
+  if (millis() - acTime < 500) {
+    // ir transmit every 0.5s
+    return;
+  }
+  acTime = millis();
+
   if (command == acState) {
     // Same AC command, ignoring send
     return;
   }
-
   acState = command;
 
-  Serial.printf("AC state: %s\n", acState);
-  Serial.printf("AC command: %s\n", command);
-
-  if (command == "start") {
-    // heat 30°C
-    const uint8_t data[kHaierAC160StateLength] = { 0xA6, 0xE8, 0xB6, 0x00, 0x7B, 0x20, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5F, 0xB5, 0x00, 0x40, 0x00, 0x00, 0xF5 };
-    irsend.sendHaierAC160(data);
-  } else if (command == "stop") {
-    // heat 16°C
-    const uint8_t data[kHaierAC160StateLength] = { 0xA6, 0x08, 0xB7, 0x00, 0x45, 0x20, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x01, 0x4B, 0xB5, 0x00, 0x40, 0x00, 0x00, 0xF5 };
-    irsend.sendHaierAC160(data);
-  } else if (command == "off") {
-    // off
-    const uint8_t data[kHaierAC160StateLength] = { 0xA6, 0xE8, 0xB7, 0x00, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x05, 0xEA, 0xB5, 0x00, 0x40, 0x00, 0x00, 0xF5 };
-    irsend.sendHaierAC160(data);
+  if (command == "off") {
+    irsend.sendHaierAC160(acData.off);
+  } else if (command == "heatStart") {
+    irsend.sendHaierAC160(acData.heatStart);
+  } else if (command == "heatStop") {
+    irsend.sendHaierAC160(acData.heatStop);
   } else {
     Serial.printf("Invalid command %s\n", command);
 
     return;
   }
+
+  Serial.printf("Sending AC: %s\n", command);
 }
 
 // #include <IRrecv.h>
