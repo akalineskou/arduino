@@ -5,10 +5,6 @@ void TemperatureSensor::setup() {
 }
 
 void TemperatureSensor::loop() {
-  if (!buttonEnabled.enabled) {
-    return;
-  }
-
   check();
 
   if (hasChanged) {

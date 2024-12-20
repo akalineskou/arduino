@@ -6,13 +6,20 @@
 #include "TemperatureSensor.h"
 
 ButtonEnabled buttonEnabled(4);
-TemperatureSensor temperatureSensor(0, buttonEnabled);
+TemperatureSensor temperatureSensor(0);
 InfraredTransmitter infraredTransmitter(16, ACData());
 ACControl acControl(buttonEnabled, temperatureSensor, infraredTransmitter);
 InfraredReceiver infraredReceiver(2);
 
 void setup() {
-  Serial.begin(115200); // fast baud
+  delay(150);
+
+  // fast baud for IR receiver
+  Serial.begin(115200);
+
+  while (!Serial) {
+    delay(100);
+  }
 
   temperatureSensor.setup();
   buttonEnabled.setup();

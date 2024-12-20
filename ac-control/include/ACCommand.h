@@ -6,3 +6,7 @@ enum ACCommand {
   Start,
   Stop,
 };
+
+static const char *ACCommands[] = {
+  "Null", "Off", "Start", "Stop",
+};

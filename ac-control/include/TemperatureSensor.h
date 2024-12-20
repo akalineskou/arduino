@@ -1,11 +1,9 @@
 #pragma once
 
 #include <DHT.h>
-#include "ButtonEnabled.h"
 
 class TemperatureSensor {
   int pin;
-  ButtonEnabled &buttonEnabled;
 
   DHT dht;
   unsigned long lastCall = 0;
@@ -15,10 +13,8 @@ public:
   bool hasChanged = false;
 
   explicit TemperatureSensor(
-    const int pin,
-    ButtonEnabled &buttonEnabled
+    const int pin
   ): pin(pin),
-     buttonEnabled(buttonEnabled),
      dht(pin, DHT22) {
   }
 
