@@ -16,13 +16,13 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forc
   }
   lastCall = millis();
 
-  if (acCommand == lastCommand) {
+  if (acCommand == lastACCommand) {
     // same AC command, ignoring send
     return;
   }
-  lastCommand = acCommand;
+  lastACCommand = acCommand;
 
-  Serial.printf("Sending AC command: %s\n", ACCommands[acCommand]);
+  Serial.printf("Sending A/C command: %s.\n", ACCommands[acCommand]);
 
   if (Off == acCommand) {
     irSend.sendHaierAC160(acData.off);

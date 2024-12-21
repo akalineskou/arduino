@@ -23,7 +23,7 @@ void InfraredReceiver::loop() {
   // Display any extra A/C info if we have it.
   const String description = IRAcUtils::resultAcToString(&results);
   if (description.length()) {
-    Serial.printf("Message description: %s\n", description.c_str());
+    Serial.printf("Message description: %s.\n", description.c_str());
   }
   yield(); // Feed the WDT as the text output can take a while to print.
 

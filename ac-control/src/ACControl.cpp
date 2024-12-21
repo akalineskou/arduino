@@ -1,27 +1,34 @@
 #include "ACControl.h"
 
 void ACControl::loop() const {
-  if (buttonEnabled.hasChanged) {
-    infraredTransmitter.sendCommand(buttonEnabled.enabled ? Start : Off, true);
-  }
-
   control();
 }
 
 void ACControl::control() const {
   if (!buttonEnabled.enabled) {
+    if (buttonEnabled.hasChanged) {
+      // turn off on button disable change
+      infraredTransmitter.sendCommand(Off, true);
+    }
+
     return;
   }
 
-  if (infraredTransmitter.lastCommand == Start) {
-    if (temperatureSensor.temperature >= temperatureTarget + temperatureThresholdUp) {
-      infraredTransmitter.sendCommand(Stop);
-    }
-  } else if (infraredTransmitter.lastCommand == Stop) {
-    if (temperatureSensor.temperature <= temperatureTarget - temperatureThresholdDown) {
-      infraredTransmitter.sendCommand(Start);
-    }
-  } else {
+  if (temperatureSensor.temperature >= temperatureTargetWithThresholdUp() && infraredTransmitter.lastACCommand != Stop) {
+    Serial.printf("Temperature up threshold %.2f°C reached.\n", temperatureTargetWithThresholdUp() / 10.0);
+
+    infraredTransmitter.sendCommand(Stop);
+  } else if (temperatureSensor.temperature <= temperatureTargetWithThresholdDown() && infraredTransmitter.lastACCommand != Start) {
+    Serial.printf("Temperature down threshold %.2f°C reached.\n", temperatureTargetWithThresholdDown() / 10.0);
+
     infraredTransmitter.sendCommand(Start);
   }
+}
+
+int ACControl::temperatureTargetWithThresholdUp() const {
+  return temperatureTarget + temperatureThresholdUp;
+}
+
+int ACControl::temperatureTargetWithThresholdDown() const {
+  return temperatureTarget + temperatureThresholdUp;
 }

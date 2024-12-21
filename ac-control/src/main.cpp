@@ -1,15 +1,15 @@
 #include "ACControl.h"
 #include "ACData.h"
 #include "ButtonEnabled.h"
-#include "InfraredReceiver.h"
 #include "InfraredTransmitter.h"
 #include "TemperatureSensor.h"
+// #include "InfraredReceiver.h"
 
 ButtonEnabled buttonEnabled(4);
 TemperatureSensor temperatureSensor(0);
 InfraredTransmitter infraredTransmitter(16, ACData());
 ACControl acControl(buttonEnabled, temperatureSensor, infraredTransmitter);
-InfraredReceiver infraredReceiver(2);
+// InfraredReceiver infraredReceiver(2);
 
 void setup() {
   delay(150);
@@ -24,12 +24,12 @@ void setup() {
   temperatureSensor.setup();
   buttonEnabled.setup();
   infraredTransmitter.setup();
-  infraredReceiver.setup();
+  // infraredReceiver.setup();
 }
 
 void loop() {
   buttonEnabled.loop();
   temperatureSensor.loop();
   acControl.loop();
-  infraredReceiver.loop();
+  // infraredReceiver.loop();
 }

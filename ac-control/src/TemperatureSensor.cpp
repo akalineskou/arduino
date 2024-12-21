@@ -7,8 +7,9 @@ void TemperatureSensor::setup() {
 void TemperatureSensor::loop() {
   check();
 
-  if (hasChanged) {
-    Serial.printf("Sensor %d temperature change: %.2f°C\n", pin, temperature / 10.0);
+  if (hasChanged && temperature % 10 == 0 || temperature % 10 == 5) {
+    // show temperature change for .0 and .5 temperatures
+    Serial.printf("Sensor %d temperature change: %.2f°C.\n", pin, temperature / 10.0);
   }
 }
 
