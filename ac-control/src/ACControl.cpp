@@ -7,7 +7,7 @@ void ACControl::loop() const {
 void ACControl::control() const {
   if (!buttonEnabled.enabled) {
     if (buttonEnabled.hasChanged) {
-      // turn off on button disable change
+      // turn off on button disable change (since it starts disabled, this means it was enabled then disabled)
       infraredTransmitter.sendCommand(Off, true);
     }
 
@@ -22,6 +22,11 @@ void ACControl::control() const {
     Serial.printf("Temperature down threshold %.2f°C reached.\n", temperatureTargetWithThresholdDown() / 10.0);
 
     infraredTransmitter.sendCommand(Start);
+  } else if (infraredTransmitter.lastACCommand != Stop) {
+    // temperature is between the up and down threshold, turn on using Stop
+    Serial.println("Turning on A/C");
+
+    infraredTransmitter.sendCommand(Stop);
   }
 }
 
