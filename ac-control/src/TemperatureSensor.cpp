@@ -5,15 +5,6 @@ void TemperatureSensor::setup() {
 }
 
 void TemperatureSensor::loop() {
-  check();
-
-  if (hasChanged) {
-    // show temperature change for .0 and .5 temperatures
-    Serial.printf("Sensor %d temperature change: %.2f°C.\n", pin, temperature / 10.0);
-  }
-}
-
-void TemperatureSensor::check() {
   hasChanged = false;
 
   if (millis() - lastCall < 2 * 1000) {
@@ -36,4 +27,7 @@ void TemperatureSensor::check() {
   temperature = tempInt;
 
   hasChanged = true;
+
+  // show temperature change for .0 and .5 temperatures
+  Serial.printf("Sensor %d temperature change: %.2f°C.\n", pin, temperature / 10.0);
 }

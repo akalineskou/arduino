@@ -15,7 +15,4 @@ public:
   void setup() const;
 
   void loop();
-
-private:
-  void check();
 };

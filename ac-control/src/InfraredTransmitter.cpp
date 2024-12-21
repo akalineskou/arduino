@@ -6,18 +6,14 @@ void InfraredTransmitter::setup() {
 }
 
 void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forceSend) {
-  if (Null == acCommand) {
-    return;
-  }
-
-  if (!forceSend && millis() - lastCall < 500) {
+  if (millis() - lastCall < 500 && !forceSend) {
     // ir transmit every 0.5s
     return;
   }
   lastCall = millis();
 
   if (acCommand == lastACCommand) {
-    // same AC command, ignoring send
+    // same A/C command, ignoring send
     return;
   }
   lastACCommand = acCommand;
@@ -25,10 +21,10 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forc
   Serial.printf("Sending A/C command: %s.\n", ACCommands[acCommand]);
 
   if (Off == acCommand) {
-    irSend.sendHaierAC160(acData.off);
+    irSend.sendHaierAC160(acData.Off);
   } else if (Start == acCommand) {
-    irSend.sendHaierAC160(acData.start);
+    irSend.sendHaierAC160(acData.Start);
   } else if (Stop == acCommand) {
-    irSend.sendHaierAC160(acData.stop);
+    irSend.sendHaierAC160(acData.Stop);
   }
 }

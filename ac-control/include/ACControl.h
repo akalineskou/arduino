@@ -26,8 +26,6 @@ public:
   void loop() const;
 
 private:
-  void control() const;
-
   int temperatureTargetWithThresholdUp() const;
 
   int temperatureTargetWithThresholdDown() const;

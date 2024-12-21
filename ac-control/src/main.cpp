@@ -12,17 +12,19 @@ ACControl acControl(buttonEnabled, temperatureSensor, infraredTransmitter);
 // InfraredReceiver infraredReceiver(2);
 
 void setup() {
-  delay(150);
+  delay(250);
 
   // fast baud for IR receiver
   Serial.begin(115200);
 
   while (!Serial) {
-    delay(100);
+    delay(150);
   }
 
-  temperatureSensor.setup();
+  delay(250);
+
   buttonEnabled.setup();
+  temperatureSensor.setup();
   infraredTransmitter.setup();
   // infraredReceiver.setup();
 }

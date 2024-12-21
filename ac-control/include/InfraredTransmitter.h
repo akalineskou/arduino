@@ -12,7 +12,7 @@ class InfraredTransmitter {
   unsigned long lastCall = 0;
 
 public:
-  ACCommand lastACCommand = Null;
+  ACCommand lastACCommand = Off;
 
   InfraredTransmitter(
     const int pin,

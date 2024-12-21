@@ -6,10 +6,6 @@ void ButtonEnabled::setup() const {
 }
 
 void ButtonEnabled::loop() {
-  check();
-}
-
-void ButtonEnabled::check() {
   hasChanged = false;
 
   if (digitalRead(pin) != HIGH) {
@@ -17,7 +13,7 @@ void ButtonEnabled::check() {
   }
 
   if (millis() - lastCall < 2 * 1000) {
-    // get button readings every 2 seconds
+    // change button value every 2 seconds
     return;
   }
   lastCall = millis();
