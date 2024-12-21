@@ -9,8 +9,8 @@ class ACControl {
   TemperatureSensor &temperatureSensor;
   InfraredTransmitter &infraredTransmitter;
 
-  int temperatureTarget = 20.5 * 10;
-  int temperatureThresholdUp = 0.5 * 10;
+  int temperatureTarget = 21.0 * 10;
+  int temperatureThresholdUp = 1.0 * 10;
   int temperatureThresholdDown = 0.5 * 10;
 
 public:
