@@ -30,5 +30,5 @@ int ACControl::temperatureTargetWithThresholdUp() const {
 }
 
 int ACControl::temperatureTargetWithThresholdDown() const {
-  return temperatureTarget + temperatureThresholdUp;
+  return temperatureTarget - temperatureThresholdDown;
 }
