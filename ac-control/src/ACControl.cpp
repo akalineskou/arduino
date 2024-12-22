@@ -23,9 +23,9 @@ void ACControl::control() const {
     return;
   }
 
-  if (temperatureData.temperatureStart() && infraredTransmitter.lastACCommand != Start) {
+  if (infraredTransmitter.lastACCommand != Start && temperatureData.temperatureStart()) {
     infraredTransmitter.sendCommand(Start);
-  } else if (temperatureData.temperatureStop() && infraredTransmitter.lastACCommand != Stop) {
+  } else if (infraredTransmitter.lastACCommand != Stop && temperatureData.temperatureStop()) {
     infraredTransmitter.sendCommand(Stop);
   } else if (buttonEnabled.hasChanged) {
     // temperature is between thresholds, start A/C with Stop command when button was enabled
