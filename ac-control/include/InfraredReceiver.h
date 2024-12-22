@@ -4,15 +4,10 @@
 
 class InfraredReceiver {
   int pin;
-
   IRrecv irRecv;
 
 public:
-  explicit InfraredReceiver(
-    const int pin
-  ): pin(pin),
-     irRecv(pin, 1024, 50, true) {
-  }
+  explicit InfraredReceiver(int pin);
 
   void setup();
 

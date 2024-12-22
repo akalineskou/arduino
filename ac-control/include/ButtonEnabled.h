@@ -3,16 +3,18 @@
 class ButtonEnabled {
   int pin;
 
-  unsigned long lastCall = 0;
+  unsigned long lastCall;
 
 public:
-  bool enabled = false;
-  bool hasChanged = false;
+  bool enabled;
+  bool hasChanged;
 
-  explicit ButtonEnabled(const int pin): pin(pin) {
-  }
+  explicit ButtonEnabled(int pin);
 
   void setup() const;
 
   void loop();
+
+private:
+  void check();
 };

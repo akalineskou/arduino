@@ -2,31 +2,22 @@
 
 #include "ButtonEnabled.h"
 #include "InfraredTransmitter.h"
-#include "TemperatureSensor.h"
+#include "TemperatureData.h"
 
 class ACControl {
   ButtonEnabled &buttonEnabled;
-  TemperatureSensor &temperatureSensor;
   InfraredTransmitter &infraredTransmitter;
-
-  int temperatureTarget = 20.5 * 10;
-  int temperatureThresholdUp = 0.5 * 10;
-  int temperatureThresholdDown = 0.5 * 10;
+  TemperatureData temperatureData;
 
 public:
   ACControl(
     ButtonEnabled &buttonEnabled,
-    TemperatureSensor &temperatureSensor,
-    InfraredTransmitter &infraredTransmitter
-  ): buttonEnabled(buttonEnabled),
-     temperatureSensor(temperatureSensor),
-     infraredTransmitter(infraredTransmitter) {
-  }
+    InfraredTransmitter &infraredTransmitter,
+    const TemperatureData &temperatureData
+  );
 
   void loop() const;
 
 private:
-  int temperatureTargetWithThresholdUp() const;
-
-  int temperatureTargetWithThresholdDown() const;
+  void control() const;
 };

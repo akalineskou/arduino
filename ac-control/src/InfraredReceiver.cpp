@@ -2,6 +2,12 @@
 #include <IRac.h>
 #include "InfraredReceiver.h"
 
+InfraredReceiver::InfraredReceiver(
+  const int pin
+): pin(pin),
+   irRecv(pin, 1024, 50, true) {
+}
+
 void InfraredReceiver::setup() {
   irRecv.setUnknownThreshold(12);
   irRecv.setTolerance(kTolerance);

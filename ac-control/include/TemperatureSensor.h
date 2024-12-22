@@ -6,19 +6,20 @@ class TemperatureSensor {
   int pin;
 
   DHT dht;
-  unsigned long lastCall = 0;
+  unsigned long lastCall;
 
 public:
-  int temperature = 0;
-  bool hasChanged = false;
+  int temperature;
+  bool hasChanged;
 
-  explicit TemperatureSensor(
-    const int pin
-  ): pin(pin),
-     dht(pin, DHT22) {
-  }
+  explicit TemperatureSensor(int pin);
 
   void setup();
 
   void loop();
+
+  static String formatTemperature(int temperature);
+
+private:
+  void readTemperature(bool forceSend = false);
 };

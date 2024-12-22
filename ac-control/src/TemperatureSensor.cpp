@@ -1,33 +1,59 @@
 #include "TemperatureSensor.h"
 
+TemperatureSensor::TemperatureSensor(
+  const int pin
+): pin(pin),
+   dht(pin, DHT22) {
+  lastCall = 0;
+  temperature = 0;
+  hasChanged = false;
+}
+
 void TemperatureSensor::setup() {
   dht.begin();
+
+  readTemperature(true);
+
+  Serial.printf("Sensor %d temperature: %s.\n", pin, formatTemperature(temperature).c_str());
 }
 
 void TemperatureSensor::loop() {
+  readTemperature();
+
+  if (hasChanged) {
+    Serial.printf("Sensor %d temperature change: %s.\n", pin, formatTemperature(temperature).c_str());
+  }
+}
+
+void TemperatureSensor::readTemperature(const bool forceSend) {
   hasChanged = false;
 
-  if (millis() - lastCall < 2 * 1000) {
+  if (millis() - lastCall < 2 * 1000 && !forceSend) {
     // get temp readings every 2 seconds
     return;
   }
   lastCall = millis();
 
-  const float tempFloat = dht.readTemperature();
-  if (isnan(tempFloat)) {
+  const float temperatureFloat = dht.readTemperature();
+  if (isnan(temperatureFloat)) {
     Serial.printf("Failed to read temperature from sensor %d!\n", pin);
 
     return;
   }
 
-  const int tempInt = static_cast<int>(round(tempFloat * 10));
-  if (tempInt == temperature) {
+  const int temperatureInt = static_cast<int>(round(temperatureFloat * 10));
+  if (temperatureInt == temperature) {
     return;
   }
-  temperature = tempInt;
+
+  temperature = temperatureInt;
 
   hasChanged = true;
+}
 
-  // show temperature change for .0 and .5 temperatures
-  Serial.printf("Sensor %d temperature change: %.2f°C.\n", pin, temperature / 10.0);
+String TemperatureSensor::formatTemperature(const int temperature) {
+  char buffer[10];
+  sprintf(buffer, "%.2f°C", temperature / 10.0);
+
+  return {buffer};
 }

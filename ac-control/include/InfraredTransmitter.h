@@ -2,25 +2,22 @@
 
 #include <IRsend.h>
 #include "ACCommand.h"
-#include "ACData.h"
+#include "IRData.h"
 
 class InfraredTransmitter {
   int pin;
-  ACData acData;
+  IRData irData;
 
   IRsend irSend;
-  unsigned long lastCall = 0;
+  unsigned long lastCall;
 
 public:
-  ACCommand lastACCommand = Off;
+  ACCommand lastACCommand;
 
   InfraredTransmitter(
-    const int pin,
-    const ACData &acData
-  ): pin(pin),
-     acData(acData),
-     irSend(pin) {
-  }
+    int pin,
+    const IRData &irData
+  );
 
   void setup();
 
