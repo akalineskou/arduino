@@ -7,20 +7,17 @@
 #include "TemperatureData.h"
 #include "TemperatureSensor.h"
 #include "WebServerHelper.h"
-#include "WebServerTemplate.h"
 #include "WifiHelper.h"
 
 ACMode acMode(Heat);
 ButtonEnabled buttonEnabled(4);
 TemperatureSensor temperatureSensor(0);
 InfraredTransmitter infraredTransmitter(16, IRData(acMode));
-ACControl acControl(buttonEnabled, infraredTransmitter, TemperatureData(temperatureSensor, acMode));
+TemperatureData temperatureData(temperatureSensor, acMode);
+ACControl acControl(buttonEnabled, infraredTransmitter, temperatureData);
 // InfraredReceiver infraredReceiver(2);
 
-WifiHelper wifiHelper;
-WebServerTemplate webServerTemplate(temperatureSensor);
-WebServerHelper webServerHelper(webServerTemplate);
-
+WebServerHelper webServerHelper(buttonEnabled, temperatureSensor, infraredTransmitter, temperatureData, acMode);
 
 void setup() {
   // fast baud for IR receiver
@@ -34,7 +31,7 @@ void setup() {
   infraredTransmitter.setup();
   // infraredReceiver.setup();
 
-  wifiHelper.setup();
+  WifiHelper::setup();
   webServerHelper.setup();
 }
 

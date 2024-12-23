@@ -1,8 +1,7 @@
 #include <Arduino.h>
-#include <IRsend.h>
 #include "IRData.h"
 
-// @TODO: check ac led light is disabled in remote control
+// @TODO: check A/C led light is disabled in remote control
 IRData::IRData(const ACMode acMode) {
   // off
   const uint8_t off[kHaierAC160StateLength] = {
@@ -18,7 +17,6 @@ IRData::IRData(const ACMode acMode) {
     };
     memcpy(Start, start, sizeof(start));
 
-    // @todo
     // cold stop -> 30°C
     const uint8_t stop[kHaierAC160StateLength] = {
       0xA6, 0x08, 0xB7, 0x00, 0x45, 0x20, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x01, 0x4B, 0xB5, 0x00, 0x40, 0x00, 0x00, 0xF5

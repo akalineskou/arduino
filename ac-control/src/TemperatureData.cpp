@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include "TemperatureData.h"
-#include "TemperatureSensor.h"
 
 TemperatureData::TemperatureData(
   TemperatureSensor &temperatureSensor,
@@ -9,51 +8,51 @@ TemperatureData::TemperatureData(
    acMode(acMode) {
   if (acMode == Cold) {
     temperatureTarget = 29.0 * 10;
-    temperatureMin = 0.5 * 10;
-    temperatureMax = 1.0 * 10;
+    temperatureStart = 1.0 * 10;
+    temperatureStop = -0.5 * 10;
   } else {
     temperatureTarget = 20.5 * 10;
-    temperatureMin = 1.0 * 10;
-    temperatureMax = 0.5 * 10;
+    temperatureStart = -1.0 * 10;
+    temperatureStop = 0.5 * 10;
   }
 }
 
-int TemperatureData::temperatureStart() const {
-  bool temperatureStart;
+int TemperatureData::temperatureStartReached() const {
+  bool temperatureStartReached;
 
   if (acMode == Cold) {
-    temperatureStart = temperatureSensor.temperature > temperatureTargetStart();
+    temperatureStartReached = temperatureSensor.temperature > temperatureTargetStart();
   } else {
-    temperatureStart = temperatureSensor.temperature < temperatureTargetStart();
+    temperatureStartReached = temperatureSensor.temperature < temperatureTargetStart();
   }
 
-  if (temperatureStart) {
+  if (temperatureStartReached) {
     Serial.printf("Temperature start %s reached.\n", TemperatureSensor::formatTemperature(temperatureTargetStart()).c_str());
   }
 
-  return temperatureStart;
+  return temperatureStartReached;
 }
 
-int TemperatureData::temperatureStop() const {
-  bool temperatureStop;
+int TemperatureData::temperatureStopReached() const {
+  bool temperatureStopReached;
 
   if (acMode == Cold) {
-    temperatureStop = temperatureSensor.temperature < temperatureTargetStop();
+    temperatureStopReached = temperatureSensor.temperature < temperatureTargetStop();
   } else {
-    temperatureStop = temperatureSensor.temperature > temperatureTargetStop();
+    temperatureStopReached = temperatureSensor.temperature > temperatureTargetStop();
   }
 
-  if (temperatureStop) {
+  if (temperatureStopReached) {
     Serial.printf("Temperature stop %s reached.\n", TemperatureSensor::formatTemperature(temperatureTargetStop()).c_str());
   }
 
-  return temperatureStop;
+  return temperatureStopReached;
 }
 
 int TemperatureData::temperatureTargetStart() const {
-  return temperatureTarget + acMode == Cold ? temperatureMax : -temperatureMin;
+  return temperatureTarget + temperatureStart;
 }
 
 int TemperatureData::temperatureTargetStop() const {
-  return temperatureTarget + acMode == Cold ? -temperatureMin : temperatureMax;
+  return temperatureTarget + temperatureStop;
 }

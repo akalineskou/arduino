@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include "InfraredTransmitter.h"
-#include "Directive.h"
 
 InfraredTransmitter::InfraredTransmitter(
   const int pin,
@@ -31,10 +30,6 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forc
   lastACCommand = acCommand;
 
   Serial.printf("Sending A/C command: %s.\n", ACCommands[acCommand]);
-
-#ifdef DISABLE_IR_SEND
-  return;
-#endif
 
   if (Off == acCommand) {
     irSend.sendHaierAC160(irData.Off);

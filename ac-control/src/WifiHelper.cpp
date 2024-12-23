@@ -1,11 +1,8 @@
 #include <WiFi.h>
 #include "WifiHelper.h"
-#include "secrets.h"
+#include "Secrets.h"
 
-WifiHelper::WifiHelper(void) {
-}
-
-void WifiHelper::setup() const {
+void WifiHelper::setup() {
   Serial.printf("Connecting to %s.\n", wifiSSID);
 
   WiFi.begin(wifiSSID, wifiPassword);

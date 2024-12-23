@@ -1,15 +1,12 @@
 #include <Arduino.h>
 #include "ButtonEnabled.h"
-#include "Directive.h"
 
 ButtonEnabled::ButtonEnabled(const int pin): pin(pin) {
   lastCall = 0;
-#ifdef SIMULATE_BUTTON_ENABLE
-  simulated = false;
-#endif
 
   enabled = false;
   hasChanged = false;
+  manualChange = false;
 }
 
 void ButtonEnabled::setup() const {
@@ -28,25 +25,20 @@ void ButtonEnabled::loop() {
 void ButtonEnabled::check() {
   hasChanged = false;
 
-#ifdef SIMULATE_BUTTON_ENABLE
-  if (simulated) {
-    return;
-  }
+  if (!manualChange) {
+    if (digitalRead(pin) != HIGH) {
+      return;
+    }
 
-  simulated = true;
-#else
-  if (digitalRead(pin) != HIGH) {
-    return;
+    if (millis() - lastCall < 2 * 1000) {
+      // change button value every 2 seconds
+      return;
+    }
+    lastCall = millis();
+  } else {
+    manualChange = false;
   }
-#endif
-
-  if (millis() - lastCall < 2 * 1000) {
-    // change button value every 2 seconds
-    return;
-  }
-  lastCall = millis();
 
   enabled = !enabled;
-
   hasChanged = true;
 }

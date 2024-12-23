@@ -7,21 +7,21 @@ class TemperatureData {
   TemperatureSensor &temperatureSensor;
   ACMode acMode;
 
+  int temperatureStart;
+  int temperatureStop;
+
 public:
   int temperatureTarget;
-  int temperatureMin;
-  int temperatureMax;
 
   explicit TemperatureData(
     TemperatureSensor &temperatureSensor,
     const ACMode &acMode
   );
 
-  int temperatureStart() const;
+  int temperatureStartReached() const;
 
-  int temperatureStop() const;
+  int temperatureStopReached() const;
 
-private:
   int temperatureTargetStart() const;
 
   int temperatureTargetStop() const;

@@ -2,7 +2,5 @@
 
 class WifiHelper {
 public:
-  WifiHelper();
-
-  void setup() const;
+  static void setup();
 };

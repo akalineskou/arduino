@@ -7,13 +7,13 @@
 class ACControl {
   ButtonEnabled &buttonEnabled;
   InfraredTransmitter &infraredTransmitter;
-  TemperatureData temperatureData;
+  TemperatureData &temperatureData;
 
 public:
   ACControl(
     ButtonEnabled &buttonEnabled,
     InfraredTransmitter &infraredTransmitter,
-    const TemperatureData &temperatureData
+    TemperatureData &temperatureData
   );
 
   void loop() const;
