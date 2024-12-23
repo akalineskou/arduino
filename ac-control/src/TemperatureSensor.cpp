@@ -28,8 +28,8 @@ void TemperatureSensor::loop() {
 void TemperatureSensor::readTemperature(const bool forceSend) {
   hasChanged = false;
 
-  if (millis() - lastCall < 2 * 1000 && !forceSend) {
-    // get temp readings every 2 seconds
+  if (millis() - lastCall < 5 * 1000 && !forceSend) {
+    // get temp readings every 5 seconds
     return;
   }
   lastCall = millis();

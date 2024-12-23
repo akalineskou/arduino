@@ -1,11 +1,14 @@
 #include "ACControl.h"
 #include "ACMode.h"
 #include "ButtonEnabled.h"
+// #include "InfraredReceiver.h"
 #include "InfraredTransmitter.h"
 #include "IRData.h"
 #include "TemperatureData.h"
 #include "TemperatureSensor.h"
-// #include "InfraredReceiver.h"
+#include "WebServerHelper.h"
+#include "WebServerTemplate.h"
+#include "WifiHelper.h"
 
 ACMode acMode(Heat);
 ButtonEnabled buttonEnabled(4);
@@ -13,6 +16,11 @@ TemperatureSensor temperatureSensor(0);
 InfraredTransmitter infraredTransmitter(16, IRData(acMode));
 ACControl acControl(buttonEnabled, infraredTransmitter, TemperatureData(temperatureSensor, acMode));
 // InfraredReceiver infraredReceiver(2);
+
+WifiHelper wifiHelper;
+WebServerTemplate webServerTemplate(temperatureSensor);
+WebServerHelper webServerHelper(webServerTemplate);
+
 
 void setup() {
   // fast baud for IR receiver
@@ -25,6 +33,9 @@ void setup() {
   temperatureSensor.setup();
   infraredTransmitter.setup();
   // infraredReceiver.setup();
+
+  wifiHelper.setup();
+  webServerHelper.setup();
 }
 
 void loop() {
@@ -32,4 +43,6 @@ void loop() {
   temperatureSensor.loop();
   acControl.loop();
   // infraredReceiver.loop();
+
+  webServerHelper.loop();
 }

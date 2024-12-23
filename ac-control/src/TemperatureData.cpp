@@ -5,8 +5,8 @@
 TemperatureData::TemperatureData(
   TemperatureSensor &temperatureSensor,
   const ACMode &acMode
-  ): acMode(acMode),
-     temperatureSensor(temperatureSensor) {
+): temperatureSensor(temperatureSensor),
+   acMode(acMode) {
   if (acMode == Cold) {
     temperatureTarget = 29.0 * 10;
     temperatureMin = 0.5 * 10;
@@ -51,17 +51,9 @@ int TemperatureData::temperatureStop() const {
 }
 
 int TemperatureData::temperatureTargetStart() const {
-  if (acMode == Cold) {
-    return temperatureTarget + temperatureMax;
-  } else {
-    return temperatureTarget - temperatureMin;
-  }
+  return temperatureTarget + acMode == Cold ? temperatureMax : -temperatureMin;
 }
 
 int TemperatureData::temperatureTargetStop() const {
-  if (acMode == Cold) {
-    return temperatureTarget - temperatureMin;
-  } else {
-    return temperatureTarget + temperatureMax;
-  }
+  return temperatureTarget + acMode == Cold ? -temperatureMin : temperatureMax;
 }
