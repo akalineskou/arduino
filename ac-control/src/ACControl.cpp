@@ -31,4 +31,9 @@ void ACControl::control() const {
     // temperature is between thresholds, start A/C with Stop command when button was enabled
     infraredTransmitter.sendCommand(Stop, true);
   }
+
+  if (temperatureData.temperatureSensorFailed()) {
+    // disable button enabled to stop the A/C if the temperature sensor failed
+    buttonEnabled.manualChange = true;
+  }
 }

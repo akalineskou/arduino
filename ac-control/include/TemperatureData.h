@@ -25,4 +25,6 @@ public:
   int temperatureTargetStart() const;
 
   int temperatureTargetStop() const;
+
+  bool temperatureSensorFailed() const;
 };

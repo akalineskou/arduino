@@ -7,6 +7,7 @@ class TemperatureSensor {
 
   DHT dht;
   unsigned long lastCall;
+  int sensorFails;
 
 public:
   int temperature;
@@ -17,6 +18,8 @@ public:
   void setup();
 
   void loop();
+
+  bool sensorFailed() const;
 
   static String formatTemperature(int temperature);
 

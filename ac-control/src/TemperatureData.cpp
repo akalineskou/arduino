@@ -56,3 +56,7 @@ int TemperatureData::temperatureTargetStart() const {
 int TemperatureData::temperatureTargetStop() const {
   return temperatureTarget + temperatureStop;
 }
+
+bool TemperatureData::temperatureSensorFailed() const {
+  return temperatureSensor.sensorFailed();
+}
