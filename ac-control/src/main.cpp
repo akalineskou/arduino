@@ -3,21 +3,21 @@
 #include "ButtonEnabled.h"
 // #include "InfraredReceiver.h"
 #include "InfraredTransmitter.h"
-#include "IRData.h"
 #include "TemperatureData.h"
-#include "TemperatureSensor.h"
+#include "TemperatureSensorManager.h"
 #include "WebServerHelper.h"
 #include "WifiHelper.h"
 
 ACMode acMode(Heat);
 ButtonEnabled buttonEnabled(4);
-TemperatureSensor temperatureSensor(0);
 InfraredTransmitter infraredTransmitter(16, IRData(acMode));
-TemperatureData temperatureData(temperatureSensor, acMode);
+TemperatureSensor *arrSens[1] = {new TemperatureSensor(0)};
+TemperatureSensorManager temperatureSensorManager(arrSens, {});
+TemperatureData temperatureData(temperatureSensorManager, acMode);
 ACControl acControl(buttonEnabled, infraredTransmitter, temperatureData);
 // InfraredReceiver infraredReceiver(2);
 
-WebServerHelper webServerHelper(buttonEnabled, temperatureSensor, infraredTransmitter, temperatureData, acMode);
+WebServerHelper webServerHelper(buttonEnabled, temperatureSensorManager, infraredTransmitter, temperatureData, acMode);
 
 void setup() {
   // fast baud for IR receiver
@@ -27,7 +27,7 @@ void setup() {
   delay(2500);
 
   buttonEnabled.setup();
-  temperatureSensor.setup();
+  temperatureSensorManager.setup();
   infraredTransmitter.setup();
   // infraredReceiver.setup();
 
@@ -37,7 +37,7 @@ void setup() {
 
 void loop() {
   buttonEnabled.loop();
-  temperatureSensor.loop();
+  temperatureSensorManager.loop();
   acControl.loop();
   // infraredReceiver.loop();
 

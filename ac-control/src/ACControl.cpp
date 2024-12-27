@@ -32,7 +32,7 @@ void ACControl::control() const {
     infraredTransmitter.sendCommand(Stop, true);
   }
 
-  if (temperatureData.temperatureSensorFailed()) {
+  if (temperatureData.temperatureSensorsInFailed()) {
     // disable button enabled to stop the A/C if the temperature sensor failed
     buttonEnabled.manualChange = true;
   }

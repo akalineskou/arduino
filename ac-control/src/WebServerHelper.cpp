@@ -2,13 +2,13 @@
 
 WebServerHelper::WebServerHelper(
   ButtonEnabled &buttonEnabled,
-  TemperatureSensor &temperatureSensor,
+  TemperatureSensorManager &temperatureSensorManager,
   InfraredTransmitter &infraredTransmitter,
   TemperatureData &temperatureData,
   const ACMode &acMode
 ): webServer(80),
    buttonEnabled(buttonEnabled),
-   temperatureSensor(temperatureSensor),
+   temperatureSensorManager(temperatureSensorManager),
    infraredTransmitter(infraredTransmitter),
    temperatureData(temperatureData),
    acMode(acMode) {
@@ -28,7 +28,8 @@ void WebServerHelper::setup() {
 </head>
 <body style="text-align: center;">
   <p>__ENABLED_TEMPLATE__</p>
-  <p>Temperature: __TEMPERATURE__.</p>
+  <p>Temperature in: __TEMPERATURE_IN__.</p>
+  <p>Temperature Out: __TEMPERATURE_OUT__.</p>
   <p>Last A/C Command: __LAST_AC_COMMAND__.</p>
   <br>
 
@@ -46,7 +47,8 @@ void WebServerHelper::setup() {
     )==" : R"==(
 <a href="/enable">Enable A/C control.</a>
     )=="));
-    html.replace("__TEMPERATURE__", TemperatureSensor::formatTemperature(temperatureSensor.temperature));
+    html.replace("__TEMPERATURE_IN__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureIn()));
+    html.replace("__TEMPERATURE_OUT__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureOut()));
     html.replace("__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
 
     html.replace("__TEMPERATURE_TARGET__", TemperatureSensor::formatTemperature(temperatureData.temperatureTarget));

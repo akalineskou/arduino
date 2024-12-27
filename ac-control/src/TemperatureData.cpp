@@ -2,9 +2,9 @@
 #include "TemperatureData.h"
 
 TemperatureData::TemperatureData(
-  TemperatureSensor &temperatureSensor,
+  TemperatureSensorManager &temperatureSensorManager,
   const ACMode &acMode
-): temperatureSensor(temperatureSensor),
+): temperatureSensorManager(temperatureSensorManager),
    acMode(acMode) {
   if (acMode == Cold) {
     temperatureTarget = 29.0 * 10;
@@ -21,9 +21,9 @@ int TemperatureData::temperatureStartReached() const {
   bool temperatureStartReached;
 
   if (acMode == Cold) {
-    temperatureStartReached = temperatureSensor.temperature > temperatureTargetStart();
+    temperatureStartReached = temperatureSensorManager.temperatureIn() > temperatureTargetStart();
   } else {
-    temperatureStartReached = temperatureSensor.temperature < temperatureTargetStart();
+    temperatureStartReached = temperatureSensorManager.temperatureIn() < temperatureTargetStart();
   }
 
   if (temperatureStartReached) {
@@ -37,9 +37,9 @@ int TemperatureData::temperatureStopReached() const {
   bool temperatureStopReached;
 
   if (acMode == Cold) {
-    temperatureStopReached = temperatureSensor.temperature < temperatureTargetStop();
+    temperatureStopReached = temperatureSensorManager.temperatureIn() < temperatureTargetStop();
   } else {
-    temperatureStopReached = temperatureSensor.temperature > temperatureTargetStop();
+    temperatureStopReached = temperatureSensorManager.temperatureIn() > temperatureTargetStop();
   }
 
   if (temperatureStopReached) {
@@ -57,6 +57,6 @@ int TemperatureData::temperatureTargetStop() const {
   return temperatureTarget + temperatureStop;
 }
 
-bool TemperatureData::temperatureSensorFailed() const {
-  return temperatureSensor.sensorFailed();
+bool TemperatureData::temperatureSensorsInFailed() const {
+  return temperatureSensorManager.sensorsInFailed();
 }

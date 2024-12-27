@@ -5,12 +5,12 @@
 #include "ButtonEnabled.h"
 #include "InfraredTransmitter.h"
 #include "TemperatureData.h"
-#include "TemperatureSensor.h"
+#include "TemperatureSensorManager.h"
 
 class WebServerHelper {
   WebServer webServer;
   ButtonEnabled &buttonEnabled;
-  TemperatureSensor &temperatureSensor;
+  TemperatureSensorManager &temperatureSensorManager;
   InfraredTransmitter &infraredTransmitter;
   TemperatureData &temperatureData;
   ACMode acMode;
@@ -18,7 +18,7 @@ class WebServerHelper {
 public:
   explicit WebServerHelper(
     ButtonEnabled &buttonEnabled,
-    TemperatureSensor &temperatureSensor,
+    TemperatureSensorManager &temperatureSensorManager,
     InfraredTransmitter &infraredTransmitter,
     TemperatureData &temperatureData,
     const ACMode &acMode
