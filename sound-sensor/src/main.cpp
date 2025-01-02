@@ -1,14 +1,89 @@
 #include "Arduino.h"
 
+#define SENSOR_PIN 1
+#define LED_DUM_PIN 41
+#define LED_TEK_PIN 42
+
 void setup() {
   // fast baud for IR receiver
   Serial.begin(115200);
 
   // wait for serial monitor to start completely.
-  delay(2500);
+  while (!Serial) {
+    delay(100);
+  }
 
-  Serial.println("setup!");
+  pinMode(SENSOR_PIN, INPUT);
+
+  pinMode(LED_DUM_PIN,OUTPUT);
+  pinMode(LED_TEK_PIN,OUTPUT);
+
+  Serial.println("setup done");
+
+  // dum+
+  digitalWrite(LED_DUM_PIN,HIGH);
+  digitalWrite(LED_TEK_PIN,HIGH);
+  delay(50);
+  digitalWrite(LED_DUM_PIN,LOW);
+  digitalWrite(LED_TEK_PIN,LOW);
+  delay(2 * 100);
+
+  // tek
+  digitalWrite(LED_TEK_PIN,HIGH);
+  delay(50);
+  digitalWrite(LED_TEK_PIN,LOW);
+  delay(1 * 100);
+
+  // ke
+  digitalWrite(LED_TEK_PIN,HIGH);
+  delay(50);
+  digitalWrite(LED_TEK_PIN,LOW);
+  delay(1 * 100);
+
+  // dum+
+  digitalWrite(LED_DUM_PIN,HIGH);
+  digitalWrite(LED_TEK_PIN,HIGH);
+  delay(50);
+  digitalWrite(LED_DUM_PIN,LOW);
+  digitalWrite(LED_TEK_PIN,LOW);
+  delay(2 * 100);
+
+  // ke+
+  digitalWrite(LED_TEK_PIN,HIGH);
+  delay(50);
+  digitalWrite(LED_TEK_PIN,LOW);
 }
 
 void loop() {
+  const unsigned long startMillis = millis();
+
+  // get sample average in 25ms
+  int sample = 0, i = 0;
+  while (millis() - startMillis < 25) {
+    sample += analogRead(SENSOR_PIN);
+    i++;
+  }
+  const int samplesAverage = sample / i;
+
+  if (samplesAverage < 25) {
+    // treat as not playing below this threshold
+    digitalWrite(LED_DUM_PIN,LOW);
+    digitalWrite(LED_TEK_PIN,LOW);
+
+    return;
+  }
+
+  // Serial.printf("Samples average: %d\n", samplesAverage);
+
+  // treat as tek
+  Serial.println("tek");
+  digitalWrite(LED_TEK_PIN,HIGH);
+
+  if (samplesAverage < 1500) {
+    return;
+  }
+
+  // treat as dum above this threshold
+  Serial.println("dum");
+  digitalWrite(LED_DUM_PIN,HIGH);
 }
