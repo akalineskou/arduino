@@ -1,18 +1,22 @@
-#include "Arduino.h"
+#include <Arduino.h>
 
-#define DEBUG 0
+#define DEBUG 1
+#define PLOT 0
 
 #if DEBUG
 #define D_SerialBegin(...) Serial.begin(__VA_ARGS__);
+#define D_print(...)  Serial.print(__VA_ARGS__)
 #define D_println(...)  Serial.println(__VA_ARGS__)
 #define D_printf(...)  Serial.printf(__VA_ARGS__)
 #else
 #define D_SerialBegin(bauds)
+#define D_print(...)
 #define D_println(...)
 #define D_printf(...)
 #endif
 
-#define SENSOR_PIN 1
+#define SOUND_SENSOR_PIN 2
+#define SOUND_SAMPLES 1024
 
 class Led {
 public:
@@ -34,21 +38,9 @@ public:
   }
 };
 
-Led dum1(42);
-Led dum2(39);
-Led dum3(38);
-Led dum4(37);
-Led dum5(44);
-
-Led dums[] = {dum1, dum2, dum3, dum4, dum5};
-
-Led tek1(41);
-Led tek2(40);
-Led tek3(21);
-
-Led teks[] = {tek1, tek2, tek3};
-
-Led leds[] = {dum1, dum2, dum3, dum4, dum5, tek1, tek2, tek3};
+Led dums[] = {Led(42), Led(39), Led(38), Led(37), Led(47)};
+Led teks[] = {Led(41), Led(40), Led(21)};
+Led leds[] = {dums[0], dums[1], dums[2], dums[3], dums[4], teks[0], teks[1], teks[2]};
 
 void bayo() {
   constexpr int beat = 220;
@@ -106,10 +98,9 @@ void bayo() {
 }
 
 void setup() {
-  // fast baud for IR receiver
   D_SerialBegin(115200);
 
-  pinMode(SENSOR_PIN, INPUT);
+  pinMode(SOUND_SENSOR_PIN, INPUT);
 
   for (auto led: leds) {
     led.setup();
@@ -121,17 +112,18 @@ void setup() {
 }
 
 void loop() {
-  const unsigned long startMillis = millis();
-
-  // get sample average in 25ms
-  int sample = 0, i = 0;
-  while (millis() - startMillis < 25) {
-    sample += analogRead(SENSOR_PIN);
-    i++;
+  int soundTotal = 0;
+  for (auto i = 0; i < SOUND_SAMPLES; i++) {
+    soundTotal += analogRead(SOUND_SENSOR_PIN);
   }
-  const int samplesAverage = sample / i;
+  const int soundAverage = soundTotal / SOUND_SAMPLES;
 
-  if (samplesAverage < 25) {
+  if (PLOT) {
+    D_println(soundAverage);
+    return;
+  }
+
+  if (soundAverage == 0) {
     // treat as not playing below this threshold
     for (auto led: leds) {
       led.turnOff();
@@ -140,22 +132,19 @@ void loop() {
     return;
   }
 
-  D_printf("Samples average: %d\n", samplesAverage);
+  D_printf("Sound average: %d\n", soundAverage);
 
-  // treat as tek
   D_println("tek");
-
   for (auto led: teks) {
     led.turnOn();
   }
 
-  if (samplesAverage < 1500) {
+  if (soundAverage < 2000) {
     return;
   }
 
   // treat as dum above this threshold
   D_println("dum");
-
   for (auto led: dums) {
     led.turnOn();
   }
