@@ -1,87 +1,123 @@
 #include "Arduino.h"
 
+#define DEBUG 0
+
+#if DEBUG
+#define D_SerialBegin(...) Serial.begin(__VA_ARGS__);
+#define D_println(...)  Serial.println(__VA_ARGS__)
+#define D_printf(...)  Serial.printf(__VA_ARGS__)
+#else
+#define D_SerialBegin(bauds)
+#define D_println(...)
+#define D_printf(...)
+#endif
+
 #define SENSOR_PIN 1
-#define LED_DUM_PIN1 41
-#define LED_DUM_PIN2 40
-#define LED_TEK_PIN1 42
-#define LED_TEK_PIN2 39
-#define LED_TEK_PIN3 38
+
+class Led {
+public:
+  int pin;
+
+  explicit Led(const int pin): pin(pin) {
+  }
+
+  void setup() const {
+    pinMode(pin, OUTPUT);
+  }
+
+  void turnOn() const {
+    digitalWrite(pin, HIGH);
+  }
+
+  void turnOff() const {
+    digitalWrite(pin, LOW);
+  }
+};
+
+Led dum1(42);
+Led dum2(39);
+Led dum3(38);
+Led dum4(37);
+Led dum5(44);
+
+Led dums[] = {dum1, dum2, dum3, dum4, dum5};
+
+Led tek1(41);
+Led tek2(40);
+Led tek3(21);
+
+Led teks[] = {tek1, tek2, tek3};
+
+Led leds[] = {dum1, dum2, dum3, dum4, dum5, tek1, tek2, tek3};
+
+void bayo() {
+  constexpr int beat = 220;
+  constexpr int onOffDelay = 100;
+
+  // dum+
+  for (auto led: leds) {
+    led.turnOn();
+  }
+  delay(onOffDelay);
+  for (auto led: leds) {
+    led.turnOff();
+  }
+  delay(2 * beat - onOffDelay);
+
+  // tek
+  for (auto led: teks) {
+    led.turnOn();
+  }
+  delay(onOffDelay);
+  for (auto led: teks) {
+    led.turnOff();
+  }
+  delay(1 * beat - onOffDelay);
+
+  // ke
+  for (auto led: teks) {
+    led.turnOn();
+  }
+  delay(onOffDelay);
+  for (auto led: teks) {
+    led.turnOff();
+  }
+  delay(1 * beat - onOffDelay);
+
+  // dum+
+  for (auto led: leds) {
+    led.turnOn();
+  }
+  delay(onOffDelay);
+  for (auto led: leds) {
+    led.turnOff();
+  }
+  delay(2 * beat - onOffDelay);
+
+  // ke+
+  for (auto led: teks) {
+    led.turnOn();
+  }
+  delay(onOffDelay);
+  for (auto led: teks) {
+    led.turnOff();
+  }
+  delay(2 * beat - onOffDelay);
+}
 
 void setup() {
   // fast baud for IR receiver
-  Serial.begin(115200);
-
-  // wait for serial monitor to start completely.
-  while (!Serial) {
-    delay(100);
-  }
+  D_SerialBegin(115200);
 
   pinMode(SENSOR_PIN, INPUT);
 
-  pinMode(LED_DUM_PIN1,OUTPUT);
-  pinMode(LED_DUM_PIN2,OUTPUT);
-  pinMode(LED_TEK_PIN1,OUTPUT);
-  pinMode(LED_TEK_PIN2,OUTPUT);
-  pinMode(LED_TEK_PIN3,OUTPUT);
+  for (auto led: leds) {
+    led.setup();
+  }
 
-  Serial.println("setup done");
+  D_println("Setup done");
 
-  // dum+
-  digitalWrite(LED_DUM_PIN1,HIGH);
-  digitalWrite(LED_DUM_PIN2,HIGH);
-  digitalWrite(LED_TEK_PIN1,HIGH);
-  digitalWrite(LED_TEK_PIN2,HIGH);
-  digitalWrite(LED_TEK_PIN3,HIGH);
-  delay(50);
-  digitalWrite(LED_DUM_PIN1,LOW);
-  digitalWrite(LED_DUM_PIN2,LOW);
-  digitalWrite(LED_TEK_PIN1,LOW);
-  digitalWrite(LED_TEK_PIN2,LOW);
-  digitalWrite(LED_TEK_PIN3,LOW);
-  delay(2 * 100);
-
-  // tek
-  digitalWrite(LED_TEK_PIN1,HIGH);
-  digitalWrite(LED_TEK_PIN2,HIGH);
-  digitalWrite(LED_TEK_PIN3,HIGH);
-  delay(50);
-  digitalWrite(LED_TEK_PIN1,LOW);
-  digitalWrite(LED_TEK_PIN2,LOW);
-  digitalWrite(LED_TEK_PIN3,LOW);
-  delay(1 * 100);
-
-  // ke
-  digitalWrite(LED_TEK_PIN1,HIGH);
-  digitalWrite(LED_TEK_PIN2,HIGH);
-  digitalWrite(LED_TEK_PIN3,HIGH);
-  delay(50);
-  digitalWrite(LED_TEK_PIN1,LOW);
-  digitalWrite(LED_TEK_PIN2,LOW);
-  digitalWrite(LED_TEK_PIN3,LOW);
-  delay(1 * 100);
-
-  // dum+
-  digitalWrite(LED_DUM_PIN1,HIGH);
-  digitalWrite(LED_DUM_PIN2,HIGH);
-  digitalWrite(LED_TEK_PIN1,HIGH);
-  digitalWrite(LED_TEK_PIN2,HIGH);
-  digitalWrite(LED_TEK_PIN3,HIGH);
-  delay(50);
-  digitalWrite(LED_DUM_PIN1,LOW);
-  digitalWrite(LED_DUM_PIN2,LOW);
-  digitalWrite(LED_TEK_PIN1,LOW);
-  digitalWrite(LED_TEK_PIN2,LOW);
-  digitalWrite(LED_TEK_PIN3,LOW);
-  delay(2 * 100);
-
-  // ke+
-  digitalWrite(LED_TEK_PIN1,HIGH);
-  digitalWrite(LED_TEK_PIN2,HIGH);
-  digitalWrite(LED_TEK_PIN3,HIGH);
-  delay(50);
-  digitalWrite(LED_TEK_PIN1,LOW);
-  digitalWrite(LED_TEK_PIN2,LOW);
-  digitalWrite(LED_TEK_PIN3,LOW);
+  bayo();
 }
 
 void loop() {
@@ -97,29 +133,30 @@ void loop() {
 
   if (samplesAverage < 25) {
     // treat as not playing below this threshold
-    digitalWrite(LED_DUM_PIN1,LOW);
-    digitalWrite(LED_DUM_PIN2,LOW);
-    digitalWrite(LED_TEK_PIN1,LOW);
-    digitalWrite(LED_TEK_PIN2,LOW);
-    digitalWrite(LED_TEK_PIN3,LOW);
+    for (auto led: leds) {
+      led.turnOff();
+    }
 
     return;
   }
 
-  // Serial.printf("Samples average: %d\n", samplesAverage);
+  D_printf("Samples average: %d\n", samplesAverage);
 
   // treat as tek
-  Serial.println("tek");
-  digitalWrite(LED_TEK_PIN1,HIGH);
-  digitalWrite(LED_TEK_PIN2,HIGH);
-  digitalWrite(LED_TEK_PIN3,HIGH);
+  D_println("tek");
+
+  for (auto led: teks) {
+    led.turnOn();
+  }
 
   if (samplesAverage < 1500) {
     return;
   }
 
   // treat as dum above this threshold
-  Serial.println("dum");
-  digitalWrite(LED_DUM_PIN1,HIGH);
-  digitalWrite(LED_DUM_PIN2,HIGH);
+  D_println("dum");
+
+  for (auto led: dums) {
+    led.turnOn();
+  }
 }
