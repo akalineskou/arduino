@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#define DEBUG 1
+#define DEBUG 0
 #define PLOT 0
 
 #if DEBUG
@@ -16,7 +16,9 @@
 #endif
 
 #define SOUND_SENSOR_PIN 2
-#define SOUND_SAMPLES 1024
+#define SOUND_SAMPLES 768
+#define SOUND_MIN_THRESHOLD 50
+#define DUM_THRESHOLD 2400
 
 class Led {
 public:
@@ -38,9 +40,9 @@ public:
   }
 };
 
-Led dums[] = {Led(42), Led(39), Led(38), Led(37), Led(47)};
-Led teks[] = {Led(41), Led(40), Led(21)};
-Led leds[] = {dums[0], dums[1], dums[2], dums[3], dums[4], teks[0], teks[1], teks[2]};
+Led dum[] = {Led(42), Led(39), Led(38), Led(37), Led(47)};
+Led tek[] = {Led(41), Led(40), Led(21)};
+Led leds[] = {dum[0], dum[1], dum[2], dum[3], dum[4], tek[0], tek[1], tek[2]};
 
 void bayo() {
   constexpr int beat = 220;
@@ -57,21 +59,21 @@ void bayo() {
   delay(2 * beat - onOffDelay);
 
   // tek
-  for (auto led: teks) {
+  for (auto led: tek) {
     led.turnOn();
   }
   delay(onOffDelay);
-  for (auto led: teks) {
+  for (auto led: tek) {
     led.turnOff();
   }
   delay(1 * beat - onOffDelay);
 
   // ke
-  for (auto led: teks) {
+  for (auto led: tek) {
     led.turnOn();
   }
   delay(onOffDelay);
-  for (auto led: teks) {
+  for (auto led: tek) {
     led.turnOff();
   }
   delay(1 * beat - onOffDelay);
@@ -87,11 +89,11 @@ void bayo() {
   delay(2 * beat - onOffDelay);
 
   // ke+
-  for (auto led: teks) {
+  for (auto led: tek) {
     led.turnOn();
   }
   delay(onOffDelay);
-  for (auto led: teks) {
+  for (auto led: tek) {
     led.turnOff();
   }
   delay(2 * beat - onOffDelay);
@@ -106,7 +108,7 @@ void setup() {
     led.setup();
   }
 
-  D_println("Setup done");
+  if (!PLOT) D_println("Setup done");
 
   bayo();
 }
@@ -118,12 +120,9 @@ void loop() {
   }
   const int soundAverage = soundTotal / SOUND_SAMPLES;
 
-  if (PLOT) {
-    D_println(soundAverage);
-    return;
-  }
+  if (PLOT) D_printf("Dum:%d,Average:%d\n", DUM_THRESHOLD, soundAverage);
 
-  if (soundAverage == 0) {
+  if (soundAverage < SOUND_MIN_THRESHOLD) {
     // treat as not playing below this threshold
     for (auto led: leds) {
       led.turnOff();
@@ -132,20 +131,21 @@ void loop() {
     return;
   }
 
-  D_printf("Sound average: %d\n", soundAverage);
+  if (!PLOT) D_printf("Sound average: %d\n", soundAverage);
 
-  D_println("tek");
-  for (auto led: teks) {
+  if (!PLOT) D_println("tek");
+
+  for (auto led: tek) {
     led.turnOn();
   }
 
-  if (soundAverage < 2000) {
+  if (soundAverage <= DUM_THRESHOLD) {
     return;
   }
 
-  // treat as dum above this threshold
-  D_println("dum");
-  for (auto led: dums) {
+  if (!PLOT) D_println("dum");
+
+  for (auto led: dum) {
     led.turnOn();
   }
 }
