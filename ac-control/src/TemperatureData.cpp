@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "Serial.h"
 #include "TemperatureData.h"
 
 TemperatureData::TemperatureData(
@@ -27,7 +28,7 @@ int TemperatureData::temperatureStartReached() const {
   }
 
   if (temperatureStartReached) {
-    Serial.printf("Temperature start %s reached.\n", TemperatureSensor::formatTemperature(temperatureTargetStart()).c_str());
+    D_printf("Temperature start %s reached.\n", TemperatureSensor::formatTemperature(temperatureTargetStart()).c_str());
   }
 
   return temperatureStartReached;
@@ -43,7 +44,7 @@ int TemperatureData::temperatureStopReached() const {
   }
 
   if (temperatureStopReached) {
-    Serial.printf("Temperature stop %s reached.\n", TemperatureSensor::formatTemperature(temperatureTargetStop()).c_str());
+    D_printf("Temperature stop %s reached.\n", TemperatureSensor::formatTemperature(temperatureTargetStop()).c_str());
   }
 
   return temperatureStopReached;

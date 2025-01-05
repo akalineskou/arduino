@@ -46,7 +46,7 @@ void WebServerHelper::setup() {
 <a href="/disable">Disable A/C control.</a>
     )==" : R"==(
 <a href="/enable">Enable A/C control.</a>
-    )=="));
+    )==").c_str());
     html.replace("__TEMPERATURE_IN__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureIn()));
     html.replace("__TEMPERATURE_OUT__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureOut()));
     html.replace("__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
@@ -60,7 +60,7 @@ void WebServerHelper::setup() {
     html.replace("__TEMPERATURE_START__", TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStart()));
     html.replace("__TEMPERATURE_STOP__", TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStop()));
 
-    webServer.send(200, "text/html", html);
+    webServer.send(200, "text/html", html.c_str());
   });
 
   webServer.on("/enable", HTTP_GET, [this] {
@@ -101,7 +101,7 @@ void WebServerHelper::setup() {
   <p>The resource was not found.</p>
   <p><a href="/">Start again</a></p>
 </body>
-    )=="));
+    )==").c_str());
   });
 }
 

@@ -1,9 +1,10 @@
 #include <WiFi.h>
-#include "WifiHelper.h"
 #include "Secrets.h"
+#include "Serial.h"
+#include "WifiHelper.h"
 
 void WifiHelper::setup() {
-  Serial.printf("Connecting to %s.\n", wifiSSID);
+  D_printf("Connecting to %s.\n", wifiSSID);
 
   WiFi.begin(wifiSSID, wifiPassword);
 
@@ -11,6 +12,6 @@ void WifiHelper::setup() {
     delay(500);
   }
 
-  Serial.println("Connected.");
-  Serial.printf("IP address: %s.\n", WiFi.localIP().toString().c_str());
+  D_println("Connected.");
+  D_printf("IP address: %s.\n", WiFi.localIP().toString().c_str());
 }

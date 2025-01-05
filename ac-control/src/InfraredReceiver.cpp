@@ -1,6 +1,7 @@
 #include <IRutils.h>
 #include <IRac.h>
 #include "InfraredReceiver.h"
+#include "Serial.h"
 
 InfraredReceiver::InfraredReceiver(
   const int pin
@@ -24,17 +25,17 @@ void InfraredReceiver::loop() {
 
   // Check if we got an IR message that was too big for our capture buffer.
   // Display the basic output of what we found.
-  Serial.print(resultToHumanReadableBasic(&results));
+  D_print(resultToHumanReadableBasic(&results));
 
   // Display any extra A/C info if we have it.
   const String description = IRAcUtils::resultAcToString(&results);
   if (description.length()) {
-    Serial.printf("Message description: %s.\n", description.c_str());
+    D_printf("Message description: %s.\n", description.c_str());
   }
   yield(); // Feed the WDT as the text output can take a while to print.
 
   // Output the results as source code
-  Serial.println(resultToSourceCode(&results));
-  Serial.println();
+  D_println(resultToSourceCode(&results));
+  D_println();
   yield(); // Feed the WDT (again)
 }

@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "InfraredTransmitter.h"
+#include "Serial.h"
 
 InfraredTransmitter::InfraredTransmitter(
   const int pin,
@@ -29,13 +30,14 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forc
   }
   lastACCommand = acCommand;
 
-  Serial.printf("Sending A/C command: %s.\n", ACCommands[acCommand]);
+  D_printf("Sending A/C command: %s.\n", ACCommands[acCommand]);
 
-  if (Off == acCommand) {
-    irSend.sendHaierAC160(irData.Off);
-  } else if (Start == acCommand) {
-    irSend.sendHaierAC160(irData.Start);
-  } else if (Stop == acCommand) {
-    irSend.sendHaierAC160(irData.Stop);
-  }
+  // todo-temp
+  // if (Off == acCommand) {
+  //   irSend.sendHaierAC160(irData.Off);
+  // } else if (Start == acCommand) {
+  //   irSend.sendHaierAC160(irData.Start);
+  // } else if (Stop == acCommand) {
+  //   irSend.sendHaierAC160(irData.Stop);
+  // }
 }

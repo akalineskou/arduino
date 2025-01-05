@@ -3,6 +3,7 @@
 #include "ButtonEnabled.h"
 // #include "InfraredReceiver.h"
 #include "InfraredTransmitter.h"
+#include "Serial.h"
 #include "TemperatureData.h"
 #include "TemperatureSensorManager.h"
 #include "WebServerHelper.h"
@@ -21,7 +22,7 @@ WebServerHelper webServerHelper(buttonEnabled, temperatureSensorManager, infrare
 
 void setup() {
   // fast baud for IR receiver
-  Serial.begin(115200);
+  D_SerialBegin(115200);
 
   // wait for serial monitor to start completely.
   delay(2500);

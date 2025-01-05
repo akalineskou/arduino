@@ -1,3 +1,4 @@
+#include "Serial.h"
 #include "TemperatureSensor.h"
 
 TemperatureSensor::TemperatureSensor(
@@ -15,14 +16,14 @@ void TemperatureSensor::setup() {
 
   readTemperature(true);
 
-  Serial.printf("Sensor %d temperature: %s.\n", pin, formatTemperature(temperature).c_str());
+  D_printf("Sensor %d temperature: %s.\n", pin, formatTemperature(temperature).c_str());
 }
 
 void TemperatureSensor::loop() {
   readTemperature();
 
   if (hasChanged) {
-    Serial.printf("Sensor %d temperature change: %s.\n", pin, formatTemperature(temperature).c_str());
+    D_printf("Sensor %d temperature change: %s.\n", pin, formatTemperature(temperature).c_str());
   }
 }
 
@@ -48,7 +49,7 @@ void TemperatureSensor::readTemperature(const bool forceSend) {
 
   const float temperatureFloat = dht.readTemperature();
   if (isnan(temperatureFloat)) {
-    Serial.printf("Failed to read temperature from sensor %d!\n", pin);
+    D_printf("Failed to read temperature from sensor %d!\n", pin);
 
     sensorFails++;
 

@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "ButtonEnabled.h"
+#include "Serial.h"
 
 ButtonEnabled::ButtonEnabled(const int pin): pin(pin) {
   lastCall = 0;
@@ -18,7 +19,7 @@ void ButtonEnabled::loop() {
 
   if (hasChanged) {
     // show temperature change for .0 and .5 temperatures
-    Serial.printf("Enabled button change: %s -> %s.\n", enabled ? "Off" : "On", enabled ? "On" : "Off");
+    D_printf("Enabled button change: %s -> %s.\n", enabled ? "Off" : "On", enabled ? "On" : "Off");
   }
 }
 
