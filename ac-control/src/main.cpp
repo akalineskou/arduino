@@ -12,8 +12,7 @@
 ACMode acMode(Heat);
 ButtonEnabled buttonEnabled(4);
 InfraredTransmitter infraredTransmitter(16, IRData(acMode));
-TemperatureSensor *arrSens[1] = {new TemperatureSensor(0)};
-TemperatureSensorManager temperatureSensorManager(arrSens, {});
+TemperatureSensorManager temperatureSensorManager(new TemperatureSensor *[1]{new TemperatureSensor(0)}, 1, {}, 0);
 TemperatureData temperatureData(temperatureSensorManager, acMode);
 ACControl acControl(buttonEnabled, infraredTransmitter, temperatureData);
 // InfraredReceiver infraredReceiver(2);

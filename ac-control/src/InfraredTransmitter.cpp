@@ -32,12 +32,11 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forc
 
   D_printf("Sending A/C command: %s.\n", ACCommands[acCommand]);
 
-  // todo-temp
-  // if (Off == acCommand) {
-  //   irSend.sendHaierAC160(irData.Off);
-  // } else if (Start == acCommand) {
-  //   irSend.sendHaierAC160(irData.Start);
-  // } else if (Stop == acCommand) {
-  //   irSend.sendHaierAC160(irData.Stop);
-  // }
+  if (Off == acCommand) {
+    irSend.sendHaierAC160(irData.Off);
+  } else if (Start == acCommand) {
+    irSend.sendHaierAC160(irData.Start);
+  } else if (Stop == acCommand) {
+    irSend.sendHaierAC160(irData.Stop);
+  }
 }

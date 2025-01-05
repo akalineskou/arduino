@@ -1,4 +1,3 @@
-#include <IRutils.h>
 #include <IRac.h>
 #include "InfraredReceiver.h"
 #include "Serial.h"

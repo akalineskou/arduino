@@ -42,23 +42,24 @@ void WebServerHelper::setup() {
 </body>
     )==");
 
-    html.replace("__ENABLED_TEMPLATE__", String(buttonEnabled.enabled ? R"==(
-<a href="/disable">Disable A/C control.</a>
-    )==" : R"==(
-<a href="/enable">Enable A/C control.</a>
-    )==").c_str());
-    html.replace("__TEMPERATURE_IN__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureIn()));
-    html.replace("__TEMPERATURE_OUT__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureOut()));
+    html.replace(
+      "__ENABLED_TEMPLATE__",
+      String(buttonEnabled.enabled
+               ? R"==(<a href="/disable">Disable A/C control.</a>)=="
+               : R"==(<a href="/enable">Enable A/C control.</a>)==").c_str()
+    );
+    html.replace("__TEMPERATURE_IN__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureIn()).c_str());
+    html.replace("__TEMPERATURE_OUT__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureOut()).c_str());
     html.replace("__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
 
-    html.replace("__TEMPERATURE_TARGET__", TemperatureSensor::formatTemperature(temperatureData.temperatureTarget));
+    html.replace("__TEMPERATURE_TARGET__", TemperatureSensor::formatTemperature(temperatureData.temperatureTarget).c_str());
     if (acMode == Cold) {
       html.replace("__TEMPERATURE_START_STOP__", "Stop when < __TEMPERATURE_STOP__ | Start when > __TEMPERATURE_START__");
     } else {
       html.replace("__TEMPERATURE_START_STOP__", "Start when < __TEMPERATURE_START__ | Stop when > __TEMPERATURE_STOP__");
     }
-    html.replace("__TEMPERATURE_START__", TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStart()));
-    html.replace("__TEMPERATURE_STOP__", TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStop()));
+    html.replace("__TEMPERATURE_START__", TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStart()).c_str());
+    html.replace("__TEMPERATURE_STOP__", TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStop()).c_str());
 
     webServer.send(200, "text/html", html.c_str());
   });

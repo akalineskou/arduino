@@ -2,21 +2,28 @@
 
 #include "TemperatureSensor.h"
 
+struct TemperatureSensorsWithCount {
+  TemperatureSensor **temperatureSensors;
+  int count;
+};
+
 class TemperatureSensorManager {
   TemperatureSensor **temperatureSensorsIn;
-  TemperatureSensor **temperatureSensorsOut;
   int countIn;
+  TemperatureSensor **temperatureSensorsOut;
   int countOut;
 
 public:
   explicit TemperatureSensorManager(
     TemperatureSensor **temperatureSensorsIn,
-    TemperatureSensor **temperatureSensorsOut
+    int countIn,
+    TemperatureSensor **temperatureSensorsOut,
+    int countOut
   );
 
-  void setup();
+  void setup() const;
 
-  void loop();
+  void loop() const;
 
   int temperatureIn() const;
 
@@ -27,7 +34,5 @@ public:
   bool sensorsOutFailed() const;
 
 private:
-  TemperatureSensor **filterSensorsNotFailed(TemperatureSensor **temperatureSensors) const;
-
-  int calculateCount(TemperatureSensor **temperatureSensors) const;
+  static TemperatureSensorsWithCount filterSensorsNotFailed(TemperatureSensor **temperatureSensors, int maxCount);
 };

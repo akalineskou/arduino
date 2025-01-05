@@ -2,14 +2,16 @@
 
 TemperatureSensorManager::TemperatureSensorManager(
   TemperatureSensor **temperatureSensorsIn,
-  TemperatureSensor **temperatureSensorsOut
+  const int countIn,
+  TemperatureSensor **temperatureSensorsOut,
+  const int countOut
 ): temperatureSensorsIn(temperatureSensorsIn),
-   temperatureSensorsOut(temperatureSensorsOut) {
-  countIn = calculateCount(temperatureSensorsIn);
-  countOut = calculateCount(temperatureSensorsOut);
+   countIn(countIn),
+   temperatureSensorsOut(temperatureSensorsOut),
+   countOut(countOut) {
 }
 
-void TemperatureSensorManager::setup() {
+void TemperatureSensorManager::setup() const {
   for (int i = 0; i < countIn; i++) {
     temperatureSensorsIn[i]->setup();
   }
@@ -18,7 +20,7 @@ void TemperatureSensorManager::setup() {
   }
 }
 
-void TemperatureSensorManager::loop() {
+void TemperatureSensorManager::loop() const {
   for (int i = 0; i < countIn; i++) {
     temperatureSensorsIn[i]->loop();
   }
@@ -28,54 +30,52 @@ void TemperatureSensorManager::loop() {
 }
 
 int TemperatureSensorManager::temperatureIn() const {
-  auto sensorsIn = filterSensorsNotFailed(temperatureSensorsIn);
-  const int sensorsInCount = calculateCount(sensorsIn);
+  const auto sensorsInWithCount = filterSensorsNotFailed(temperatureSensorsIn, countIn);
 
-  if (0 == sensorsInCount) {
+  if (0 == sensorsInWithCount.count) {
     return 0;
   }
 
   // average
   int temperature = 0;
 
-  for (int i = 0; i < sensorsInCount; i++) {
-    temperature += sensorsIn[i]->temperature;
+  for (int i = 0; i < sensorsInWithCount.count; i++) {
+    temperature += sensorsInWithCount.temperatureSensors[i]->temperature;
   }
 
-  return temperature / sensorsInCount;
+  return temperature / sensorsInWithCount.count;
 }
 
 int TemperatureSensorManager::temperatureOut() const {
-  auto sensorsOut = filterSensorsNotFailed(temperatureSensorsOut);
-  const int sensorsOutCount = calculateCount(sensorsOut);
+  const auto sensorsOutWithCount = filterSensorsNotFailed(temperatureSensorsOut, countOut);
 
-  if (0 == sensorsOutCount) {
+  if (0 == sensorsOutWithCount.count) {
     return 0;
   }
 
   // average
   int temperature = 0;
 
-  for (int i = 0; i < sensorsOutCount; i++) {
-    temperature += sensorsOut[i]->temperature;
+  for (int i = 0; i < sensorsOutWithCount.count; i++) {
+    temperature += sensorsOutWithCount.temperatureSensors[i]->temperature;
   }
 
-  return temperature / sensorsOutCount;
+  return temperature / sensorsOutWithCount.count;
 }
 
 bool TemperatureSensorManager::sensorsInFailed() const {
-  return 0 == calculateCount(filterSensorsNotFailed(temperatureSensorsIn));
+  return 0 == filterSensorsNotFailed(temperatureSensorsIn, countIn).count;
 }
 
 bool TemperatureSensorManager::sensorsOutFailed() const {
-  return 0 == calculateCount(filterSensorsNotFailed(temperatureSensorsOut));
+  return 0 == filterSensorsNotFailed(temperatureSensorsOut, countOut).count;
 }
 
-TemperatureSensor **TemperatureSensorManager::filterSensorsNotFailed(TemperatureSensor **temperatureSensors) const {
-  TemperatureSensor **temperatureSensorsNotFailed[countIn];
+TemperatureSensorsWithCount TemperatureSensorManager::filterSensorsNotFailed(TemperatureSensor **temperatureSensors, const int maxCount) {
+  TemperatureSensor **temperatureSensorsNotFailed[maxCount];
   int currentI = 0;
 
-  for (int i = 0; i < countIn; i++) {
+  for (int i = 0; i < maxCount; i++) {
     if (temperatureSensors[i]->sensorFailed()) {
       continue;
     }
@@ -84,9 +84,9 @@ TemperatureSensor **TemperatureSensorManager::filterSensorsNotFailed(Temperature
     currentI++;
   }
 
-  return *temperatureSensorsNotFailed;
-}
+  TemperatureSensorsWithCount temperatureSensorsWithCount{};
+  temperatureSensorsWithCount.temperatureSensors = *temperatureSensorsNotFailed;
+  temperatureSensorsWithCount.count = currentI;
 
-int TemperatureSensorManager::calculateCount(TemperatureSensor **temperatureSensors) const {
-  return sizeof(*temperatureSensors) / sizeof(TemperatureSensor *) + 1;
+  return temperatureSensorsWithCount;
 }
