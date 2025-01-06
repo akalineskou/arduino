@@ -10,7 +10,6 @@
 #include "TemperatureSensorManager.h"
 #include "WebServerHelper.h"
 #include "WifiHelper.h"
-// #include "InfraredReceiver.h"
 
 // https://www.forward.com.au/pfod/ArduinoProgramming/TimingDelaysInArduino.html
 constexpr unsigned long REBOOT_DELAY_MS = 1 * 3600 * 1000;
@@ -33,10 +32,8 @@ TemperatureSensorManager temperatureSensorManager(
 TemperatureData temperatureData(temperatureSensorManager, acMode);
 ACControl acControl(buttonEnabled, infraredTransmitter, temperatureData);
 WebServerHelper webServerHelper(buttonEnabled, temperatureSensorManager, infraredTransmitter, temperatureData, acMode);
-// InfraredReceiver infraredReceiver(2);
 
 void setup() {
-  // fast baud for IR receiver
   D_SerialBegin(115200);
 
   // wait for serial monitor to start completely.
@@ -52,7 +49,6 @@ void setup() {
   infraredTransmitter.setup();
   WifiHelper::setup(wifiSSID, wifiPassword);
   webServerHelper.setup(webServerAuthUsername, webServerAuthPassword);
-  // infraredReceiver.setup();
 
   // restore A/C state after reboot
   if (!rebootPreferences.isKey("ac-state")) {
@@ -104,5 +100,4 @@ void loop() {
   temperatureSensorManager.loop();
   acControl.loop();
   webServerHelper.loop();
-  // infraredReceiver.loop();
 }
