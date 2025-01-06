@@ -1,23 +1,24 @@
 #pragma once
 
-#include <IRsend.h>
+#include <ir_Haier.h>
 #include "millisDelay.h"
 #include "ACCommand.h"
-#include "IRData.h"
+#include "ACMode.h"
 
 class InfraredTransmitter {
   int pin;
-  IRData irData;
+  ACMode acMode;
 
-  IRsend irSend;
+  IRHaierAC160 irSend;
   millisDelay timeDelay;
 
 public:
   ACCommand lastACCommand;
+  bool lightToggled;
 
   InfraredTransmitter(
     int pin,
-    const IRData &irData
+    const ACMode &acMode
   );
 
   void setup();

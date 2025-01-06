@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "Serial.h"
 #include "TemperatureData.h"
 
@@ -12,7 +11,7 @@ TemperatureData::TemperatureData(
     temperatureStart = 1.0 * 10;
     temperatureStop = -0.5 * 10;
   } else {
-    temperatureTarget = 20.5 * 10;
+    temperatureTarget = 21.0 * 10;
     temperatureStart = -1.0 * 10;
     temperatureStop = 0.5 * 10;
   }

@@ -19,13 +19,12 @@ Preferences rebootPreferences;
 
 ACMode acMode(Heat);
 ButtonEnabled buttonEnabled(4);
-InfraredTransmitter infraredTransmitter(16, IRData(acMode));
+InfraredTransmitter infraredTransmitter(16, acMode);
 TemperatureSensorManager temperatureSensorManager(new TemperatureSensor *[1]{new TemperatureSensor(0)}, 1, {}, 0);
 TemperatureData temperatureData(temperatureSensorManager, acMode);
 ACControl acControl(buttonEnabled, infraredTransmitter, temperatureData);
-// InfraredReceiver infraredReceiver(2);
-
 WebServerHelper webServerHelper(buttonEnabled, temperatureSensorManager, infraredTransmitter, temperatureData, acMode);
+// InfraredReceiver infraredReceiver(2);
 
 void setup() {
   // fast baud for IR receiver
@@ -42,10 +41,9 @@ void setup() {
   buttonEnabled.setup();
   temperatureSensorManager.setup();
   infraredTransmitter.setup();
-  // infraredReceiver.setup();
-
   WifiHelper::setup();
   webServerHelper.setup();
+  // infraredReceiver.setup();
 
   // restore A/C state after reboot
   if (!rebootPreferences.isKey("ac-state")) {
@@ -59,6 +57,9 @@ void setup() {
   // get and restore temperature target (even when off)
   temperatureData.temperatureTarget = rebootPreferences.getInt("temp-target");
   rebootPreferences.remove("temp-target");
+
+  infraredTransmitter.lightToggled = rebootPreferences.getBool("light-toggled");
+  rebootPreferences.remove("light-toggled");
 
   D_printf("Restoring A/C state: %s, temperature target: %d\n", ACCommands[infraredTransmitter.lastACCommand], temperatureData.temperatureTarget);
 
@@ -82,6 +83,7 @@ void loop() {
     // save A/C state to restore after reboot
     rebootPreferences.putString("ac-state", ACCommands[infraredTransmitter.lastACCommand]);
     rebootPreferences.putInt("temp-target", temperatureData.temperatureTarget);
+    rebootPreferences.putBool("light-toggled", infraredTransmitter.lightToggled);
 
     D_printf("Saving A/C state: %s, temperature target: %d\n", ACCommands[infraredTransmitter.lastACCommand], temperatureData.temperatureTarget);
 
@@ -92,7 +94,6 @@ void loop() {
   buttonEnabled.loop();
   temperatureSensorManager.loop();
   acControl.loop();
-  // infraredReceiver.loop();
-
   webServerHelper.loop();
+  // infraredReceiver.loop();
 }
