@@ -8,6 +8,7 @@ TemperatureSensor::TemperatureSensor(
    timeDelay(millisDelay()) {
   sensorFails = 0;
   temperature = 0;
+  humidity = 0;
   hasChanged = false;
 }
 
@@ -16,7 +17,7 @@ void TemperatureSensor::setup() {
 
   readTemperature(true);
 
-  D_printf("Sensor %d temperature: %s.\n", pin, formatTemperature(temperature).c_str());
+  D_printf("Sensor %d temperature: %s, humidity: %s.\n", pin, formatTemperature(temperature).c_str(), formatHumidity(humidity).c_str());
 
   // get temp readings every 2s
   timeDelay.start(2 * 1000);
@@ -26,7 +27,7 @@ void TemperatureSensor::loop() {
   readTemperature();
 
   if (hasChanged) {
-    D_printf("Sensor %d temperature change: %s.\n", pin, formatTemperature(temperature).c_str());
+    D_printf("Sensor %d temperature change: %s, humidity: %s.\n", pin, formatTemperature(temperature).c_str(), formatHumidity(humidity).c_str());
   }
 }
 
@@ -37,6 +38,13 @@ bool TemperatureSensor::sensorFailed() const {
 String TemperatureSensor::formatTemperature(const int temperature) {
   char buffer[10];
   sprintf(buffer, "%.2f°C", temperature / 10.0);
+
+  return {buffer};
+}
+
+String TemperatureSensor::formatHumidity(const int humidity) {
+  char buffer[8];
+  sprintf(buffer, "%.2f%%", humidity / 10.0);
 
   return {buffer};
 }
@@ -67,6 +75,7 @@ void TemperatureSensor::readTemperature(const bool forceSend) {
   }
 
   temperature = temperatureInt;
+  humidity = static_cast<int>(round(dht.readHumidity() * 10));
 
   hasChanged = true;
 }

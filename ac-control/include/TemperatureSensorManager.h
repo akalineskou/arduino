@@ -29,6 +29,10 @@ public:
 
   int temperatureOut() const;
 
+  int humidityIn() const;
+
+  int humidityOut() const;
+
   bool sensorsInFailed() const;
 
   bool sensorsOutFailed() const;

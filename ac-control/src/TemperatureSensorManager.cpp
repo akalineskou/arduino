@@ -63,6 +63,40 @@ int TemperatureSensorManager::temperatureOut() const {
   return temperature / sensorsOutWithCount.count;
 }
 
+int TemperatureSensorManager::humidityIn() const {
+  const auto sensorsInWithCount = filterSensorsNotFailed(temperatureSensorsIn, countIn);
+
+  if (0 == sensorsInWithCount.count) {
+    return 0;
+  }
+
+  // average
+  int humidity = 0;
+
+  for (int i = 0; i < sensorsInWithCount.count; i++) {
+    humidity += sensorsInWithCount.temperatureSensors[i]->humidity;
+  }
+
+  return humidity / sensorsInWithCount.count;
+}
+
+int TemperatureSensorManager::humidityOut() const {
+  const auto sensorsOutWithCount = filterSensorsNotFailed(temperatureSensorsOut, countOut);
+
+  if (0 == sensorsOutWithCount.count) {
+    return 0;
+  }
+
+  // average
+  int humidity = 0;
+
+  for (int i = 0; i < sensorsOutWithCount.count; i++) {
+    humidity += sensorsOutWithCount.temperatureSensors[i]->humidity;
+  }
+
+  return humidity / sensorsOutWithCount.count;
+}
+
 bool TemperatureSensorManager::sensorsInFailed() const {
   return 0 == filterSensorsNotFailed(temperatureSensorsIn, countIn).count;
 }
