@@ -23,7 +23,7 @@ void WebServerHelper::setup() {
 <head>
   <title>A/C Control</title>
   <meta charset="utf-8">
-  <meta http-equiv="refresh" content="30">
+  <meta http-equiv="refresh" content="5">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/3274/3274588.png" />
   <style>

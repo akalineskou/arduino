@@ -1,9 +1,11 @@
 #pragma once
 
+#include "millisDelay.h"
+
 class ButtonEnabled {
   int pin;
 
-  unsigned long lastCall;
+  millisDelay timeDelay;
 
 public:
   bool enabled;
@@ -12,7 +14,7 @@ public:
 
   explicit ButtonEnabled(int pin);
 
-  void setup() const;
+  void setup();
 
   void loop();
 

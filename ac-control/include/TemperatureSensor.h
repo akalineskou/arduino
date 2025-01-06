@@ -1,13 +1,14 @@
 #pragma once
 
 #include <DHT.h>
+#include "millisDelay.h"
 
 class TemperatureSensor {
   int pin;
 
   DHT dht;
-  unsigned long lastCall;
   int sensorFails;
+  millisDelay timeDelay;
 
 public:
   int temperature;

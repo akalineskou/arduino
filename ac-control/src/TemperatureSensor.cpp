@@ -4,8 +4,8 @@
 TemperatureSensor::TemperatureSensor(
   const int pin
 ): pin(pin),
-   dht(pin, DHT22) {
-  lastCall = 0;
+   dht(pin, DHT22),
+   timeDelay(millisDelay()) {
   sensorFails = 0;
   temperature = 0;
   hasChanged = false;
@@ -17,6 +17,9 @@ void TemperatureSensor::setup() {
   readTemperature(true);
 
   D_printf("Sensor %d temperature: %s.\n", pin, formatTemperature(temperature).c_str());
+
+  // get temp readings every 2s
+  timeDelay.start(2 * 1000);
 }
 
 void TemperatureSensor::loop() {
@@ -41,11 +44,10 @@ String TemperatureSensor::formatTemperature(const int temperature) {
 void TemperatureSensor::readTemperature(const bool forceSend) {
   hasChanged = false;
 
-  if (millis() - lastCall < 5 * 1000 && !forceSend) {
-    // get temp readings every 5 seconds
+  if (!timeDelay.justFinished() && !forceSend) {
     return;
   }
-  lastCall = millis();
+  timeDelay.repeat();
 
   const float temperatureFloat = dht.readTemperature();
   if (isnan(temperatureFloat)) {

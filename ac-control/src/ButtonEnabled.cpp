@@ -2,16 +2,20 @@
 #include "ButtonEnabled.h"
 #include "Serial.h"
 
-ButtonEnabled::ButtonEnabled(const int pin): pin(pin) {
-  lastCall = 0;
-
+ButtonEnabled::ButtonEnabled(
+  const int pin
+): pin(pin),
+   timeDelay(millisDelay()) {
   enabled = false;
   hasChanged = false;
   manualChange = false;
 }
 
-void ButtonEnabled::setup() const {
+void ButtonEnabled::setup() {
   pinMode(pin, INPUT);
+
+  // change button value every 2s
+  timeDelay.start(2 * 1000);
 }
 
 void ButtonEnabled::loop() {
@@ -31,11 +35,11 @@ void ButtonEnabled::check() {
       return;
     }
 
-    if (millis() - lastCall < 2 * 1000) {
-      // change button value every 2 seconds
+    if (!timeDelay.justFinished()) {
       return;
     }
-    lastCall = millis();
+
+    timeDelay.repeat();
   } else {
     manualChange = false;
   }

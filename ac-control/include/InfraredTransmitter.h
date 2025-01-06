@@ -1,6 +1,7 @@
 #pragma once
 
 #include <IRsend.h>
+#include "millisDelay.h"
 #include "ACCommand.h"
 #include "IRData.h"
 
@@ -9,7 +10,7 @@ class InfraredTransmitter {
   IRData irData;
 
   IRsend irSend;
-  unsigned long lastCall;
+  millisDelay timeDelay;
 
 public:
   ACCommand lastACCommand;
