@@ -17,10 +17,18 @@ millisDelay rebootDelay;
 // https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html
 Preferences rebootPreferences;
 
+#define PIN_BUTTON_ENABLED 4
+#define PIN_IR_TRANSMITTER 16
+#define PIN_TEMPERATURE_SENSOR_IN_1 0
+#define PIN_TEMPERATURE_SENSOR_OUT_1 13
+
 ACMode acMode(Heat);
-ButtonEnabled buttonEnabled(4);
-InfraredTransmitter infraredTransmitter(16, acMode);
-TemperatureSensorManager temperatureSensorManager(new TemperatureSensor *[1]{new TemperatureSensor(0)}, 1, {}, 0);
+ButtonEnabled buttonEnabled(PIN_BUTTON_ENABLED);
+InfraredTransmitter infraredTransmitter(PIN_IR_TRANSMITTER, acMode);
+TemperatureSensorManager temperatureSensorManager(
+  new TemperatureSensor *[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_IN_1)}, 1,
+  new TemperatureSensor *[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_OUT_1)}, 1
+);
 TemperatureData temperatureData(temperatureSensorManager, acMode);
 ACControl acControl(buttonEnabled, infraredTransmitter, temperatureData);
 WebServerHelper webServerHelper(buttonEnabled, temperatureSensorManager, infraredTransmitter, temperatureData, acMode);
