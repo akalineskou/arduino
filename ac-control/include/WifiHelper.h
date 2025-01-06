@@ -2,5 +2,5 @@
 
 class WifiHelper {
 public:
-  static void setup();
+  static void setup(const char *wifiSSID, const char *wifiPassword);
 };

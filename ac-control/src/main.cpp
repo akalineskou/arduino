@@ -3,13 +3,14 @@
 #include "ACControl.h"
 #include "ACMode.h"
 #include "ButtonEnabled.h"
-// #include "InfraredReceiver.h"
 #include "InfraredTransmitter.h"
+#include "Secrets.h"
 #include "Serial.h"
 #include "TemperatureData.h"
 #include "TemperatureSensorManager.h"
 #include "WebServerHelper.h"
 #include "WifiHelper.h"
+// #include "InfraredReceiver.h"
 
 // https://www.forward.com.au/pfod/ArduinoProgramming/TimingDelaysInArduino.html
 constexpr unsigned long REBOOT_DELAY_MS = 1 * 3600 * 1000;
@@ -49,8 +50,8 @@ void setup() {
   buttonEnabled.setup();
   temperatureSensorManager.setup();
   infraredTransmitter.setup();
-  WifiHelper::setup();
-  webServerHelper.setup();
+  WifiHelper::setup(wifiSSID, wifiPassword);
+  webServerHelper.setup(webServerAuthUsername, webServerAuthPassword);
   // infraredReceiver.setup();
 
   // restore A/C state after reboot

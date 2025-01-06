@@ -1,9 +1,8 @@
 #include <WiFi.h>
-#include "Secrets.h"
 #include "Serial.h"
 #include "WifiHelper.h"
 
-void WifiHelper::setup() {
+void WifiHelper::setup(const char *wifiSSID, const char *wifiPassword) {
   D_printf("Connecting to %s.\n", wifiSSID);
 
   WiFi.begin(wifiSSID, wifiPassword);

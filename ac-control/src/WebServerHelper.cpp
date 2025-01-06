@@ -14,10 +14,14 @@ WebServerHelper::WebServerHelper(
    acMode(acMode) {
 }
 
-void WebServerHelper::setup() {
+void WebServerHelper::setup(const char *webServerAuthUsername, const char *webServerAuthPassword) {
   webServer.begin();
 
-  webServer.on("/", HTTP_GET, [this] {
+  webServer.on("/", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
+    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+      return webServer.requestAuthentication();
+    }
+
     auto html = String(R"==(
 <html>
 <head>
@@ -115,38 +119,62 @@ void WebServerHelper::setup() {
     webServer.send(200, "text/html", html.c_str());
   });
 
-  webServer.on("/enable", HTTP_GET, [this] {
+  webServer.on("/enable", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
+    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+      return webServer.requestAuthentication();
+    }
+
     buttonEnabled.manualChange = true;
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
-  webServer.on("/disable", HTTP_GET, [this] {
+  webServer.on("/disable", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
+    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+      return webServer.requestAuthentication();
+    }
+
     buttonEnabled.manualChange = true;
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
 
-  webServer.on("/increase-target", HTTP_GET, [this] {
+  webServer.on("/increase-target", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
+    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+      return webServer.requestAuthentication();
+    }
+
     temperatureData.temperatureTarget += 0.5 * 10;
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
-  webServer.on("/decrease-target", HTTP_GET, [this] {
+  webServer.on("/decrease-target", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
+    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+      return webServer.requestAuthentication();
+    }
+
     temperatureData.temperatureTarget -= 0.5 * 10;
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
-  webServer.on("/force-ac-start", HTTP_GET, [this] {
+  webServer.on("/force-ac-start", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
+    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+      return webServer.requestAuthentication();
+    }
+
     infraredTransmitter.sendCommand(Start, true);
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
-  webServer.on("/force-ac-stop", HTTP_GET, [this] {
+  webServer.on("/force-ac-stop", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
+    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+      return webServer.requestAuthentication();
+    }
+
     infraredTransmitter.sendCommand(Stop, true);
 
     webServer.sendHeader("Location", "/", true);

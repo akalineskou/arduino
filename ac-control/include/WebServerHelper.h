@@ -24,7 +24,7 @@ public:
     const ACMode &acMode
   );
 
-  void setup();
+  void setup(const char *webServerAuthUsername, const char *webServerAuthPassword);
 
   void loop();
 };

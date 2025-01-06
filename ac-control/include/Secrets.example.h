@@ -1,3 +1,8 @@
-// add you wifi network name and PassPhrase or use WiFi Manager
-const char *wifiSSID = "";
-const char *wifiPassword = "";
+#pragma once
+
+// add you Wi-Fi network name and PassPhrase or use WiFi Manager
+auto wifiSSID = "";
+auto wifiPassword = "";
+
+auto webServerAuthUsername = "";
+auto webServerAuthPassword = "";
