@@ -23,5 +23,5 @@ public:
 
   void setup();
 
-  void sendCommand(ACCommand acCommand, bool forceSend = false);
+  void sendCommand(ACCommand acCommand, bool forceTimeDelay = false, bool forceCommand = false);
 };

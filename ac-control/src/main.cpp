@@ -2,6 +2,7 @@
 #include "millisDelay.h"
 #include "ACControl.h"
 #include "ACMode.h"
+#include "Directive.h"
 #include "InfraredTransmitter.h"
 #include "Secrets.h"
 #include "TemperatureData.h"
@@ -44,6 +45,7 @@ void setup() {
 
   temperatureSensorManager.setup();
   infraredTransmitter.setup();
+  acControl.setup();
   WifiHelper::setup(wifiSSID, wifiPassword);
   webServerHelper.setup(webServerAuthUsername, webServerAuthPassword);
 
@@ -65,6 +67,7 @@ void setup() {
   rebootPreferences.remove("light-toggled");
 
 #if DEBUG
+  Serial.println();
   Serial.printf("Restoring A/C state: %s, temperature target: %d, light toggled: %d\n",
                 ACCommands[infraredTransmitter.lastACCommand], temperatureData.temperatureTarget, infraredTransmitter.lightToggled);
 #endif
@@ -85,6 +88,7 @@ void setup() {
 void loop() {
   if (rebootDelay.justFinished()) {
 #if DEBUG
+    Serial.println();
     Serial.println("Rebooting...");
 #endif
 
@@ -100,6 +104,7 @@ void loop() {
 
 #if DEBUG
     Serial.println("Waiting for watch dog timer...");
+    Serial.println();
 #endif
     delay(3600 * 1000);
   }

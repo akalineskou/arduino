@@ -1,3 +1,4 @@
+#include "Directive.h"
 #include "TemperatureSensor.h"
 
 TemperatureSensor::TemperatureSensor(
@@ -49,8 +50,8 @@ String TemperatureSensor::formatHumidity(const int humidity) {
   return {buffer};
 }
 
-void TemperatureSensor::readTemperature(const bool forceRead) {
-  if (!timeDelay.justFinished() && !forceRead) {
+void TemperatureSensor::readTemperature(const bool forceTimeDelay) {
+  if (!timeDelay.justFinished() && !forceTimeDelay) {
     return;
   }
   timeDelay.repeat();

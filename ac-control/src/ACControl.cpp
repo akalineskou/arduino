@@ -1,4 +1,5 @@
 #include "ACControl.h"
+#include "Directive.h"
 
 ACControl::ACControl(
   InfraredTransmitter &infraredTransmitter,
@@ -7,6 +8,11 @@ ACControl::ACControl(
    temperatureData(temperatureData) {
   enabled = false;
   wasChanged = false;
+}
+
+void ACControl::setup() const {
+  // start with sending off in case of an unexpected reboot (force command since it starts off)
+  infraredTransmitter.sendCommand(Off, true, true);
 }
 
 void ACControl::loop() {

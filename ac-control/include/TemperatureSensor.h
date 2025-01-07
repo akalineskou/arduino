@@ -30,5 +30,5 @@ public:
   static String formatHumidity(int humidity);
 
 private:
-  void readTemperature(bool forceRead = false);
+  void readTemperature(bool forceTimeDelay = false);
 };

@@ -1,3 +1,4 @@
+#include "Directive.h"
 #include "InfraredTransmitter.h"
 
 InfraredTransmitter::InfraredTransmitter(
@@ -19,13 +20,13 @@ void InfraredTransmitter::setup() {
   timeDelay.start(0.5 * 1000);
 }
 
-void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forceSend) {
-  if (!timeDelay.justFinished() && !forceSend) {
+void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forceTimeDelay, const bool forceCommand) {
+  if (!timeDelay.justFinished() && !forceTimeDelay) {
     return;
   }
   timeDelay.repeat();
 
-  if (acCommand == lastACCommand) {
+  if (acCommand == lastACCommand && !forceCommand) {
     // same A/C command, ignoring send
     return;
   }
@@ -48,6 +49,15 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forc
   }
 
   if (acCommand == Off) {
+    // as a backup, before sending off, set temperature to stop values
+    if (acMode == Cold) {
+      // Temp: 30C
+      irSend.setTemp(30);
+    } else {
+      // Temp: 16C
+      irSend.setTemp(16);
+    }
+
     // Power: Off
     irSend.off();
   } else {

@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include "Directive.h"
 #include "WifiHelper.h"
 
 void WifiHelper::setup(const char *wifiSSID, const char *wifiPassword) {

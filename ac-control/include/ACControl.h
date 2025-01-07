@@ -15,11 +15,13 @@ public:
     TemperatureData &temperatureData
   );
 
+  void setup() const;
+
+  void loop();
+
   bool isEnabled() const;
 
   void toggleStatus(bool triggerChange = true);
-
-  void loop();
 
 private:
   void control();
