@@ -8,7 +8,6 @@ TemperatureSensor::TemperatureSensor(
   sensorFails = 0;
   temperature = 0;
   humidity = 0;
-  hasChanged = false;
 }
 
 void TemperatureSensor::setup() {
@@ -16,26 +15,24 @@ void TemperatureSensor::setup() {
 
   readTemperature(true);
 
-#if DEBUG
-  Serial.printf("Sensor %d temperature: %s, humidity: %s.\n", pin, formatTemperature(temperature).c_str(), formatHumidity(humidity).c_str());
-#endif
-
   // get temp readings every 2s
   timeDelay.start(2 * 1000);
 }
 
 void TemperatureSensor::loop() {
   readTemperature();
-
-  if (hasChanged) {
-#if DEBUG
-    Serial.printf("Sensor %d temperature change: %s, humidity: %s.\n", pin, formatTemperature(temperature).c_str(), formatHumidity(humidity).c_str());
-#endif
-  }
 }
 
 bool TemperatureSensor::sensorFailed() const {
   return sensorFails > 10;
+}
+
+int TemperatureSensor::getTemperature() const {
+  return temperature;
+}
+
+int TemperatureSensor::getHumidity() const {
+  return humidity;
 }
 
 String TemperatureSensor::formatTemperature(const int temperature) {
@@ -52,10 +49,8 @@ String TemperatureSensor::formatHumidity(const int humidity) {
   return {buffer};
 }
 
-void TemperatureSensor::readTemperature(const bool forceSend) {
-  hasChanged = false;
-
-  if (!timeDelay.justFinished() && !forceSend) {
+void TemperatureSensor::readTemperature(const bool forceRead) {
+  if (!timeDelay.justFinished() && !forceRead) {
     return;
   }
   timeDelay.repeat();
@@ -79,8 +74,16 @@ void TemperatureSensor::readTemperature(const bool forceSend) {
     return;
   }
 
-  temperature = temperatureInt;
-  humidity = static_cast<int>(round(dht.readHumidity() * 10));
+  const int humidityInt = static_cast<int>(round(dht.readHumidity() * 10));
 
-  hasChanged = true;
+#if DEBUG
+  const int temperatureDiff = temperatureInt - temperature;
+
+  Serial.printf(
+    "Sensor %d temperature change: %s (%s%s), humidity: %s.\n", pin, formatTemperature(temperature).c_str(),
+    temperatureDiff < 0 ? "" : "+", formatTemperature(temperatureDiff).c_str(), formatHumidity(humidityInt).c_str());
+#endif
+
+  temperature = temperatureInt;
+  humidity = humidityInt;
 }

@@ -40,7 +40,7 @@ int TemperatureSensorManager::temperatureIn() const {
   int temperature = 0;
 
   for (int i = 0; i < sensorsInWithCount.count; i++) {
-    temperature += sensorsInWithCount.temperatureSensors[i]->temperature;
+    temperature += sensorsInWithCount.temperatureSensors[i]->getTemperature();
   }
 
   return temperature / sensorsInWithCount.count;
@@ -57,7 +57,7 @@ int TemperatureSensorManager::temperatureOut() const {
   int temperature = 0;
 
   for (int i = 0; i < sensorsOutWithCount.count; i++) {
-    temperature += sensorsOutWithCount.temperatureSensors[i]->temperature;
+    temperature += sensorsOutWithCount.temperatureSensors[i]->getTemperature();
   }
 
   return temperature / sensorsOutWithCount.count;
@@ -74,7 +74,7 @@ int TemperatureSensorManager::humidityIn() const {
   int humidity = 0;
 
   for (int i = 0; i < sensorsInWithCount.count; i++) {
-    humidity += sensorsInWithCount.temperatureSensors[i]->humidity;
+    humidity += sensorsInWithCount.temperatureSensors[i]->getHumidity();
   }
 
   return humidity / sensorsInWithCount.count;
@@ -91,7 +91,7 @@ int TemperatureSensorManager::humidityOut() const {
   int humidity = 0;
 
   for (int i = 0; i < sensorsOutWithCount.count; i++) {
-    humidity += sensorsOutWithCount.temperatureSensors[i]->humidity;
+    humidity += sensorsOutWithCount.temperatureSensors[i]->getHumidity();
   }
 
   return humidity / sensorsOutWithCount.count;

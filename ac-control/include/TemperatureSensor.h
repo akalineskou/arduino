@@ -9,12 +9,10 @@ class TemperatureSensor {
   DHT dht;
   int sensorFails;
   millisDelay timeDelay;
-
-public:
   int temperature;
   int humidity;
-  bool hasChanged;
 
+public:
   explicit TemperatureSensor(int pin);
 
   void setup();
@@ -23,10 +21,14 @@ public:
 
   bool sensorFailed() const;
 
+  int getTemperature() const;
+
+  int getHumidity() const;
+
   static String formatTemperature(int temperature);
 
   static String formatHumidity(int humidity);
 
 private:
-  void readTemperature(bool forceSend = false);
+  void readTemperature(bool forceRead = false);
 };
