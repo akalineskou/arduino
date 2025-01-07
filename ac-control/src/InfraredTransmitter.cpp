@@ -1,5 +1,4 @@
 #include "InfraredTransmitter.h"
-#include "Serial.h"
 
 InfraredTransmitter::InfraredTransmitter(
   const int pin,
@@ -74,8 +73,10 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forc
     }
   }
 
-  D_printf("Sending A/C command: %s.\n", ACCommands[acCommand]);
-  D_println(irSend.toString().c_str());
+#if DEBUG
+  Serial.printf("Sending A/C command: %s.\n", ACCommands[acCommand]);
+  Serial.println(irSend.toString().c_str());
+#endif
 
   irSend.send();
 }

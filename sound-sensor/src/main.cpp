@@ -1,20 +1,5 @@
 #include <Arduino.h>
 
-#define DEBUG 0
-#define PLOT 0
-
-#if DEBUG
-#define D_SerialBegin(...) Serial.begin(__VA_ARGS__);
-#define D_print(...)  Serial.print(__VA_ARGS__)
-#define D_println(...)  Serial.println(__VA_ARGS__)
-#define D_printf(...)  Serial.printf(__VA_ARGS__)
-#else
-#define D_SerialBegin(bauds)
-#define D_print(...)
-#define D_println(...)
-#define D_printf(...)
-#endif
-
 #define SOUND_SENSOR_PIN 2
 #define SOUND_SAMPLES 768
 #define SOUND_MIN_THRESHOLD 50
@@ -100,7 +85,9 @@ void bayo() {
 }
 
 void setup() {
-  D_SerialBegin(115200);
+#if DEBUG || PLOT
+  Serial.begin(115200);
+#endif
 
   pinMode(SOUND_SENSOR_PIN, INPUT);
 
@@ -108,7 +95,9 @@ void setup() {
     led.setup();
   }
 
-  if (!PLOT) D_println("Setup done");
+#if DEBUG && !PLOT
+  Serial.println("Setup done");
+#endif
 
   bayo();
 }
@@ -120,7 +109,9 @@ void loop() {
   }
   const int soundAverage = soundTotal / SOUND_SAMPLES;
 
-  if (PLOT) D_printf("Dum:%d,Average:%d\n", DUM_THRESHOLD, soundAverage);
+#if PLOT
+  Serial.printf("Dum:%d,Average:%d\n", DUM_THRESHOLD, soundAverage);
+#endif
 
   if (soundAverage < SOUND_MIN_THRESHOLD) {
     // treat as not playing below this threshold
@@ -131,9 +122,13 @@ void loop() {
     return;
   }
 
-  if (!PLOT) D_printf("Sound average: %d\n", soundAverage);
+#if DEBUG && !PLOT
+  Serial.printf("Sound average: %d\n", soundAverage);
+#endif
 
-  if (!PLOT) D_println("tek");
+#if DEBUG && !PLOT
+  Serial.println("tek");
+#endif
 
   for (auto led: tek) {
     led.turnOn();
@@ -143,7 +138,9 @@ void loop() {
     return;
   }
 
-  if (!PLOT) D_println("dum");
+#if DEBUG && !PLOT
+  Serial.println("dum");
+#endif
 
   for (auto led: dum) {
     led.turnOn();

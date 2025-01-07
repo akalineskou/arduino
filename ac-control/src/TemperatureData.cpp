@@ -1,4 +1,3 @@
-#include "Serial.h"
 #include "TemperatureData.h"
 
 TemperatureData::TemperatureData(
@@ -27,7 +26,9 @@ int TemperatureData::temperatureStartReached() const {
   }
 
   if (temperatureStartReached) {
-    D_printf("Temperature start %s reached.\n", TemperatureSensor::formatTemperature(temperatureTargetStart()).c_str());
+#if DEBUG
+    Serial.printf("Temperature start %s reached.\n", TemperatureSensor::formatTemperature(temperatureTargetStart()).c_str());
+#endif
   }
 
   return temperatureStartReached;
@@ -43,7 +44,9 @@ int TemperatureData::temperatureStopReached() const {
   }
 
   if (temperatureStopReached) {
-    D_printf("Temperature stop %s reached.\n", TemperatureSensor::formatTemperature(temperatureTargetStop()).c_str());
+#if DEBUG
+    Serial.printf("Temperature stop %s reached.\n", TemperatureSensor::formatTemperature(temperatureTargetStop()).c_str());
+#endif
   }
 
   return temperatureStopReached;

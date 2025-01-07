@@ -5,7 +5,6 @@
 #include "ButtonEnabled.h"
 #include "InfraredTransmitter.h"
 #include "Secrets.h"
-#include "Serial.h"
 #include "TemperatureData.h"
 #include "TemperatureSensorManager.h"
 #include "WebServerHelper.h"
@@ -34,10 +33,12 @@ ACControl acControl(buttonEnabled, infraredTransmitter, temperatureData);
 WebServerHelper webServerHelper(buttonEnabled, temperatureSensorManager, infraredTransmitter, temperatureData, acMode);
 
 void setup() {
-  D_SerialBegin(115200);
+#if DEBUG
+  Serial.begin(115200);
 
   // wait for serial monitor to start completely.
   delay(2500);
+#endif
 
   rebootDelay.start(REBOOT_DELAY_MS);
   enableLoopWDT();
@@ -66,7 +67,10 @@ void setup() {
   infraredTransmitter.lightToggled = rebootPreferences.getBool("light-toggled");
   rebootPreferences.remove("light-toggled");
 
-  D_printf("Restoring A/C state: %s, temperature target: %d\n", ACCommands[infraredTransmitter.lastACCommand], temperatureData.temperatureTarget);
+#if DEBUG
+  Serial.printf("Restoring A/C state: %s, temperature target: %d\n", ACCommands[infraredTransmitter.lastACCommand],
+                temperatureData.temperatureTarget);
+#endif
 
   if (acState == ACCommands[Off]) {
     return;
@@ -83,16 +87,22 @@ void setup() {
 
 void loop() {
   if (rebootDelay.justFinished()) {
-    D_println("Rebooting...");
+#if DEBUG
+    Serial.println("Rebooting...");
+#endif
 
     // save A/C state to restore after reboot
     rebootPreferences.putString("ac-state", ACCommands[infraredTransmitter.lastACCommand]);
     rebootPreferences.putInt("temp-target", temperatureData.temperatureTarget);
     rebootPreferences.putBool("light-toggled", infraredTransmitter.lightToggled);
 
-    D_printf("Saving A/C state: %s, temperature target: %d\n", ACCommands[infraredTransmitter.lastACCommand], temperatureData.temperatureTarget);
+#if DEBUG
+    Serial.printf("Saving A/C state: %s, temperature target: %d\n", ACCommands[infraredTransmitter.lastACCommand], temperatureData.temperatureTarget);
+#endif
 
-    D_println("Waiting for watch dog timer...");
+#if DEBUG
+    Serial.println("Waiting for watch dog timer...");
+#endif
     delay(3600 * 1000);
   }
 

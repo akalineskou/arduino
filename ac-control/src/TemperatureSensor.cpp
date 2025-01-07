@@ -1,4 +1,3 @@
-#include "Serial.h"
 #include "TemperatureSensor.h"
 
 TemperatureSensor::TemperatureSensor(
@@ -17,7 +16,9 @@ void TemperatureSensor::setup() {
 
   readTemperature(true);
 
-  D_printf("Sensor %d temperature: %s, humidity: %s.\n", pin, formatTemperature(temperature).c_str(), formatHumidity(humidity).c_str());
+#if DEBUG
+  Serial.printf("Sensor %d temperature: %s, humidity: %s.\n", pin, formatTemperature(temperature).c_str(), formatHumidity(humidity).c_str());
+#endif
 
   // get temp readings every 2s
   timeDelay.start(2 * 1000);
@@ -27,7 +28,9 @@ void TemperatureSensor::loop() {
   readTemperature();
 
   if (hasChanged) {
-    D_printf("Sensor %d temperature change: %s, humidity: %s.\n", pin, formatTemperature(temperature).c_str(), formatHumidity(humidity).c_str());
+#if DEBUG
+    Serial.printf("Sensor %d temperature change: %s, humidity: %s.\n", pin, formatTemperature(temperature).c_str(), formatHumidity(humidity).c_str());
+#endif
   }
 }
 
@@ -59,7 +62,9 @@ void TemperatureSensor::readTemperature(const bool forceSend) {
 
   const float temperatureFloat = dht.readTemperature();
   if (isnan(temperatureFloat)) {
-    D_printf("Failed to read temperature from sensor %d!\n", pin);
+#if DEBUG
+    Serial.printf("Failed to read temperature from sensor %d!\n", pin);
+#endif
 
     sensorFails++;
 
