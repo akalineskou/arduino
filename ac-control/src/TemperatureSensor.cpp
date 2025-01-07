@@ -1,7 +1,7 @@
 #include "Directive.h"
 #include "TemperatureSensor.h"
 
-TemperatureSensor::TemperatureSensor(const int pin) : pin(pin), dht(pin, DHT22), timeDelay(TimeDelay(2 * 1000)) {
+TemperatureSensor::TemperatureSensor(const int pin) : pin(pin), dht(pin, DHT22), timeDelay(TimeDelay(2 * 1000, true)) {
   sensorFails = 0;
   temperature = 0;
   humidity = 0;
@@ -44,7 +44,7 @@ String TemperatureSensor::formatHumidity(const int humidity) {
 }
 
 void TemperatureSensor::readTemperature(const bool forceTimeDelay) {
-  if (!timeDelay.finished(forceTimeDelay, true)) {
+  if (!timeDelay.delayPassed(forceTimeDelay)) {
     return;
   }
 
@@ -78,7 +78,8 @@ void TemperatureSensor::readTemperature(const bool forceTimeDelay) {
     formatTemperature(temperature).c_str(),
     temperatureDiff < 0 ? "" : "+",
     formatTemperature(temperatureDiff).c_str(),
-    formatHumidity(humidityInt).c_str());
+    formatHumidity(humidityInt).c_str()
+  );
 #endif
 
   temperature = temperatureInt;

@@ -2,13 +2,15 @@
 
 class TimeDelay {
   unsigned long delay;
-  unsigned long startTime = -1;
-  unsigned long running = false;
+  bool repeat;
+  bool forceFirstRun;
+  unsigned long startTime = 0;
+  bool running = false;
 
  public:
-  explicit TimeDelay(unsigned long delay);
+  explicit TimeDelay(unsigned long delay, bool repeat);
 
-  bool finished(bool force = false, bool restart = false);
+  bool delayPassed(bool force = false);
 
  private:
   void start();

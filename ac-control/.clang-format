@@ -1,6 +1,7 @@
 BasedOnStyle: Chromium
 Language: Cpp
-AlignAfterOpenBracket: AlwaysBreak
+AllowAllArgumentsOnNextLine: false
+AlignAfterOpenBracket: BlockIndent
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignConsecutiveMacros: false
@@ -17,7 +18,7 @@ AlwaysBreakAfterDefinitionReturnType: None
 BreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: true
 BinPackArguments: false
-BinPackParameters: false
+BinPackParameters: OnePerLine
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Attach
 BreakBeforeTernaryOperators: true

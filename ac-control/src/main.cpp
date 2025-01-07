@@ -12,7 +12,8 @@
 #include "WifiHelper.h"
 
 Preferences rebootPreferences;
-TimeDelay rebootTimeDelay(12 * 3600 * 1000);
+TimeDelay rebootTimeDelay(12 * 60 * 60 * 1000, false);
+TimeDelay statsTimeDelay(5 * 60 * 1000, true);
 
 ACMode acMode(Heat);
 InfraredTransmitter infraredTransmitter(23, acMode);
@@ -88,7 +89,13 @@ void setup() {
 }
 
 void loop() {
-  if (rebootTimeDelay.finished()) {
+#if DEBUG
+  if (statsTimeDelay.delayPassed()) {
+    Serial.printf("Heap: %u / %u\n", ESP.getFreeHeap(), ESP.getHeapSize());
+  }
+#endif
+
+  if (rebootTimeDelay.delayPassed()) {
 #if DEBUG
     Serial.println("Rebooting...");
 #endif

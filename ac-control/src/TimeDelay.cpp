@@ -2,19 +2,37 @@
 
 #include "TimeDelay.h"
 
-TimeDelay::TimeDelay(const unsigned long delay) : delay(delay) {
+TimeDelay::TimeDelay(const unsigned long delay, const bool repeat)
+    : delay(delay), repeat(repeat), forceFirstRun(repeat) {
   start();
 }
 
-bool TimeDelay::finished(const bool force, const bool restart) {
-  if (running && (force || millis() - startTime >= delay)) {
-    // don't stop and restart if forced finished
-    if (!force) {
-      running = false;
+bool TimeDelay::delayPassed(const bool force) {
+  if (!running) {
+    return false;
+  }
 
-      if (restart) {
-        start();
-      }
+  if (force) {
+    return true;
+  }
+
+  bool delayPassed = false;
+
+  if (forceFirstRun) {
+    forceFirstRun = false;
+
+    delayPassed = true;
+  }
+
+  if (millis() - startTime >= delay) {
+    delayPassed = true;
+  }
+
+  if (delayPassed) {
+    running = false;
+
+    if (repeat) {
+      start();
     }
 
     return true;

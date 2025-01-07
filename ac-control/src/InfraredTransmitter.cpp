@@ -2,7 +2,7 @@
 #include "InfraredTransmitter.h"
 
 InfraredTransmitter::InfraredTransmitter(const int pin, const ACMode& acMode)
-    : pin(pin), acMode(acMode), irSend(pin), timeDelay(TimeDelay(0.5 * 1000)) {
+    : pin(pin), acMode(acMode), irSend(pin), timeDelay(TimeDelay(0.5 * 1000, true)) {
   lastACCommand = Off;
 
   lightToggled = false;
@@ -13,7 +13,7 @@ void InfraredTransmitter::setup() {
 }
 
 void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forceTimeDelay, const bool forceCommand) {
-  if (!timeDelay.finished(forceTimeDelay, true)) {
+  if (!timeDelay.delayPassed(forceTimeDelay)) {
     return;
   }
 
