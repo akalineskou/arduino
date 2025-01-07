@@ -23,5 +23,5 @@ class TemperatureData {
 
   int temperatureTargetStop() const;
 
-  bool temperatureSensorsInFailed() const;
+  bool temperatureSensorsFailed() const;
 };

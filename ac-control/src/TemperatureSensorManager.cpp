@@ -1,107 +1,56 @@
 #include "TemperatureSensorManager.h"
 
-TemperatureSensorManager::TemperatureSensorManager(
-  TemperatureSensor** temperatureSensorsIn,
-  const int countIn,
-  TemperatureSensor** temperatureSensorsOut,
-  const int countOut)
-    : temperatureSensorsIn(temperatureSensorsIn),
-      countIn(countIn),
-      temperatureSensorsOut(temperatureSensorsOut),
-      countOut(countOut) {}
+TemperatureSensorManager::TemperatureSensorManager(TemperatureSensor** temperatureSensors, const int count)
+    : temperatureSensors(temperatureSensors), count(count) {}
 
 void TemperatureSensorManager::setup() const {
-  for (int i = 0; i < countIn; i++) {
-    temperatureSensorsIn[i]->setup();
-  }
-  for (int i = 0; i < countOut; i++) {
-    temperatureSensorsOut[i]->setup();
+  for (int i = 0; i < count; i++) {
+    temperatureSensors[i]->setup();
   }
 }
 
 void TemperatureSensorManager::loop() const {
-  for (int i = 0; i < countIn; i++) {
-    temperatureSensorsIn[i]->loop();
-  }
-  for (int i = 0; i < countOut; i++) {
-    temperatureSensorsOut[i]->loop();
+  for (int i = 0; i < count; i++) {
+    temperatureSensors[i]->loop();
   }
 }
 
-int TemperatureSensorManager::temperatureIn() const {
-  const auto sensorsInWithCount = filterSensorsNotFailed(temperatureSensorsIn, countIn);
+int TemperatureSensorManager::temperature() const {
+  const auto sensorsWithCount = filterSensorsNotFailed(temperatureSensors, count);
 
-  if (0 == sensorsInWithCount.count) {
+  if (0 == sensorsWithCount.count) {
     return 0;
   }
 
   // average
   int temperature = 0;
 
-  for (int i = 0; i < sensorsInWithCount.count; i++) {
-    temperature += sensorsInWithCount.temperatureSensors[i]->getTemperature();
+  for (int i = 0; i < sensorsWithCount.count; i++) {
+    temperature += sensorsWithCount.temperatureSensors[i]->getTemperature();
   }
 
-  return temperature / sensorsInWithCount.count;
+  return temperature / sensorsWithCount.count;
 }
 
-int TemperatureSensorManager::temperatureOut() const {
-  const auto sensorsOutWithCount = filterSensorsNotFailed(temperatureSensorsOut, countOut);
+int TemperatureSensorManager::humidity() const {
+  const auto sensorsWithCount = filterSensorsNotFailed(temperatureSensors, count);
 
-  if (0 == sensorsOutWithCount.count) {
-    return 0;
-  }
-
-  // average
-  int temperature = 0;
-
-  for (int i = 0; i < sensorsOutWithCount.count; i++) {
-    temperature += sensorsOutWithCount.temperatureSensors[i]->getTemperature();
-  }
-
-  return temperature / sensorsOutWithCount.count;
-}
-
-int TemperatureSensorManager::humidityIn() const {
-  const auto sensorsInWithCount = filterSensorsNotFailed(temperatureSensorsIn, countIn);
-
-  if (0 == sensorsInWithCount.count) {
+  if (0 == sensorsWithCount.count) {
     return 0;
   }
 
   // average
   int humidity = 0;
 
-  for (int i = 0; i < sensorsInWithCount.count; i++) {
-    humidity += sensorsInWithCount.temperatureSensors[i]->getHumidity();
+  for (int i = 0; i < sensorsWithCount.count; i++) {
+    humidity += sensorsWithCount.temperatureSensors[i]->getHumidity();
   }
 
-  return humidity / sensorsInWithCount.count;
+  return humidity / sensorsWithCount.count;
 }
 
-int TemperatureSensorManager::humidityOut() const {
-  const auto sensorsOutWithCount = filterSensorsNotFailed(temperatureSensorsOut, countOut);
-
-  if (0 == sensorsOutWithCount.count) {
-    return 0;
-  }
-
-  // average
-  int humidity = 0;
-
-  for (int i = 0; i < sensorsOutWithCount.count; i++) {
-    humidity += sensorsOutWithCount.temperatureSensors[i]->getHumidity();
-  }
-
-  return humidity / sensorsOutWithCount.count;
-}
-
-bool TemperatureSensorManager::sensorsInFailed() const {
-  return 0 == filterSensorsNotFailed(temperatureSensorsIn, countIn).count;
-}
-
-bool TemperatureSensorManager::sensorsOutFailed() const {
-  return 0 == filterSensorsNotFailed(temperatureSensorsOut, countOut).count;
+bool TemperatureSensorManager::sensorsFailed() const {
+  return 0 == filterSensorsNotFailed(temperatureSensors, count).count;
 }
 
 TemperatureSensorsWithCount TemperatureSensorManager::filterSensorsNotFailed(

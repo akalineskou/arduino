@@ -33,9 +33,9 @@ void ACControl::control() {
     return;
   }
 
-  if (temperatureData.temperatureSensorsInFailed()) {
+  if (temperatureData.temperatureSensorsFailed()) {
 #if DEBUG
-    Serial.println("Temperature sensors in failed.");
+    Serial.println("Temperature sensors failed.");
 #endif
 
     disable();

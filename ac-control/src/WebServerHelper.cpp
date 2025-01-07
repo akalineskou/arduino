@@ -71,15 +71,10 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
   <br>
 
   <p>
-    Temperature: <b>__TEMPERATURE_IN__</b> <small>(__TEMPERATURE_OUT__)</small>
+    Temperature: <b>__TEMPERATURE__</b> (<small>__HUMIDITY__</small>)
   </p>
   <p>
     __TEMPERATURE_START_STOP__
-  </p>
-  <br>
-
-  <p>
-    Humidity: <b>__HUMIDITY_IN__</b> <small>(__HUMIDITY_OUT__)</small>
   </p>
 </body>
     )==");
@@ -91,11 +86,8 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     html.replace("__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
 
     html.replace(
-      "__TEMPERATURE_IN__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureIn()).c_str());
-    html.replace(
-      "__TEMPERATURE_OUT__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureOut()).c_str());
-    html.replace("__HUMIDITY_IN__", TemperatureSensor::formatHumidity(temperatureSensorManager.humidityIn()).c_str());
-    html.replace("__HUMIDITY_OUT__", TemperatureSensor::formatHumidity(temperatureSensorManager.humidityOut()).c_str());
+      "__TEMPERATURE__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperature()).c_str());
+    html.replace("__HUMIDITY__", TemperatureSensor::formatHumidity(temperatureSensorManager.humidity()).c_str());
 
     html.replace(
       "__TEMPERATURE_TARGET__", TemperatureSensor::formatTemperature(temperatureData.temperatureTarget).c_str());

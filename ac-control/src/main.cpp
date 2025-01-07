@@ -14,17 +14,9 @@
 Preferences rebootPreferences;
 TimeDelay rebootTimeDelay(12 * 3600 * 1000);
 
-#define PIN_IR_TRANSMITTER 23
-#define PIN_TEMPERATURE_SENSOR_IN_1 32
-#define PIN_TEMPERATURE_SENSOR_OUT_1 22
-
 ACMode acMode(Heat);
-InfraredTransmitter infraredTransmitter(PIN_IR_TRANSMITTER, acMode);
-TemperatureSensorManager temperatureSensorManager(
-  new TemperatureSensor*[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_IN_1)},
-  1,
-  new TemperatureSensor*[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_OUT_1)},
-  1);
+InfraredTransmitter infraredTransmitter(23, acMode);
+TemperatureSensorManager temperatureSensorManager(new TemperatureSensor*[1]{new TemperatureSensor(32)}, 1);
 TemperatureData temperatureData(temperatureSensorManager, acMode);
 ACControl acControl(infraredTransmitter, temperatureData);
 WebServerHelper webServerHelper(acControl, temperatureSensorManager, infraredTransmitter, temperatureData, acMode);

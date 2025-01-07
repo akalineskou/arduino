@@ -18,9 +18,9 @@ int TemperatureData::temperatureStartReached() const {
   bool temperatureStartReached;
 
   if (acMode == Cold) {
-    temperatureStartReached = temperatureSensorManager.temperatureIn() > temperatureTargetStart();
+    temperatureStartReached = temperatureSensorManager.temperature() > temperatureTargetStart();
   } else {
-    temperatureStartReached = temperatureSensorManager.temperatureIn() < temperatureTargetStart();
+    temperatureStartReached = temperatureSensorManager.temperature() < temperatureTargetStart();
   }
 
   if (temperatureStartReached) {
@@ -37,9 +37,9 @@ int TemperatureData::temperatureStopReached() const {
   bool temperatureStopReached;
 
   if (acMode == Cold) {
-    temperatureStopReached = temperatureSensorManager.temperatureIn() < temperatureTargetStop();
+    temperatureStopReached = temperatureSensorManager.temperature() < temperatureTargetStop();
   } else {
-    temperatureStopReached = temperatureSensorManager.temperatureIn() > temperatureTargetStop();
+    temperatureStopReached = temperatureSensorManager.temperature() > temperatureTargetStop();
   }
 
   if (temperatureStopReached) {
@@ -60,6 +60,6 @@ int TemperatureData::temperatureTargetStop() const {
   return temperatureTarget + temperatureStop;
 }
 
-bool TemperatureData::temperatureSensorsInFailed() const {
-  return temperatureSensorManager.sensorsInFailed();
+bool TemperatureData::temperatureSensorsFailed() const {
+  return temperatureSensorManager.sensorsFailed();
 }

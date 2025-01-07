@@ -8,30 +8,21 @@ struct TemperatureSensorsWithCount {
 };
 
 class TemperatureSensorManager {
-  TemperatureSensor** temperatureSensorsIn;
-  int countIn;
-  TemperatureSensor** temperatureSensorsOut;
-  int countOut;
+  TemperatureSensor** temperatureSensors;
+  int count;
 
  public:
-  explicit TemperatureSensorManager(
-    TemperatureSensor** temperatureSensorsIn, int countIn, TemperatureSensor** temperatureSensorsOut, int countOut);
+  explicit TemperatureSensorManager(TemperatureSensor** temperatureSensors, int count);
 
   void setup() const;
 
   void loop() const;
 
-  int temperatureIn() const;
+  int temperature() const;
 
-  int temperatureOut() const;
+  int humidity() const;
 
-  int humidityIn() const;
-
-  int humidityOut() const;
-
-  bool sensorsInFailed() const;
-
-  bool sensorsOutFailed() const;
+  bool sensorsFailed() const;
 
  private:
   static TemperatureSensorsWithCount filterSensorsNotFailed(TemperatureSensor** temperatureSensors, int maxCount);
