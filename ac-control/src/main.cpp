@@ -11,9 +11,8 @@
 #include "WebServerHelper.h"
 #include "WifiHelper.h"
 
-constexpr unsigned long REBOOT_DELAY_MS = 12 * 3600 * 1000;
-TimeDelay rebootTimeDelay(REBOOT_DELAY_MS);
 Preferences rebootPreferences;
+TimeDelay rebootTimeDelay(12 * 3600 * 1000);
 
 #define PIN_IR_TRANSMITTER 23
 #define PIN_TEMPERATURE_SENSOR_IN_1 32
@@ -43,9 +42,13 @@ void setup() {
   // https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html
   rebootPreferences.begin("reboot", false);
 
+  bool isReboot = false;
+
   // restore data after reboot
   if (rebootPreferences.isKey("is-reboot")) {
     rebootPreferences.remove("is-reboot");
+
+    isReboot = true;
 
 #if DEBUG
     Serial.println();
@@ -75,16 +78,21 @@ void setup() {
 #if DEBUG
     Serial.printf("Restoring temperatureData.temperatureTarget %d.\n", temperatureData.temperatureTarget);
 #endif
-  } else {
-    // start with sending off in case of an unexpected reboot (force command
-    // since it starts off)
-    infraredTransmitter.sendCommand(Off, true, true);
   }
 
   temperatureSensorManager.setup();
   infraredTransmitter.setup();
   WifiHelper::setup(wifiSSID, wifiPassword);
   webServerHelper.setup(webServerAuthUsername, webServerAuthPassword);
+
+  if (!isReboot) {
+#if DEBUG
+    Serial.println("Turning off A/C on start.");
+#endif
+
+    // start with sending Οff in case of an unexpected reboot (force command since it starts Οff)
+    infraredTransmitter.sendCommand(Off, true, true);
+  }
 }
 
 void loop() {

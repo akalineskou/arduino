@@ -138,6 +138,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 #endif
 
     acControl.enable();
+
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });

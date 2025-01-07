@@ -46,5 +46,8 @@ void ACControl::control() {
     infraredTransmitter.sendCommand(Start);
   } else if (infraredTransmitter.lastACCommand != Stop && temperatureData.temperatureStopReached()) {
     infraredTransmitter.sendCommand(Stop);
+  } else if (infraredTransmitter.lastACCommand == Off) {
+    // was off and temperature is between thresholds, turn on A/C with stop as to not run
+    infraredTransmitter.sendCommand(Stop);
   }
 }
