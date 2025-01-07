@@ -1,18 +1,10 @@
 #include "WebServerHelper.h"
+#include "Directive.h"
 
-WebServerHelper::WebServerHelper(
-  ACControl &acControl,
-  TemperatureSensorManager &temperatureSensorManager,
-  InfraredTransmitter &infraredTransmitter,
-  TemperatureData &temperatureData,
-  const ACMode &acMode
-): webServer(80),
-   acControl(acControl),
-   temperatureSensorManager(temperatureSensorManager),
-   infraredTransmitter(infraredTransmitter),
-   temperatureData(temperatureData),
-   acMode(acMode) {
-}
+WebServerHelper::WebServerHelper(ACControl &acControl, TemperatureSensorManager &temperatureSensorManager, InfraredTransmitter &infraredTransmitter,
+                                 TemperatureData &temperatureData, const ACMode &acMode) :
+    webServer(80), acControl(acControl), temperatureSensorManager(temperatureSensorManager), infraredTransmitter(infraredTransmitter),
+    temperatureData(temperatureData), acMode(acMode) {}
 
 void WebServerHelper::setup(const char *webServerAuthUsername, const char *webServerAuthPassword) {
   webServer.begin();
@@ -22,12 +14,16 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
       return webServer.requestAuthentication();
     }
 
+#if DEBUG
+    Serial.println("GET /");
+#endif
+
     auto html = String(R"==(
 <html>
 <head>
   <title>A/C Control</title>
   <meta charset="utf-8">
-  <meta http-equiv="refresh" content="10">
+  <!--<meta http-equiv="refresh" content="10">-->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/3274/3274588.png" />
   <style>
@@ -80,10 +76,8 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
 </body>
     )==");
 
-    html.replace("__AC_CONTROL_STATUS__", acControl.isEnabled()
-                                            ? R"==(<b>Enabled</b> (<a href="/disable">Disable</a>))=="
-                                            : R"==(<b>Disabled</b> (<a href="/enable">Enable</a>))=="
-    );
+    html.replace("__AC_CONTROL_STATUS__", acControl.enabled ? R"==(<b>Enabled</b> (<a href="/disable">Disable</a>))=="
+                                                            : R"==(<b>Disabled</b> (<a href="/enable">Enable</a>))==");
     html.replace("__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
 
     html.replace("__TEMPERATURE_IN__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureIn()).c_str());
@@ -93,26 +87,18 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
 
     html.replace("__TEMPERATURE_TARGET__", TemperatureSensor::formatTemperature(temperatureData.temperatureTarget).c_str());
     if (acMode == Cold) {
-      html.replace(
-        "__TEMPERATURE_START_STOP__",
-        "Stop <small>&lt;</small> <b>__TEMPERATURE_STOP__</b> &nbsp; | &nbsp; Start <small>&gt;</small> <b>__TEMPERATURE_START__</b>"
-      );
+      html.replace("__TEMPERATURE_START_STOP__",
+                   "Stop <small>&lt;</small> <b>__TEMPERATURE_STOP__</b> &nbsp; | &nbsp; Start <small>&gt;</small> <b>__TEMPERATURE_START__</b>");
     } else {
-      html.replace(
-        "__TEMPERATURE_START_STOP__",
-        "Start <b><small>&lt;</small> __TEMPERATURE_START__</b> &nbsp; | &nbsp; Stop <b><small>&gt;</small> __TEMPERATURE_STOP__</b>"
-      );
+      html.replace("__TEMPERATURE_START_STOP__",
+                   "Start <b><small>&lt;</small> __TEMPERATURE_START__</b> &nbsp; | &nbsp; Stop <b><small>&gt;</small> __TEMPERATURE_STOP__</b>");
     }
     html.replace("__TEMPERATURE_START__", TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStart()).c_str());
     html.replace("__TEMPERATURE_STOP__", TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStop()).c_str());
-    html.replace(
-      "__TARGET_TEMPERATURE_INCREASE__",
-      TemperatureSensor::formatTemperature(temperatureData.temperatureTarget + static_cast<int>(0.5 * 10)).c_str()
-    );
-    html.replace(
-      "__TARGET_TEMPERATURE_DECREASE__",
-      TemperatureSensor::formatTemperature(temperatureData.temperatureTarget - static_cast<int>(0.5 * 10)).c_str()
-    );
+    html.replace("__TARGET_TEMPERATURE_INCREASE__",
+                 TemperatureSensor::formatTemperature(temperatureData.temperatureTarget + static_cast<int>(0.5 * 10)).c_str());
+    html.replace("__TARGET_TEMPERATURE_DECREASE__",
+                 TemperatureSensor::formatTemperature(temperatureData.temperatureTarget - static_cast<int>(0.5 * 10)).c_str());
 
     webServer.send(200, "text/html", html.c_str());
   });
@@ -122,8 +108,11 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
       return webServer.requestAuthentication();
     }
 
-    acControl.toggleStatus();
+#if DEBUG
+    Serial.println("GET /enable");
+#endif
 
+    acControl.enable();
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
@@ -132,7 +121,11 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
       return webServer.requestAuthentication();
     }
 
-    acControl.toggleStatus();
+#if DEBUG
+    Serial.println("GET /disable");
+#endif
+
+    acControl.disable();
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
@@ -142,6 +135,10 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
     if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
       return webServer.requestAuthentication();
     }
+
+#if DEBUG
+    Serial.println("GET /increase-target");
+#endif
 
     temperatureData.temperatureTarget += 0.5 * 10;
 
@@ -153,6 +150,10 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
       return webServer.requestAuthentication();
     }
 
+#if DEBUG
+    Serial.println("GET /decrease-target");
+#endif
+
     temperatureData.temperatureTarget -= 0.5 * 10;
 
     webServer.sendHeader("Location", "/", true);
@@ -163,6 +164,10 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
       return webServer.requestAuthentication();
     }
 
+#if DEBUG
+    Serial.println("GET /force-ac-start");
+#endif
+
     infraredTransmitter.sendCommand(Start, true);
 
     webServer.sendHeader("Location", "/", true);
@@ -172,6 +177,10 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
     if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
       return webServer.requestAuthentication();
     }
+
+#if DEBUG
+    Serial.println("GET /force-ac-stop");
+#endif
 
     infraredTransmitter.sendCommand(Stop, true);
 
@@ -195,6 +204,4 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
   });
 }
 
-void WebServerHelper::loop() {
-  webServer.handleClient();
-}
+void WebServerHelper::loop() { webServer.handleClient(); }

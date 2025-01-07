@@ -7,7 +7,7 @@ InfraredTransmitter::InfraredTransmitter(
 ): pin(pin),
    acMode(acMode),
    irSend(pin),
-   timeDelay(millisDelay()) {
+   timeDelay(TimeDelay(0.5 * 1000)) {
   lastACCommand = Off;
 
   lightToggled = false;
@@ -15,16 +15,12 @@ InfraredTransmitter::InfraredTransmitter(
 
 void InfraredTransmitter::setup() {
   irSend.begin();
-
-  // allow IR transmit every 0.5s
-  timeDelay.start(0.5 * 1000);
 }
 
 void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forceTimeDelay, const bool forceCommand) {
-  if (!timeDelay.justFinished() && !forceTimeDelay) {
+  if (!timeDelay.finished(forceTimeDelay, true)) {
     return;
   }
-  timeDelay.repeat();
 
   if (acCommand == lastACCommand && !forceCommand) {
     // same A/C command, ignoring send

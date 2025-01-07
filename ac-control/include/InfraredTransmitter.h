@@ -1,16 +1,16 @@
 #pragma once
 
 #include <ir_Haier.h>
-#include "millisDelay.h"
 #include "ACCommand.h"
 #include "ACMode.h"
+#include "TimeDelay.h"
 
 class InfraredTransmitter {
   int pin;
   ACMode acMode;
 
   IRHaierAC160 irSend;
-  millisDelay timeDelay;
+  TimeDelay timeDelay;
 
 public:
   ACCommand lastACCommand;

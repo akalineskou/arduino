@@ -1,5 +1,4 @@
 #include <Preferences.h>
-#include "millisDelay.h"
 #include "ACControl.h"
 #include "ACMode.h"
 #include "Directive.h"
@@ -7,13 +6,12 @@
 #include "Secrets.h"
 #include "TemperatureData.h"
 #include "TemperatureSensorManager.h"
+#include "TimeDelay.h"
 #include "WebServerHelper.h"
 #include "WifiHelper.h"
 
-// https://www.forward.com.au/pfod/ArduinoProgramming/TimingDelaysInArduino.html
 constexpr unsigned long REBOOT_DELAY_MS = 12 * 3600 * 1000;
-millisDelay rebootDelay;
-// https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html
+TimeDelay rebootTimeDelay(REBOOT_DELAY_MS);
 Preferences rebootPreferences;
 
 #define PIN_IR_TRANSMITTER 23
@@ -22,10 +20,8 @@ Preferences rebootPreferences;
 
 ACMode acMode(Heat);
 InfraredTransmitter infraredTransmitter(PIN_IR_TRANSMITTER, acMode);
-TemperatureSensorManager temperatureSensorManager(
-  new TemperatureSensor *[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_IN_1)}, 1,
-  new TemperatureSensor *[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_OUT_1)}, 1
-);
+TemperatureSensorManager temperatureSensorManager(new TemperatureSensor *[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_IN_1)}, 1,
+                                                  new TemperatureSensor *[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_OUT_1)}, 1);
 TemperatureData temperatureData(temperatureSensorManager, acMode);
 ACControl acControl(infraredTransmitter, temperatureData);
 WebServerHelper webServerHelper(acControl, temperatureSensorManager, infraredTransmitter, temperatureData, acMode);
@@ -38,68 +34,81 @@ void setup() {
   delay(2500);
 #endif
 
-  rebootDelay.start(REBOOT_DELAY_MS);
   enableLoopWDT();
 
+  // https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html
   rebootPreferences.begin("reboot", false);
+
+  // restore data after reboot
+  if (rebootPreferences.isKey("is-reboot")) {
+    rebootPreferences.remove("is-reboot");
+
+#if DEBUG
+    Serial.println();
+#endif
+
+    // restore data after reboot
+    acControl.enabled = rebootPreferences.getBool("ac-e");
+    rebootPreferences.remove("ac-e");
+#if DEBUG
+    Serial.printf("Restoring acControl.enabled %d.\n", acControl.enabled);
+#endif
+
+    infraredTransmitter.lastACCommand = sToACCommand(rebootPreferences.getString("ir-lacc").c_str());
+    rebootPreferences.remove("ir-lacc");
+#if DEBUG
+    Serial.printf("Restoring infraredTransmitter.lastACCommand %s.\n", ACCommands[infraredTransmitter.lastACCommand]);
+#endif
+
+    infraredTransmitter.lightToggled = rebootPreferences.getBool("ir-lt");
+    rebootPreferences.remove("ir-lt");
+#if DEBUG
+    Serial.printf("Restoring infraredTransmitter.lightToggled %d.\n", infraredTransmitter.lightToggled);
+#endif
+
+    temperatureData.temperatureTarget = rebootPreferences.getInt("td-tt");
+    rebootPreferences.remove("td-tt");
+#if DEBUG
+    Serial.printf("Restoring temperatureData.temperatureTarget %d.\n", temperatureData.temperatureTarget);
+#endif
+  } else {
+    // start with sending off in case of an unexpected reboot (force command since it starts off)
+    infraredTransmitter.sendCommand(Off, true, true);
+  }
 
   temperatureSensorManager.setup();
   infraredTransmitter.setup();
-  acControl.setup();
   WifiHelper::setup(wifiSSID, wifiPassword);
   webServerHelper.setup(webServerAuthUsername, webServerAuthPassword);
-
-  // restore A/C state after reboot
-  if (!rebootPreferences.isKey("ac-state")) {
-    return;
-  }
-
-  // get A/C state
-  const String acState = rebootPreferences.getString("ac-state");
-  rebootPreferences.remove("ac-state");
-
-  // get and restore temperatureTarget (even when off)
-  temperatureData.temperatureTarget = rebootPreferences.getInt("temp-target");
-  rebootPreferences.remove("temp-target");
-
-  // get and restore lightToggled (even when off)
-  infraredTransmitter.lightToggled = rebootPreferences.getBool("light-toggled");
-  rebootPreferences.remove("light-toggled");
-
-#if DEBUG
-  Serial.println();
-  Serial.printf("Restoring A/C state: %s, temperature target: %d, light toggled: %d\n",
-                ACCommands[infraredTransmitter.lastACCommand], temperatureData.temperatureTarget, infraredTransmitter.lightToggled);
-#endif
-
-  if (acState == ACCommands[Off]) {
-    return;
-  }
-
-  acControl.toggleStatus(false);
-
-  if (acState == ACCommands[Start]) {
-    infraredTransmitter.lastACCommand = Start;
-  } else {
-    infraredTransmitter.lastACCommand = Stop;
-  }
 }
 
 void loop() {
-  if (rebootDelay.justFinished()) {
+  if (rebootTimeDelay.finished()) {
 #if DEBUG
-    Serial.println();
     Serial.println("Rebooting...");
 #endif
 
-    // save A/C state to restore after reboot
-    rebootPreferences.putString("ac-state", ACCommands[infraredTransmitter.lastACCommand]);
-    rebootPreferences.putInt("temp-target", temperatureData.temperatureTarget);
-    rebootPreferences.putBool("light-toggled", infraredTransmitter.lightToggled);
+    // save data to restore after reboot
+    rebootPreferences.putBool("is-reboot", true);
 
+    rebootPreferences.putBool("ac-e", acControl.enabled);
 #if DEBUG
-    Serial.printf("Saving A/C state: %s, temperature target: %d, light toggled: %d\n",
-                  ACCommands[infraredTransmitter.lastACCommand], temperatureData.temperatureTarget, infraredTransmitter.lightToggled);
+    Serial.printf("Storing acControl.enabled %d.\n", acControl.enabled);
+#endif
+
+    rebootPreferences.putString("ir-lacc", ACCommands[infraredTransmitter.lastACCommand]);
+#if DEBUG
+    Serial.printf("Storing infraredTransmitter.lastACCommand %s.\n", ACCommands[infraredTransmitter.lastACCommand]);
+#endif
+
+    rebootPreferences.putBool("ir-lt", infraredTransmitter.lightToggled);
+#if DEBUG
+    Serial.printf("Storing infraredTransmitter.lightToggled %d.\n", infraredTransmitter.lightToggled);
+#endif
+
+    rebootPreferences.putInt("td-tt", temperatureData.temperatureTarget);
+#if DEBUG
+    Serial.printf("Storing temperatureData.temperatureTarget %d.\n", temperatureData.temperatureTarget);
 #endif
 
 #if DEBUG

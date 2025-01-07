@@ -6,22 +6,20 @@
 class ACControl {
   InfraredTransmitter &infraredTransmitter;
   TemperatureData &temperatureData;
-  bool enabled;
-  bool wasChanged;
 
 public:
+  bool enabled;
+
   ACControl(
     InfraredTransmitter &infraredTransmitter,
     TemperatureData &temperatureData
   );
 
-  void setup() const;
-
   void loop();
 
-  bool isEnabled() const;
+  void enable();
 
-  void toggleStatus(bool triggerChange = true);
+  void disable();
 
 private:
   void control();

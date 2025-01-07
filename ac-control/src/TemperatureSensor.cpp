@@ -5,7 +5,7 @@ TemperatureSensor::TemperatureSensor(
   const int pin
 ): pin(pin),
    dht(pin, DHT22),
-   timeDelay(millisDelay()) {
+   timeDelay(TimeDelay(2 * 1000)) {
   sensorFails = 0;
   temperature = 0;
   humidity = 0;
@@ -15,9 +15,6 @@ void TemperatureSensor::setup() {
   dht.begin();
 
   readTemperature(true);
-
-  // get temp readings every 2s
-  timeDelay.start(2 * 1000);
 }
 
 void TemperatureSensor::loop() {
@@ -51,10 +48,9 @@ String TemperatureSensor::formatHumidity(const int humidity) {
 }
 
 void TemperatureSensor::readTemperature(const bool forceTimeDelay) {
-  if (!timeDelay.justFinished() && !forceTimeDelay) {
+  if (!timeDelay.finished(forceTimeDelay, true)) {
     return;
   }
-  timeDelay.repeat();
 
   const float temperatureFloat = dht.readTemperature();
   if (isnan(temperatureFloat)) {
@@ -77,7 +73,7 @@ void TemperatureSensor::readTemperature(const bool forceTimeDelay) {
 
   const int humidityInt = static_cast<int>(round(dht.readHumidity() * 10));
 
-#if DEBUG
+#if DEBUG && DEBUG_TEMPERATURE_CHANGE
   const int temperatureDiff = temperatureInt - temperature;
 
   Serial.printf(
