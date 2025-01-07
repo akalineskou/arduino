@@ -56,16 +56,17 @@ void setup() {
   const String acState = rebootPreferences.getString("ac-state");
   rebootPreferences.remove("ac-state");
 
-  // get and restore temperature target (even when off)
+  // get and restore temperatureTarget (even when off)
   temperatureData.temperatureTarget = rebootPreferences.getInt("temp-target");
   rebootPreferences.remove("temp-target");
 
+  // get and restore lightToggled (even when off)
   infraredTransmitter.lightToggled = rebootPreferences.getBool("light-toggled");
   rebootPreferences.remove("light-toggled");
 
 #if DEBUG
-  Serial.printf("Restoring A/C state: %s, temperature target: %d\n", ACCommands[infraredTransmitter.lastACCommand],
-                temperatureData.temperatureTarget);
+  Serial.printf("Restoring A/C state: %s, temperature target: %d, light toggled: %d\n",
+                ACCommands[infraredTransmitter.lastACCommand], temperatureData.temperatureTarget, infraredTransmitter.lightToggled);
 #endif
 
   if (acState == ACCommands[Off]) {
@@ -93,7 +94,8 @@ void loop() {
     rebootPreferences.putBool("light-toggled", infraredTransmitter.lightToggled);
 
 #if DEBUG
-    Serial.printf("Saving A/C state: %s, temperature target: %d\n", ACCommands[infraredTransmitter.lastACCommand], temperatureData.temperatureTarget);
+    Serial.printf("Saving A/C state: %s, temperature target: %d, light toggled: %d\n",
+                  ACCommands[infraredTransmitter.lastACCommand], temperatureData.temperatureTarget, infraredTransmitter.lightToggled);
 #endif
 
 #if DEBUG
