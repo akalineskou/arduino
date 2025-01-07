@@ -1,6 +1,8 @@
 #pragma once
 
-#define DEBUG 0
+#ifndef DEBUG
+#define DEBUG true
+#endif
 
 #if DEBUG
 #define D_SerialBegin(...) Serial.begin(__VA_ARGS__);

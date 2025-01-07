@@ -18,9 +18,9 @@ millisDelay rebootDelay;
 Preferences rebootPreferences;
 
 #define PIN_BUTTON_ENABLED 4
-#define PIN_IR_TRANSMITTER 16
-#define PIN_TEMPERATURE_SENSOR_IN_1 0
-#define PIN_TEMPERATURE_SENSOR_OUT_1 13
+#define PIN_IR_TRANSMITTER 23
+#define PIN_TEMPERATURE_SENSOR_IN_1 32
+#define PIN_TEMPERATURE_SENSOR_OUT_1 22
 
 ACMode acMode(Heat);
 ButtonEnabled buttonEnabled(PIN_BUTTON_ENABLED);
