@@ -11,7 +11,7 @@
 #include "WifiHelper.h"
 
 // https://www.forward.com.au/pfod/ArduinoProgramming/TimingDelaysInArduino.html
-constexpr unsigned long REBOOT_DELAY_MS = 1 * 3600 * 1000;
+constexpr unsigned long REBOOT_DELAY_MS = 12 * 3600 * 1000;
 millisDelay rebootDelay;
 // https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html
 Preferences rebootPreferences;
