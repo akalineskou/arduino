@@ -1,15 +1,15 @@
 #pragma once
 
 #include <WebServer.h>
+#include "ACControl.h"
 #include "ACMode.h"
-#include "ButtonEnabled.h"
 #include "InfraredTransmitter.h"
 #include "TemperatureData.h"
 #include "TemperatureSensorManager.h"
 
 class WebServerHelper {
   WebServer webServer;
-  ButtonEnabled &buttonEnabled;
+  ACControl &acControl;
   TemperatureSensorManager &temperatureSensorManager;
   InfraredTransmitter &infraredTransmitter;
   TemperatureData &temperatureData;
@@ -17,7 +17,7 @@ class WebServerHelper {
 
 public:
   explicit WebServerHelper(
-    ButtonEnabled &buttonEnabled,
+    ACControl &acControl,
     TemperatureSensorManager &temperatureSensorManager,
     InfraredTransmitter &infraredTransmitter,
     TemperatureData &temperatureData,

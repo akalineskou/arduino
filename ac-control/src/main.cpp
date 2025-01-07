@@ -2,7 +2,6 @@
 #include "millisDelay.h"
 #include "ACControl.h"
 #include "ACMode.h"
-#include "ButtonEnabled.h"
 #include "InfraredTransmitter.h"
 #include "Secrets.h"
 #include "TemperatureData.h"
@@ -16,21 +15,19 @@ millisDelay rebootDelay;
 // https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html
 Preferences rebootPreferences;
 
-#define PIN_BUTTON_ENABLED 4
 #define PIN_IR_TRANSMITTER 23
 #define PIN_TEMPERATURE_SENSOR_IN_1 32
 #define PIN_TEMPERATURE_SENSOR_OUT_1 22
 
 ACMode acMode(Heat);
-ButtonEnabled buttonEnabled(PIN_BUTTON_ENABLED);
 InfraredTransmitter infraredTransmitter(PIN_IR_TRANSMITTER, acMode);
 TemperatureSensorManager temperatureSensorManager(
   new TemperatureSensor *[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_IN_1)}, 1,
   new TemperatureSensor *[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_OUT_1)}, 1
 );
 TemperatureData temperatureData(temperatureSensorManager, acMode);
-ACControl acControl(buttonEnabled, infraredTransmitter, temperatureData);
-WebServerHelper webServerHelper(buttonEnabled, temperatureSensorManager, infraredTransmitter, temperatureData, acMode);
+ACControl acControl(infraredTransmitter, temperatureData);
+WebServerHelper webServerHelper(acControl, temperatureSensorManager, infraredTransmitter, temperatureData, acMode);
 
 void setup() {
 #if DEBUG
@@ -45,7 +42,6 @@ void setup() {
 
   rebootPreferences.begin("reboot", false);
 
-  buttonEnabled.setup();
   temperatureSensorManager.setup();
   infraredTransmitter.setup();
   WifiHelper::setup(wifiSSID, wifiPassword);
@@ -76,7 +72,7 @@ void setup() {
     return;
   }
 
-  buttonEnabled.enabled = true;
+  acControl.toggleStatus(false);
 
   if (acState == ACCommands[Start]) {
     infraredTransmitter.lastACCommand = Start;
@@ -106,7 +102,6 @@ void loop() {
     delay(3600 * 1000);
   }
 
-  buttonEnabled.loop();
   temperatureSensorManager.loop();
   acControl.loop();
   webServerHelper.loop();

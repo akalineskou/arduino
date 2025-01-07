@@ -1,23 +1,26 @@
 #pragma once
 
-#include "ButtonEnabled.h"
 #include "InfraredTransmitter.h"
 #include "TemperatureData.h"
 
 class ACControl {
-  ButtonEnabled &buttonEnabled;
   InfraredTransmitter &infraredTransmitter;
   TemperatureData &temperatureData;
+  bool enabled;
+  bool wasChanged;
 
 public:
   ACControl(
-    ButtonEnabled &buttonEnabled,
     InfraredTransmitter &infraredTransmitter,
     TemperatureData &temperatureData
   );
 
-  void loop() const;
+  bool isEnabled() const;
+
+  void toggleStatus(bool triggerChange = true);
+
+  void loop();
 
 private:
-  void control() const;
+  void control();
 };

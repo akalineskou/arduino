@@ -1,13 +1,13 @@
 #include "WebServerHelper.h"
 
 WebServerHelper::WebServerHelper(
-  ButtonEnabled &buttonEnabled,
+  ACControl &acControl,
   TemperatureSensorManager &temperatureSensorManager,
   InfraredTransmitter &infraredTransmitter,
   TemperatureData &temperatureData,
   const ACMode &acMode
 ): webServer(80),
-   buttonEnabled(buttonEnabled),
+   acControl(acControl),
    temperatureSensorManager(temperatureSensorManager),
    infraredTransmitter(infraredTransmitter),
    temperatureData(temperatureData),
@@ -52,13 +52,10 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
 </head>
 <body>
   <p>
-    __ENABLED_TEMPLATE__
+    A/C Control: __AC_CONTROL_STATUS__
   </p>
   <p>
-    Last A/C Command: <b>__LAST_AC_COMMAND__</b>
-  </p>
-  <p>
-    Force A/C Command: <b><a href="/force-ac-start">Start</a></b> | <b><a href="/force-ac-stop">Stop</a></b>
+    Last A/C Command: <b>__LAST_AC_COMMAND__</b> (<a href="/force-ac-start">Start</a> | <a href="/force-ac-stop">Stop</a>)
   </p>
   <br>
 
@@ -83,15 +80,16 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
 </body>
     )==");
 
-    html.replace(
-      "__ENABLED_TEMPLATE__",
-      buttonEnabled.enabled ? R"==(<a href="/disable">Disable A/C Control</a>)==" : R"==(<a href="/enable">Enable A/C Control</a>)=="
+    html.replace("__AC_CONTROL_STATUS__", acControl.isEnabled()
+                                            ? R"==(<b>Enabled</b> (<a href="/disable">Disable</a>))=="
+                                            : R"==(<b>Disabled</b> (<a href="/enable">Enable</a>))=="
     );
+    html.replace("__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
+
     html.replace("__TEMPERATURE_IN__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureIn()).c_str());
     html.replace("__TEMPERATURE_OUT__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureOut()).c_str());
     html.replace("__HUMIDITY_IN__", TemperatureSensor::formatHumidity(temperatureSensorManager.humidityIn()).c_str());
     html.replace("__HUMIDITY_OUT__", TemperatureSensor::formatHumidity(temperatureSensorManager.humidityOut()).c_str());
-    html.replace("__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
 
     html.replace("__TEMPERATURE_TARGET__", TemperatureSensor::formatTemperature(temperatureData.temperatureTarget).c_str());
     if (acMode == Cold) {
@@ -124,7 +122,7 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
       return webServer.requestAuthentication();
     }
 
-    buttonEnabled.manualChange = true;
+    acControl.toggleStatus();
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
@@ -134,7 +132,7 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
       return webServer.requestAuthentication();
     }
 
-    buttonEnabled.manualChange = true;
+    acControl.toggleStatus();
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
