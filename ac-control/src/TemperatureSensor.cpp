@@ -1,11 +1,7 @@
 #include "Directive.h"
 #include "TemperatureSensor.h"
 
-TemperatureSensor::TemperatureSensor(
-  const int pin
-): pin(pin),
-   dht(pin, DHT22),
-   timeDelay(TimeDelay(2 * 1000)) {
+TemperatureSensor::TemperatureSensor(const int pin) : pin(pin), dht(pin, DHT22), timeDelay(TimeDelay(2 * 1000)) {
   sensorFails = 0;
   temperature = 0;
   humidity = 0;
@@ -77,8 +73,12 @@ void TemperatureSensor::readTemperature(const bool forceTimeDelay) {
   const int temperatureDiff = temperatureInt - temperature;
 
   Serial.printf(
-    "Sensor %d temperature change: %s (%s%s), humidity: %s.\n", pin, formatTemperature(temperature).c_str(),
-    temperatureDiff < 0 ? "" : "+", formatTemperature(temperatureDiff).c_str(), formatHumidity(humidityInt).c_str());
+    "Sensor %d temperature change: %s (%s%s), humidity: %s.\n",
+    pin,
+    formatTemperature(temperature).c_str(),
+    temperatureDiff < 0 ? "" : "+",
+    formatTemperature(temperatureDiff).c_str(),
+    formatHumidity(humidityInt).c_str());
 #endif
 
   temperature = temperatureInt;

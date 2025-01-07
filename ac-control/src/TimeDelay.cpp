@@ -1,7 +1,8 @@
 #include <Arduino.h>
+
 #include "TimeDelay.h"
 
-TimeDelay::TimeDelay(const unsigned long delay): delay(delay) {
+TimeDelay::TimeDelay(const unsigned long delay) : delay(delay) {
   startTime = millis();
 }
 

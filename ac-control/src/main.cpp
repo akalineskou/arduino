@@ -1,4 +1,5 @@
 #include <Preferences.h>
+
 #include "ACControl.h"
 #include "ACMode.h"
 #include "Directive.h"
@@ -20,8 +21,11 @@ Preferences rebootPreferences;
 
 ACMode acMode(Heat);
 InfraredTransmitter infraredTransmitter(PIN_IR_TRANSMITTER, acMode);
-TemperatureSensorManager temperatureSensorManager(new TemperatureSensor *[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_IN_1)}, 1,
-                                                  new TemperatureSensor *[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_OUT_1)}, 1);
+TemperatureSensorManager temperatureSensorManager(
+  new TemperatureSensor*[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_IN_1)},
+  1,
+  new TemperatureSensor*[1]{new TemperatureSensor(PIN_TEMPERATURE_SENSOR_OUT_1)},
+  1);
 TemperatureData temperatureData(temperatureSensorManager, acMode);
 ACControl acControl(infraredTransmitter, temperatureData);
 WebServerHelper webServerHelper(acControl, temperatureSensorManager, infraredTransmitter, temperatureData, acMode);
@@ -72,7 +76,8 @@ void setup() {
     Serial.printf("Restoring temperatureData.temperatureTarget %d.\n", temperatureData.temperatureTarget);
 #endif
   } else {
-    // start with sending off in case of an unexpected reboot (force command since it starts off)
+    // start with sending off in case of an unexpected reboot (force command
+    // since it starts off)
     infraredTransmitter.sendCommand(Off, true, true);
   }
 

@@ -4,19 +4,16 @@
 #include "TemperatureSensorManager.h"
 
 class TemperatureData {
-  TemperatureSensorManager &temperatureSensorManager;
+  TemperatureSensorManager& temperatureSensorManager;
   ACMode acMode;
 
   int temperatureStart;
   int temperatureStop;
 
-public:
+ public:
   int temperatureTarget;
 
-  explicit TemperatureData(
-    TemperatureSensorManager &temperatureSensorManager,
-    const ACMode &acMode
-  );
+  explicit TemperatureData(TemperatureSensorManager& temperatureSensorManager, const ACMode& acMode);
 
   int temperatureStartReached() const;
 

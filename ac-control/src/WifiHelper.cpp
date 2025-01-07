@@ -1,8 +1,9 @@
 #include <WiFi.h>
+
 #include "Directive.h"
 #include "WifiHelper.h"
 
-void WifiHelper::setup(const char *wifiSSID, const char *wifiPassword) {
+void WifiHelper::setup(const char* wifiSSID, const char* wifiPassword) {
   WiFi.begin(wifiSSID, wifiPassword);
 
   while (WiFiClass::status() != WL_CONNECTED) {

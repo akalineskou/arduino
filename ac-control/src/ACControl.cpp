@@ -1,11 +1,8 @@
 #include "ACControl.h"
 #include "Directive.h"
 
-ACControl::ACControl(
-  InfraredTransmitter &infraredTransmitter,
-  TemperatureData &temperatureData
-): infraredTransmitter(infraredTransmitter),
-   temperatureData(temperatureData) {
+ACControl::ACControl(InfraredTransmitter& infraredTransmitter, TemperatureData& temperatureData)
+    : infraredTransmitter(infraredTransmitter), temperatureData(temperatureData) {
   enabled = false;
 }
 

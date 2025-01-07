@@ -1,6 +1,7 @@
 #pragma once
 
 #include <DHT.h>
+
 #include "TimeDelay.h"
 
 class TemperatureSensor {
@@ -12,7 +13,7 @@ class TemperatureSensor {
   int temperature;
   int humidity;
 
-public:
+ public:
   explicit TemperatureSensor(int pin);
 
   void setup();
@@ -29,6 +30,6 @@ public:
 
   static String formatHumidity(int humidity);
 
-private:
+ private:
   void readTemperature(bool forceTimeDelay = false);
 };

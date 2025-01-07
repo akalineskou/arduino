@@ -1,15 +1,14 @@
 #include "TemperatureSensorManager.h"
 
 TemperatureSensorManager::TemperatureSensorManager(
-  TemperatureSensor **temperatureSensorsIn,
+  TemperatureSensor** temperatureSensorsIn,
   const int countIn,
-  TemperatureSensor **temperatureSensorsOut,
-  const int countOut
-): temperatureSensorsIn(temperatureSensorsIn),
-   countIn(countIn),
-   temperatureSensorsOut(temperatureSensorsOut),
-   countOut(countOut) {
-}
+  TemperatureSensor** temperatureSensorsOut,
+  const int countOut)
+    : temperatureSensorsIn(temperatureSensorsIn),
+      countIn(countIn),
+      temperatureSensorsOut(temperatureSensorsOut),
+      countOut(countOut) {}
 
 void TemperatureSensorManager::setup() const {
   for (int i = 0; i < countIn; i++) {
@@ -105,8 +104,9 @@ bool TemperatureSensorManager::sensorsOutFailed() const {
   return 0 == filterSensorsNotFailed(temperatureSensorsOut, countOut).count;
 }
 
-TemperatureSensorsWithCount TemperatureSensorManager::filterSensorsNotFailed(TemperatureSensor **temperatureSensors, const int maxCount) {
-  TemperatureSensor **temperatureSensorsNotFailed[maxCount];
+TemperatureSensorsWithCount TemperatureSensorManager::filterSensorsNotFailed(
+  TemperatureSensor** temperatureSensors, const int maxCount) {
+  TemperatureSensor** temperatureSensorsNotFailed[maxCount];
   int currentI = 0;
 
   for (int i = 0; i < maxCount; i++) {

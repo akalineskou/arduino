@@ -1,12 +1,20 @@
-#include "WebServerHelper.h"
 #include "Directive.h"
+#include "WebServerHelper.h"
 
-WebServerHelper::WebServerHelper(ACControl &acControl, TemperatureSensorManager &temperatureSensorManager, InfraredTransmitter &infraredTransmitter,
-                                 TemperatureData &temperatureData, const ACMode &acMode) :
-    webServer(80), acControl(acControl), temperatureSensorManager(temperatureSensorManager), infraredTransmitter(infraredTransmitter),
-    temperatureData(temperatureData), acMode(acMode) {}
+WebServerHelper::WebServerHelper(
+  ACControl& acControl,
+  TemperatureSensorManager& temperatureSensorManager,
+  InfraredTransmitter& infraredTransmitter,
+  TemperatureData& temperatureData,
+  const ACMode& acMode)
+    : webServer(80),
+      acControl(acControl),
+      temperatureSensorManager(temperatureSensorManager),
+      infraredTransmitter(infraredTransmitter),
+      temperatureData(temperatureData),
+      acMode(acMode) {}
 
-void WebServerHelper::setup(const char *webServerAuthUsername, const char *webServerAuthPassword) {
+void WebServerHelper::setup(const char* webServerAuthUsername, const char* webServerAuthPassword) {
   webServer.begin();
 
   webServer.on("/", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
@@ -76,29 +84,46 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
 </body>
     )==");
 
-    html.replace("__AC_CONTROL_STATUS__", acControl.enabled ? R"==(<b>Enabled</b> (<a href="/disable">Disable</a>))=="
-                                                            : R"==(<b>Disabled</b> (<a href="/enable">Enable</a>))==");
+    html.replace(
+      "__AC_CONTROL_STATUS__",
+      acControl.enabled ? R"==(<b>Enabled</b> (<a href="/disable">Disable</a>))=="
+                        : R"==(<b>Disabled</b> (<a href="/enable">Enable</a>))==");
     html.replace("__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
 
-    html.replace("__TEMPERATURE_IN__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureIn()).c_str());
-    html.replace("__TEMPERATURE_OUT__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureOut()).c_str());
+    html.replace(
+      "__TEMPERATURE_IN__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureIn()).c_str());
+    html.replace(
+      "__TEMPERATURE_OUT__", TemperatureSensor::formatTemperature(temperatureSensorManager.temperatureOut()).c_str());
     html.replace("__HUMIDITY_IN__", TemperatureSensor::formatHumidity(temperatureSensorManager.humidityIn()).c_str());
     html.replace("__HUMIDITY_OUT__", TemperatureSensor::formatHumidity(temperatureSensorManager.humidityOut()).c_str());
 
-    html.replace("__TEMPERATURE_TARGET__", TemperatureSensor::formatTemperature(temperatureData.temperatureTarget).c_str());
+    html.replace(
+      "__TEMPERATURE_TARGET__", TemperatureSensor::formatTemperature(temperatureData.temperatureTarget).c_str());
     if (acMode == Cold) {
-      html.replace("__TEMPERATURE_START_STOP__",
-                   "Stop <small>&lt;</small> <b>__TEMPERATURE_STOP__</b> &nbsp; | &nbsp; Start <small>&gt;</small> <b>__TEMPERATURE_START__</b>");
+      html.replace(
+        "__TEMPERATURE_START_STOP__",
+        "Stop <small>&lt;</small> <b>__TEMPERATURE_STOP__</b> "
+        "&nbsp; | "
+        "&nbsp; Start <small>&gt;</small> "
+        "<b>__TEMPERATURE_START__</b>");
     } else {
-      html.replace("__TEMPERATURE_START_STOP__",
-                   "Start <b><small>&lt;</small> __TEMPERATURE_START__</b> &nbsp; | &nbsp; Stop <b><small>&gt;</small> __TEMPERATURE_STOP__</b>");
+      html.replace(
+        "__TEMPERATURE_START_STOP__",
+        "Start <b><small>&lt;</small> __TEMPERATURE_START__</b> "
+        "&nbsp; | "
+        "&nbsp; Stop <b><small>&gt;</small> "
+        "__TEMPERATURE_STOP__</b>");
     }
-    html.replace("__TEMPERATURE_START__", TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStart()).c_str());
-    html.replace("__TEMPERATURE_STOP__", TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStop()).c_str());
-    html.replace("__TARGET_TEMPERATURE_INCREASE__",
-                 TemperatureSensor::formatTemperature(temperatureData.temperatureTarget + static_cast<int>(0.5 * 10)).c_str());
-    html.replace("__TARGET_TEMPERATURE_DECREASE__",
-                 TemperatureSensor::formatTemperature(temperatureData.temperatureTarget - static_cast<int>(0.5 * 10)).c_str());
+    html.replace(
+      "__TEMPERATURE_START__", TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStart()).c_str());
+    html.replace(
+      "__TEMPERATURE_STOP__", TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStop()).c_str());
+    html.replace(
+      "__TARGET_TEMPERATURE_INCREASE__",
+      TemperatureSensor::formatTemperature(temperatureData.temperatureTarget + static_cast<int>(0.5 * 10)).c_str());
+    html.replace(
+      "__TARGET_TEMPERATURE_DECREASE__",
+      TemperatureSensor::formatTemperature(temperatureData.temperatureTarget - static_cast<int>(0.5 * 10)).c_str());
 
     webServer.send(200, "text/html", html.c_str());
   });
@@ -204,4 +229,6 @@ void WebServerHelper::setup(const char *webServerAuthUsername, const char *webSe
   });
 }
 
-void WebServerHelper::loop() { webServer.handleClient(); }
+void WebServerHelper::loop() {
+  webServer.handleClient();
+}

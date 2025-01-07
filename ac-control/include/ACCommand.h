@@ -6,11 +6,13 @@ enum ACCommand {
   Stop,
 };
 
-static const char *ACCommands[] = {
-  "Off", "Start", "Stop",
+static const char* ACCommands[] = {
+  "Off",
+  "Start",
+  "Stop",
 };
 
-inline ACCommand sToACCommand(const char *acCommand) {
+inline ACCommand sToACCommand(const char* acCommand) {
   if (strcasecmp(acCommand, "Off") == 0) {
     return Off;
   }

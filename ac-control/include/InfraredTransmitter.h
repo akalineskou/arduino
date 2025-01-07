@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ir_Haier.h>
+
 #include "ACCommand.h"
 #include "ACMode.h"
 #include "TimeDelay.h"
@@ -12,14 +13,11 @@ class InfraredTransmitter {
   IRHaierAC160 irSend;
   TimeDelay timeDelay;
 
-public:
+ public:
   ACCommand lastACCommand;
   bool lightToggled;
 
-  InfraredTransmitter(
-    int pin,
-    const ACMode &acMode
-  );
+  InfraredTransmitter(int pin, const ACMode& acMode);
 
   void setup();
 
