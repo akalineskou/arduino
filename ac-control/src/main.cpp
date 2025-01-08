@@ -6,21 +6,20 @@
 #include "InfraredTransmitter.h"
 #include "Secrets.h"
 #include "TemperatureData.h"
-#include "TemperatureSensorManager.h"
+#include "TemperatureSensor.h"
 #include "TimeDelay.h"
 #include "WebServerHelper.h"
 #include "WifiHelper.h"
 
 Preferences rebootPreferences;
 TimeDelay rebootTimeDelay(12 * 60 * 60 * 1000, false);
-TimeDelay statsTimeDelay(5 * 60 * 1000, true);
 
 ACMode acMode(Heat);
 InfraredTransmitter infraredTransmitter(23, acMode);
-TemperatureSensorManager temperatureSensorManager(new TemperatureSensor*[1]{new TemperatureSensor(32)}, 1);
-TemperatureData temperatureData(temperatureSensorManager, acMode);
+TemperatureSensor temperatureSensor(32);
+TemperatureData temperatureData(temperatureSensor, acMode);
 ACControl acControl(infraredTransmitter, temperatureData);
-WebServerHelper webServerHelper(acControl, temperatureSensorManager, infraredTransmitter, temperatureData, acMode);
+WebServerHelper webServerHelper(acControl, temperatureSensor, infraredTransmitter, temperatureData, acMode);
 
 void setup() {
 #if DEBUG
@@ -54,14 +53,14 @@ void setup() {
     Serial.printf("Restoring acControl.enabled %d.\n", acControl.enabled);
 #endif
 
-    infraredTransmitter.lastACCommand = sToACCommand(rebootPreferences.getString("ir-lacc").c_str());
-    rebootPreferences.remove("ir-lacc");
+    infraredTransmitter.lastACCommand = sToACCommand(rebootPreferences.getString("it-lacc").c_str());
+    rebootPreferences.remove("it-lacc");
 #if DEBUG
     Serial.printf("Restoring infraredTransmitter.lastACCommand %s.\n", ACCommands[infraredTransmitter.lastACCommand]);
 #endif
 
-    infraredTransmitter.lightToggled = rebootPreferences.getBool("ir-lt");
-    rebootPreferences.remove("ir-lt");
+    infraredTransmitter.lightToggled = rebootPreferences.getBool("it-lt");
+    rebootPreferences.remove("it-lt");
 #if DEBUG
     Serial.printf("Restoring infraredTransmitter.lightToggled %d.\n", infraredTransmitter.lightToggled);
 #endif
@@ -73,7 +72,7 @@ void setup() {
 #endif
   }
 
-  temperatureSensorManager.setup();
+  temperatureSensor.setup();
   infraredTransmitter.setup();
   WifiHelper::setup(wifiSSID, wifiPassword);
   webServerHelper.setup(webServerAuthUsername, webServerAuthPassword);
@@ -89,12 +88,6 @@ void setup() {
 }
 
 void loop() {
-#if DEBUG
-  if (statsTimeDelay.delayPassed()) {
-    Serial.printf("Heap: %u / %u\n", ESP.getFreeHeap(), ESP.getHeapSize());
-  }
-#endif
-
   if (rebootTimeDelay.delayPassed()) {
 #if DEBUG
     Serial.println("Rebooting...");
@@ -108,12 +101,12 @@ void loop() {
     Serial.printf("Storing acControl.enabled %d.\n", acControl.enabled);
 #endif
 
-    rebootPreferences.putString("ir-lacc", ACCommands[infraredTransmitter.lastACCommand]);
+    rebootPreferences.putString("it-lacc", ACCommands[infraredTransmitter.lastACCommand]);
 #if DEBUG
     Serial.printf("Storing infraredTransmitter.lastACCommand %s.\n", ACCommands[infraredTransmitter.lastACCommand]);
 #endif
 
-    rebootPreferences.putBool("ir-lt", infraredTransmitter.lightToggled);
+    rebootPreferences.putBool("it-lt", infraredTransmitter.lightToggled);
 #if DEBUG
     Serial.printf("Storing infraredTransmitter.lightToggled %d.\n", infraredTransmitter.lightToggled);
 #endif
@@ -130,7 +123,7 @@ void loop() {
     delay(3600 * 1000);
   }
 
-  temperatureSensorManager.loop();
+  temperatureSensor.loop();
   acControl.loop();
   webServerHelper.loop();
 }

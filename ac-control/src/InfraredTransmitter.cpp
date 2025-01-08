@@ -1,8 +1,11 @@
 #include "Directive.h"
 #include "InfraredTransmitter.h"
 
-InfraredTransmitter::InfraredTransmitter(const int pin, const ACMode& acMode)
-    : pin(pin), acMode(acMode), irSend(pin), timeDelay(TimeDelay(0.5 * 1000, true)) {
+InfraredTransmitter::InfraredTransmitter(const int pin, const ACMode &acMode):
+    pin(pin),
+    acMode(acMode),
+    irSend(pin),
+    timeDelay(TimeDelay(0.5 * 1000, true)) {
   lastACCommand = Off;
 
   lightToggled = false;

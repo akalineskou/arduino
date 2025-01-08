@@ -2,18 +2,18 @@
 #include "WebServerHelper.h"
 
 WebServerHelper::WebServerHelper(
-  ACControl& acControl,
-  TemperatureSensorManager& temperatureSensorManager,
-  InfraredTransmitter& infraredTransmitter,
-  TemperatureData& temperatureData,
-  const ACMode& acMode
-)
-    : webServer(80),
-      acControl(acControl),
-      temperatureSensorManager(temperatureSensorManager),
-      infraredTransmitter(infraredTransmitter),
-      temperatureData(temperatureData),
-      acMode(acMode) {}
+  ACControl &acControl,
+  TemperatureSensor &temperatureSensor,
+  InfraredTransmitter &infraredTransmitter,
+  TemperatureData &temperatureData,
+  const ACMode &acMode
+):
+    webServer(80),
+    acControl(acControl),
+    temperatureSensor(temperatureSensor),
+    infraredTransmitter(infraredTransmitter),
+    temperatureData(temperatureData),
+    acMode(acMode) {}
 
 void WebServerHelper::setup(const char* webServerAuthUsername, const char* webServerAuthPassword) {
   webServer.begin();
@@ -87,11 +87,8 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     );
     html.replace("__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
 
-    html.replace(
-      "__TEMPERATURE__",
-      TemperatureSensor::formatTemperature(temperatureSensorManager.temperature()).c_str()
-    );
-    html.replace("__HUMIDITY__", TemperatureSensor::formatHumidity(temperatureSensorManager.humidity()).c_str());
+    html.replace("__TEMPERATURE__", TemperatureSensor::formatTemperature(temperatureSensor.getTemperature()).c_str());
+    html.replace("__HUMIDITY__", TemperatureSensor::formatHumidity(temperatureSensor.getHumidity()).c_str());
 
     html.replace(
       "__TEMPERATURE_TARGET__",

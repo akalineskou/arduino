@@ -1,7 +1,11 @@
 #include "Directive.h"
 #include "TemperatureSensor.h"
 
-TemperatureSensor::TemperatureSensor(const int pin) : pin(pin), dht(pin, DHT22), timeDelay(TimeDelay(2 * 1000, true)) {
+TemperatureSensor::TemperatureSensor(const int pin):
+    pin(pin),
+    dht(pin, DHT22),
+    temperatureTimeDelay(TimeDelay(10 * 1000, true)),
+    humidityTimeDelay(TimeDelay(60 * 1000, true)) {
   sensorFails = 0;
   temperature = 0;
   humidity = 0;
@@ -11,10 +15,12 @@ void TemperatureSensor::setup() {
   dht.begin();
 
   readTemperature(true);
+  readHumidity(true);
 }
 
 void TemperatureSensor::loop() {
   readTemperature();
+  readHumidity();
 }
 
 bool TemperatureSensor::sensorFailed() const {
@@ -44,7 +50,7 @@ String TemperatureSensor::formatHumidity(const int humidity) {
 }
 
 void TemperatureSensor::readTemperature(const bool forceTimeDelay) {
-  if (!timeDelay.delayPassed(forceTimeDelay)) {
+  if (!temperatureTimeDelay.delayPassed(forceTimeDelay)) {
     return;
   }
 
@@ -67,21 +73,51 @@ void TemperatureSensor::readTemperature(const bool forceTimeDelay) {
     return;
   }
 
-  const int humidityInt = static_cast<int>(round(dht.readHumidity() * 10));
-
 #if DEBUG && DEBUG_TEMPERATURE_CHANGE
   const int temperatureDiff = temperatureInt - temperature;
 
   Serial.printf(
-    "Sensor %d temperature change: %s (%s%s), humidity: %s.\n",
+    "Sensor %d temperature change: %s (%s%s).\n",
     pin,
     formatTemperature(temperature).c_str(),
     temperatureDiff < 0 ? "" : "+",
-    formatTemperature(temperatureDiff).c_str(),
-    formatHumidity(humidityInt).c_str()
+    formatTemperature(temperatureDiff).c_str()
   );
 #endif
 
   temperature = temperatureInt;
+}
+
+void TemperatureSensor::readHumidity(const bool forceTimeDelay) {
+  if (!humidityTimeDelay.delayPassed(forceTimeDelay)) {
+    return;
+  }
+
+  const float humidityFloat = dht.readHumidity();
+  if (isnan(humidityFloat)) {
+#if DEBUG
+    Serial.printf("Failed to read humidity from sensor %d!\n", pin);
+#endif
+
+    return;
+  }
+
+  const int humidityInt = static_cast<int>(round(humidityFloat * 10));
+  if (humidityInt == humidity) {
+    return;
+  }
+
+#if DEBUG && DEBUG_TEMPERATURE_CHANGE
+  const int humidityDiff = humidityInt - humidity;
+
+  Serial.printf(
+    "Sensor %d humidity change: humidity: %s (%s%s).\n",
+    pin,
+    formathumidity(humidity).c_str(),
+    humidityDiff < 0 ? "" : "+",
+    formathumidity(humidityDiff).c_str()
+  );
+#endif
+
   humidity = humidityInt;
 }

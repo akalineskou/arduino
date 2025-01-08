@@ -1,10 +1,10 @@
 #pragma once
 
 #include "ACMode.h"
-#include "TemperatureSensorManager.h"
+#include "TemperatureSensor.h"
 
 class TemperatureData {
-  TemperatureSensorManager& temperatureSensorManager;
+  TemperatureSensor &temperatureSensor;
   ACMode acMode;
 
   int temperatureStart;
@@ -13,7 +13,7 @@ class TemperatureData {
  public:
   int temperatureTarget;
 
-  explicit TemperatureData(TemperatureSensorManager& temperatureSensorManager, const ACMode& acMode);
+  explicit TemperatureData(TemperatureSensor &temperatureSensor, const ACMode &acMode);
 
   int temperatureStartReached() const;
 
@@ -23,5 +23,5 @@ class TemperatureData {
 
   int temperatureTargetStop() const;
 
-  bool temperatureSensorsFailed() const;
+  bool temperatureSensorFailed() const;
 };

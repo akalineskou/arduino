@@ -9,7 +9,8 @@ class TemperatureSensor {
 
   DHT dht;
   int sensorFails;
-  TimeDelay timeDelay;
+  TimeDelay temperatureTimeDelay;
+  TimeDelay humidityTimeDelay;
   int temperature;
   int humidity;
 
@@ -32,4 +33,6 @@ class TemperatureSensor {
 
  private:
   void readTemperature(bool forceTimeDelay = false);
+
+  void readHumidity(bool forceTimeDelay = false);
 };

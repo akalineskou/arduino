@@ -2,8 +2,10 @@
 
 #include "TimeDelay.h"
 
-TimeDelay::TimeDelay(const unsigned long delay, const bool repeat)
-    : delay(delay), repeat(repeat), forceFirstRun(repeat) {
+TimeDelay::TimeDelay(const unsigned long delay, const bool repeat):
+    delay(delay),
+    repeat(repeat),
+    forceFirstRun(repeat) {
   start();
 }
 

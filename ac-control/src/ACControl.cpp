@@ -1,8 +1,9 @@
 #include "ACControl.h"
 #include "Directive.h"
 
-ACControl::ACControl(InfraredTransmitter& infraredTransmitter, TemperatureData& temperatureData)
-    : infraredTransmitter(infraredTransmitter), temperatureData(temperatureData) {
+ACControl::ACControl(InfraredTransmitter &infraredTransmitter, TemperatureData &temperatureData):
+    infraredTransmitter(infraredTransmitter),
+    temperatureData(temperatureData) {
   enabled = false;
 }
 
@@ -33,9 +34,9 @@ void ACControl::control() {
     return;
   }
 
-  if (temperatureData.temperatureSensorsFailed()) {
+  if (temperatureData.temperatureSensorFailed()) {
 #if DEBUG
-    Serial.println("Temperature sensors failed.");
+    Serial.println("Temperature sensor failed.");
 #endif
 
     disable();

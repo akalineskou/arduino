@@ -6,12 +6,12 @@
 #include "ACMode.h"
 #include "InfraredTransmitter.h"
 #include "TemperatureData.h"
-#include "TemperatureSensorManager.h"
+#include "TemperatureSensor.h"
 
 class WebServerHelper {
   WebServer webServer;
   ACControl& acControl;
-  TemperatureSensorManager& temperatureSensorManager;
+  TemperatureSensor& temperatureSensor;
   InfraredTransmitter& infraredTransmitter;
   TemperatureData& temperatureData;
   ACMode acMode;
@@ -19,7 +19,7 @@ class WebServerHelper {
  public:
   explicit WebServerHelper(
     ACControl& acControl,
-    TemperatureSensorManager& temperatureSensorManager,
+    TemperatureSensor& temperatureSensor,
     InfraredTransmitter& infraredTransmitter,
     TemperatureData& temperatureData,
     const ACMode& acMode);

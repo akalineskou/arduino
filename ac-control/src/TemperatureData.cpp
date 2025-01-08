@@ -1,8 +1,9 @@
 #include "Directive.h"
 #include "TemperatureData.h"
 
-TemperatureData::TemperatureData(TemperatureSensorManager& temperatureSensorManager, const ACMode& acMode)
-    : temperatureSensorManager(temperatureSensorManager), acMode(acMode) {
+TemperatureData::TemperatureData(TemperatureSensor &temperatureSensor, const ACMode &acMode):
+    temperatureSensor(temperatureSensor),
+    acMode(acMode) {
   if (acMode == Cold) {
     temperatureTarget = 29.0 * 10;
     temperatureStart = 1.0 * 10;
@@ -18,15 +19,17 @@ int TemperatureData::temperatureStartReached() const {
   bool temperatureStartReached;
 
   if (acMode == Cold) {
-    temperatureStartReached = temperatureSensorManager.temperature() > temperatureTargetStart();
+    temperatureStartReached = temperatureSensor.getTemperature() > temperatureTargetStart();
   } else {
-    temperatureStartReached = temperatureSensorManager.temperature() < temperatureTargetStart();
+    temperatureStartReached = temperatureSensor.getTemperature() < temperatureTargetStart();
   }
 
   if (temperatureStartReached) {
 #if DEBUG
     Serial.printf(
-      "Temperature start %s reached.\n", TemperatureSensor::formatTemperature(temperatureTargetStart()).c_str());
+      "Temperature start %s reached.\n",
+      TemperatureSensor::formatTemperature(temperatureTargetStart()).c_str()
+    );
 #endif
   }
 
@@ -37,15 +40,17 @@ int TemperatureData::temperatureStopReached() const {
   bool temperatureStopReached;
 
   if (acMode == Cold) {
-    temperatureStopReached = temperatureSensorManager.temperature() < temperatureTargetStop();
+    temperatureStopReached = temperatureSensor.getTemperature() < temperatureTargetStop();
   } else {
-    temperatureStopReached = temperatureSensorManager.temperature() > temperatureTargetStop();
+    temperatureStopReached = temperatureSensor.getTemperature() > temperatureTargetStop();
   }
 
   if (temperatureStopReached) {
 #if DEBUG
     Serial.printf(
-      "Temperature stop %s reached.\n", TemperatureSensor::formatTemperature(temperatureTargetStop()).c_str());
+      "Temperature stop %s reached.\n",
+      TemperatureSensor::formatTemperature(temperatureTargetStop()).c_str()
+    );
 #endif
   }
 
@@ -60,6 +65,6 @@ int TemperatureData::temperatureTargetStop() const {
   return temperatureTarget + temperatureStop;
 }
 
-bool TemperatureData::temperatureSensorsFailed() const {
-  return temperatureSensorManager.sensorsFailed();
+bool TemperatureData::temperatureSensorFailed() const {
+  return temperatureSensor.sensorFailed();
 }
