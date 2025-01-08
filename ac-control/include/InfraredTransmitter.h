@@ -17,7 +17,7 @@ class InfraredTransmitter {
   ACCommand lastACCommand;
   bool lightToggled;
 
-  InfraredTransmitter(int pin, const ACMode& acMode);
+  InfraredTransmitter(int pin, const ACMode &acMode);
 
   void setup();
 

@@ -4,13 +4,13 @@
 #include "TemperatureData.h"
 
 class ACControl {
-  InfraredTransmitter& infraredTransmitter;
-  TemperatureData& temperatureData;
+  InfraredTransmitter &infraredTransmitter;
+  TemperatureData &temperatureData;
 
  public:
   bool enabled;
 
-  ACControl(InfraredTransmitter& infraredTransmitter, TemperatureData& temperatureData);
+  ACControl(InfraredTransmitter &infraredTransmitter, TemperatureData &temperatureData);
 
   void loop();
 

@@ -8,12 +8,13 @@ WebServerHelper::WebServerHelper(
   TemperatureData &temperatureData,
   const ACMode &acMode
 ):
-    webServer(80),
     acControl(acControl),
     temperatureSensor(temperatureSensor),
     infraredTransmitter(infraredTransmitter),
     temperatureData(temperatureData),
-    acMode(acMode) {}
+    acMode(acMode),
+    webServer(80),
+    timeDelay(TimeDelay(1 * 1000, true)) {}
 
 void WebServerHelper::setup(const char* webServerAuthUsername, const char* webServerAuthPassword) {
   webServer.begin();
@@ -234,5 +235,9 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 }
 
 void WebServerHelper::loop() {
+  if (!timeDelay.delayPassed()) {
+    return;
+  }
+
   webServer.handleClient();
 }

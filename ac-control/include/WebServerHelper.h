@@ -9,20 +9,23 @@
 #include "TemperatureSensor.h"
 
 class WebServerHelper {
-  WebServer webServer;
-  ACControl& acControl;
-  TemperatureSensor& temperatureSensor;
-  InfraredTransmitter& infraredTransmitter;
-  TemperatureData& temperatureData;
+  ACControl &acControl;
+  TemperatureSensor &temperatureSensor;
+  InfraredTransmitter &infraredTransmitter;
+  TemperatureData &temperatureData;
   ACMode acMode;
+
+  WebServer webServer;
+  TimeDelay timeDelay;
 
  public:
   explicit WebServerHelper(
-    ACControl& acControl,
-    TemperatureSensor& temperatureSensor,
-    InfraredTransmitter& infraredTransmitter,
-    TemperatureData& temperatureData,
-    const ACMode& acMode);
+    ACControl &acControl,
+    TemperatureSensor &temperatureSensor,
+    InfraredTransmitter &infraredTransmitter,
+    TemperatureData &temperatureData,
+    const ACMode &acMode
+  );
 
   void setup(const char* webServerAuthUsername, const char* webServerAuthPassword);
 
