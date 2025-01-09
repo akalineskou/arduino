@@ -3,7 +3,8 @@
 
 ACControl::ACControl(InfraredTransmitter &infraredTransmitter, TemperatureData &temperatureData):
     infraredTransmitter(infraredTransmitter),
-    temperatureData(temperatureData) {
+    temperatureData(temperatureData),
+    turnOffTimeDelay(TimeDelay(1 * 60 * 60 * 1000)) {
   enabled = false;
 }
 
@@ -13,6 +14,9 @@ void ACControl::loop() {
 
 void ACControl::enable() {
   enabled = true;
+
+  // restart time delay on enable
+  turnOffTimeDelay.restart();
 
 #if DEBUG
   Serial.println("A/C control enabled.");
@@ -29,6 +33,22 @@ void ACControl::disable() {
 #endif
 }
 
+bool ACControl::isEnabled() const {
+  return enabled;
+}
+
+void ACControl::start(const bool force) {
+  infraredTransmitter.sendCommand(Start, force);
+
+  turnOffTimeDelay.restart();
+}
+
+void ACControl::stop(const bool force) {
+  infraredTransmitter.sendCommand(Stop, force);
+
+  turnOffTimeDelay.restart();
+}
+
 void ACControl::control() {
   if (!enabled) {
     return;
@@ -43,12 +63,18 @@ void ACControl::control() {
     return;
   }
 
+  if (turnOffTimeDelay.delayPassed()) {
+#if DEBUG
+    Serial.println("Turn off time delay passed.");
+#endif
+
+    disable();
+    return;
+  }
+
   if (infraredTransmitter.lastACCommand != Start && temperatureData.temperatureStartReached()) {
-    infraredTransmitter.sendCommand(Start);
+    start();
   } else if (infraredTransmitter.lastACCommand != Stop && temperatureData.temperatureStopReached()) {
-    infraredTransmitter.sendCommand(Stop);
-  } else if (infraredTransmitter.lastACCommand == Off) {
-    // was off and temperature is between thresholds, turn on A/C with stop as to not run
-    infraredTransmitter.sendCommand(Stop);
+    stop();
   }
 }

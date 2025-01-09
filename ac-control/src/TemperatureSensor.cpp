@@ -61,7 +61,6 @@ void TemperatureSensor::readTemperature(const bool forceTimeDelay) {
 #endif
 
     sensorFails++;
-
     return;
   }
 
@@ -98,7 +97,6 @@ void TemperatureSensor::readHumidity(const bool forceTimeDelay) {
 #if DEBUG
     Serial.printf("Failed to read humidity from sensor %d!\n", pin);
 #endif
-
     return;
   }
 

@@ -83,8 +83,8 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 
     html.replace(
       "__AC_CONTROL_STATUS__",
-      acControl.enabled ? R"==(<b>Enabled</b> (<a href="/disable">Disable</a>))=="
-                        : R"==(<b>Disabled</b> (<a href="/enable">Enable</a>))=="
+      acControl.isEnabled() ? R"==(<b>Enabled</b> (<a href="/disable">Disable</a>))=="
+                            : R"==(<b>Disabled</b> (<a href="/enable">Enable</a>))=="
     );
     html.replace("__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
 
@@ -198,7 +198,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     Serial.println("GET /force-ac-start");
 #endif
 
-    infraredTransmitter.sendCommand(Start, true);
+    acControl.start(true);
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
@@ -212,7 +212,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     Serial.println("GET /force-ac-stop");
 #endif
 
-    infraredTransmitter.sendCommand(Stop, true);
+    acControl.stop(true);
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);

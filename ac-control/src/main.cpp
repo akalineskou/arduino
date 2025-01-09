@@ -12,7 +12,7 @@
 #include "WifiHelper.h"
 
 Preferences rebootPreferences;
-TimeDelay rebootTimeDelay(12 * 60 * 60 * 1000, false);
+TimeDelay rebootTimeDelay(12 * 60 * 60 * 1000);
 
 ACMode acMode(Heat);
 InfraredTransmitter infraredTransmitter(23, acMode);
@@ -36,6 +36,13 @@ void setup() {
 
   bool isReboot = false;
 
+  // // simulate reboot
+  // rebootPreferences.putBool("is-reboot", true);
+  // rebootPreferences.putBool("ac-e", true);
+  // rebootPreferences.putString("it-lacc", "Start");
+  // rebootPreferences.putBool("it-lt", true);
+  // rebootPreferences.putInt("td-tt", 205);
+
   // restore data after reboot
   if (rebootPreferences.isKey("is-reboot")) {
     rebootPreferences.remove("is-reboot");
@@ -44,31 +51,40 @@ void setup() {
 
 #if DEBUG
     Serial.println();
+    Serial.println("Restoring data after reboot...");
 #endif
 
     // restore data after reboot
-    acControl.enabled = rebootPreferences.getBool("ac-e");
+    const bool enabled = rebootPreferences.getBool("ac-e");
     rebootPreferences.remove("ac-e");
+
+    if (enabled) {
+      acControl.enable();
+    }
 #if DEBUG
-    Serial.printf("Restoring acControl.enabled %d.\n", acControl.enabled);
+    Serial.printf("acControl.enabled %d.\n", acControl.isEnabled());
 #endif
 
     infraredTransmitter.lastACCommand = sToACCommand(rebootPreferences.getString("it-lacc").c_str());
     rebootPreferences.remove("it-lacc");
 #if DEBUG
-    Serial.printf("Restoring infraredTransmitter.lastACCommand %s.\n", ACCommands[infraredTransmitter.lastACCommand]);
+    Serial.printf("infraredTransmitter.lastACCommand %s.\n", ACCommands[infraredTransmitter.lastACCommand]);
 #endif
 
     infraredTransmitter.lightToggled = rebootPreferences.getBool("it-lt");
     rebootPreferences.remove("it-lt");
 #if DEBUG
-    Serial.printf("Restoring infraredTransmitter.lightToggled %d.\n", infraredTransmitter.lightToggled);
+    Serial.printf("infraredTransmitter.lightToggled %d.\n", infraredTransmitter.lightToggled);
 #endif
 
     temperatureData.temperatureTarget = rebootPreferences.getInt("td-tt");
     rebootPreferences.remove("td-tt");
 #if DEBUG
-    Serial.printf("Restoring temperatureData.temperatureTarget %d.\n", temperatureData.temperatureTarget);
+    Serial.printf("temperatureData.temperatureTarget %d.\n", temperatureData.temperatureTarget);
+#endif
+
+#if DEBUG
+    Serial.println();
 #endif
   }
 
@@ -90,36 +106,37 @@ void setup() {
 void loop() {
   if (rebootTimeDelay.delayPassed()) {
 #if DEBUG
-    Serial.println("Rebooting...");
+    Serial.println("Storing data for reboot...");
 #endif
 
     // save data to restore after reboot
     rebootPreferences.putBool("is-reboot", true);
 
-    rebootPreferences.putBool("ac-e", acControl.enabled);
+    rebootPreferences.putBool("ac-e", acControl.isEnabled());
 #if DEBUG
-    Serial.printf("Storing acControl.enabled %d.\n", acControl.enabled);
+    Serial.printf("acControl.enabled %d.\n", acControl.isEnabled());
 #endif
 
     rebootPreferences.putString("it-lacc", ACCommands[infraredTransmitter.lastACCommand]);
 #if DEBUG
-    Serial.printf("Storing infraredTransmitter.lastACCommand %s.\n", ACCommands[infraredTransmitter.lastACCommand]);
+    Serial.printf("infraredTransmitter.lastACCommand %s.\n", ACCommands[infraredTransmitter.lastACCommand]);
 #endif
 
     rebootPreferences.putBool("it-lt", infraredTransmitter.lightToggled);
 #if DEBUG
-    Serial.printf("Storing infraredTransmitter.lightToggled %d.\n", infraredTransmitter.lightToggled);
+    Serial.printf("infraredTransmitter.lightToggled %d.\n", infraredTransmitter.lightToggled);
 #endif
 
     rebootPreferences.putInt("td-tt", temperatureData.temperatureTarget);
 #if DEBUG
-    Serial.printf("Storing temperatureData.temperatureTarget %d.\n", temperatureData.temperatureTarget);
+    Serial.printf("temperatureData.temperatureTarget %d.\n", temperatureData.temperatureTarget);
 #endif
 
 #if DEBUG
-    Serial.println("Waiting for watch dog timer...");
+    Serial.println("Rebooting...");
     Serial.println();
 #endif
+    // wait for watchdog timer
     delay(3600 * 1000);
   }
 

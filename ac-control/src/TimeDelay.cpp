@@ -2,6 +2,10 @@
 
 #include "TimeDelay.h"
 
+TimeDelay::TimeDelay(const unsigned long delay): TimeDelay(delay, false) {
+  start();
+}
+
 TimeDelay::TimeDelay(const unsigned long delay, const bool repeat):
     delay(delay),
     repeat(repeat),
@@ -10,7 +14,7 @@ TimeDelay::TimeDelay(const unsigned long delay, const bool repeat):
 }
 
 bool TimeDelay::delayPassed(const bool force) {
-  if (!running) {
+  if (finished) {
     return false;
   }
 
@@ -31,7 +35,7 @@ bool TimeDelay::delayPassed(const bool force) {
   }
 
   if (delayPassed) {
-    running = false;
+    finished = true;
 
     if (repeat) {
       start();
@@ -43,7 +47,11 @@ bool TimeDelay::delayPassed(const bool force) {
   return false;
 }
 
+void TimeDelay::restart() {
+  start();
+}
+
 void TimeDelay::start() {
   startTime = millis();
-  running = true;
+  finished = false;
 }
