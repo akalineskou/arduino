@@ -20,7 +20,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
   webServer.begin();
 
   webServer.on("/", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
       return webServer.requestAuthentication();
     }
 
@@ -133,7 +133,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
   });
 
   webServer.on("/enable", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
       return webServer.requestAuthentication();
     }
 
@@ -147,7 +147,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     webServer.send(302);
   });
   webServer.on("/disable", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
       return webServer.requestAuthentication();
     }
 
@@ -162,7 +162,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
   });
 
   webServer.on("/increase-target", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
       return webServer.requestAuthentication();
     }
 
@@ -176,7 +176,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     webServer.send(302);
   });
   webServer.on("/decrease-target", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
       return webServer.requestAuthentication();
     }
 
@@ -190,7 +190,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     webServer.send(302);
   });
   webServer.on("/force-ac-start", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
       return webServer.requestAuthentication();
     }
 
@@ -204,7 +204,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     webServer.send(302);
   });
   webServer.on("/force-ac-stop", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!webServer.authenticate(webServerAuthUsername, webServerAuthPassword)) {
+    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
       return webServer.requestAuthentication();
     }
 
@@ -240,4 +240,13 @@ void WebServerHelper::loop() {
   }
 
   webServer.handleClient();
+}
+
+bool WebServerHelper::isAuthenticated(const char* webServerAuthUsername, const char* webServerAuthPassword) {
+  if (strlen(webServerAuthUsername) == 0 && strlen(webServerAuthPassword) == 0) {
+    // authentication disabled
+    return true;
+  }
+
+  return webServer.authenticate(webServerAuthUsername, webServerAuthPassword);
 }

@@ -30,4 +30,7 @@ class WebServerHelper {
   void setup(const char* webServerAuthUsername, const char* webServerAuthPassword);
 
   void loop();
+
+ private:
+  bool isAuthenticated(const char* webServerAuthUsername, const char* webServerAuthPassword);
 };
