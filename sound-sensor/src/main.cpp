@@ -1,148 +1,91 @@
-#include <Arduino.h>
+#include "Beat.h"
+#include "Directive.h"
+#include "LedController.h"
+#include "MicrophoneHelper.h"
+#include "RhythmController.h"
 
-#define SOUND_SENSOR_PIN 2
-#define SOUND_SAMPLES 768
-#define SOUND_MIN_THRESHOLD 50
-#define DUM_THRESHOLD 2400
+#if CHART
+  #include <WebSocketsServer.h>
+  #include <WiFi.h>
 
-class Led {
-public:
-  int pin;
+  #include "Secrets.h"
 
-  explicit Led(const int pin): pin(pin) {
-  }
-
-  void setup() const {
-    pinMode(pin, OUTPUT);
-  }
-
-  void turnOn() const {
-    digitalWrite(pin, HIGH);
-  }
-
-  void turnOff() const {
-    digitalWrite(pin, LOW);
-  }
-};
-
-Led dum[] = {Led(42), Led(39), Led(38), Led(37), Led(47)};
-Led tek[] = {Led(41), Led(40), Led(21)};
-Led leds[] = {dum[0], dum[1], dum[2], dum[3], dum[4], tek[0], tek[1], tek[2]};
-
-void bayo() {
-  constexpr int beat = 220;
-  constexpr int onOffDelay = 100;
-
-  // dum+
-  for (auto led: leds) {
-    led.turnOn();
-  }
-  delay(onOffDelay);
-  for (auto led: leds) {
-    led.turnOff();
-  }
-  delay(2 * beat - onOffDelay);
-
-  // tek
-  for (auto led: tek) {
-    led.turnOn();
-  }
-  delay(onOffDelay);
-  for (auto led: tek) {
-    led.turnOff();
-  }
-  delay(1 * beat - onOffDelay);
-
-  // ke
-  for (auto led: tek) {
-    led.turnOn();
-  }
-  delay(onOffDelay);
-  for (auto led: tek) {
-    led.turnOff();
-  }
-  delay(1 * beat - onOffDelay);
-
-  // dum+
-  for (auto led: leds) {
-    led.turnOn();
-  }
-  delay(onOffDelay);
-  for (auto led: leds) {
-    led.turnOff();
-  }
-  delay(2 * beat - onOffDelay);
-
-  // ke+
-  for (auto led: tek) {
-    led.turnOn();
-  }
-  delay(onOffDelay);
-  for (auto led: tek) {
-    led.turnOff();
-  }
-  delay(2 * beat - onOffDelay);
-}
-
-void setup() {
-#if DEBUG || PLOT
-  Serial.begin(115200);
+WebSocketsServer webSocketsServer(81);
 #endif
 
-  pinMode(SOUND_SENSOR_PIN, INPUT);
+MicrophoneHelper microphoneHelper(12, 11, 10);
+LedController ledController(6, 5);
+RhythmController rhythmController(ledController);
 
-  for (auto led: leds) {
-    led.setup();
-  }
+int rhythmBeatCount = 1;
+bool rhythmPlayed = false;
+Rhythm rhythm;
+int rhythmBpm;
 
-#if DEBUG && !PLOT
+Bands bands{};
+
+void setup() {
+  Serial.begin(115200);
+
+#if DEBUG
+  delay(1000);
+#endif
+
+  // if analog input pin 0 is unconnected, random analog noise will cause the call to randomSeed() to generate
+  // different seed numbers each time the sketch runs. randomSeed() will then shuffle the random function.
+  randomSeed(analogRead(0));
+
+  microphoneHelper.setup();
+  ledController.setup();
+
+#if DEBUG
   Serial.println("Setup done");
 #endif
 
-  bayo();
+  rhythm = static_cast<Rhythm>(random(0, sizeof(Rhythms) / sizeof(char*)));
+
+#if CHART
+  WiFi.begin(wifiSSID, wifiPassword);
+
+  while (WiFiClass::status() != WL_CONNECTED) {
+    delay(100);
+  }
+
+  #if DEBUG
+  Serial.printf("Connected to %s (%s).\n", wifiSSID, WiFi.localIP().toString().c_str());
+  #endif
+
+  webSocketsServer.begin();
+#endif
 }
 
 void loop() {
-  int soundTotal = 0;
-  for (auto i = 0; i < SOUND_SAMPLES; i++) {
-    soundTotal += analogRead(SOUND_SENSOR_PIN);
-  }
-  const int soundAverage = soundTotal / SOUND_SAMPLES;
-
-#if PLOT
-  Serial.printf("Dum:%d,Average:%d\n", DUM_THRESHOLD, soundAverage);
-#endif
-
-  if (soundAverage < SOUND_MIN_THRESHOLD) {
-    // treat as not playing below this threshold
-    for (auto led: leds) {
-      led.turnOff();
+  if (!rhythmPlayed) {
+#if DEBUG
+    if (rhythmBeatCount == 1) {
+      Serial.printf("Rhythm: %s\n", Rhythms[rhythm]);
     }
-
-    return;
-  }
-
-#if DEBUG && !PLOT
-  Serial.printf("Sound average: %d\n", soundAverage);
 #endif
+    rhythmController.play(rhythm, 110, rhythmBeatCount);
 
-#if DEBUG && !PLOT
-  Serial.println("tek");
+    if (rhythmBeatCount == 1) {
+      rhythmPlayed = true;
+    }
+  }
+
+  microphoneHelper.getBands(bands);
+
+  for (const auto beat: {Dum, Tek}) {
+    if (bands.is(beat)) {
+      ledController.on(beat);
+    } else {
+      ledController.off(beat);
+    }
+  }
+
+#if CHART
+  webSocketsServer.loop();
+
+  webSocketsServer.broadcastTXT(bands.chartJson().c_str());
 #endif
-
-  for (auto led: tek) {
-    led.turnOn();
-  }
-
-  if (soundAverage <= DUM_THRESHOLD) {
-    return;
-  }
-
-#if DEBUG && !PLOT
-  Serial.println("dum");
-#endif
-
-  for (auto led: dum) {
-    led.turnOn();
-  }
 }

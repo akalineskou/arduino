@@ -1,0 +1,73 @@
+BasedOnStyle: Chromium
+Language: Cpp
+AllowAllArgumentsOnNextLine: false
+AlignAfterOpenBracket: BlockIndent
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: false
+AlignEscapedNewlines: 'DontAlign'
+AlignOperands: false
+AlignTrailingComments: false
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: true
+AlwaysBreakAfterDefinitionReturnType: None
+SeparateDefinitionBlocks: Always
+EmptyLineBeforeAccessModifier: LogicalBlock
+EmptyLineAfterAccessModifier: Never
+InsertNewlineAtEOF: true
+InsertBraces: true
+BreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: true
+BinPackArguments: false
+BinPackParameters: OnePerLine
+PackConstructorInitializers: CurrentLine
+BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Attach
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: AfterColon
+BreakInheritanceList: AfterColon
+ColumnLimit: 120
+CommentPragmas: '^\\sa'
+ContinuationIndentWidth: 2
+Cpp11BracedListStyle: true
+DerivePointerAlignment: false
+DisableFormat: false
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: ^<((std.+)|assert|complex|ctype|errno|fenv|float|inttypes|iso646|limits|locale|math|setjmp|signal|string|tgmath|threads|time|uchar|wchar|wctype|malloc|(sys/.+))\.h>$
+    Priority: 4
+  - Regex: ^".+"$
+    Priority: -3
+  - Regex: ^<.+>$
+    Priority: -4
+IndentCaseLabels: true
+IndentPPDirectives: BeforeHash
+IndentWidth: 2
+IndentWrappedFunctionNames: true
+MaxEmptyLinesToKeep: 1
+PenaltyBreakBeforeFirstCallParameter: 0
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 120
+PenaltyBreakString: 1000
+PenaltyExcessCharacter: 1000000
+PenaltyReturnTypeOnItsOwnLine: 500000
+PointerAlignment: Left
+ReferenceAlignment: Right
+SpaceAfterCStyleCast: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpacesInParens: Never
+SpacesBeforeTrailingComments: 1
+SpacesInSquareBrackets: false
+SpaceBeforeCaseColon: false
+SpaceBeforeCtorInitializerColon: false
+SpaceBeforeInheritanceColon: false
+SpaceBeforeRangeBasedForLoopColon: false
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+TabWidth: 2
+UseTab: Never

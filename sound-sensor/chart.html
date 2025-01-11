@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>WebSocket Spectrum Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body onload="init()">
+<h2>Spectrum Analyzer</h2>
+
+<div>
+    <canvas id="chartV" height="150"></canvas>
+<!--    <canvas id="chartH" height="1000"></canvas>-->
+</div>
+
+<script>
+    function init() {
+        const maxValue = 160000;
+        const maxLow = maxValue * 0.5;
+        const maxMedium = maxValue * 0.2;
+
+        let chartOptions = {
+            type: 'bar',
+            options: {
+                animation: false,
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    tooltip: {
+                        enabled: false,
+                    },
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        display: true,
+                        stacked: true,
+                        beginAtZero: true,
+                        max: maxValue,
+                        ticks: {
+                            maxTicksLimit: 50,
+                        },
+                    },
+                },
+            },
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        data: [],
+                        label: "Low",
+                        backgroundColor: "#D6E9C6",
+                    },
+                    {
+                        data: [],
+                        label: "Mid",
+                        backgroundColor: "#FAEBCC",
+                    },
+                    {
+                        data: [],
+                        label: "High",
+                        backgroundColor: "#EBCCD1",
+                    },
+                ],
+            },
+        };
+
+        let chartOptionsV = JSON.parse(JSON.stringify(chartOptions));
+
+        let chartV = new Chart(document.getElementById('chartV'), chartOptionsV);
+
+        let chartOptionsH = JSON.parse(JSON.stringify(chartOptions));
+        chartOptionsH.options.indexAxis = "y";
+        let scalesX = chartOptionsH.options.scales.x;
+        chartOptionsH.options.scales.x = chartOptionsH.options.scales.y;
+        chartOptionsH.options.scales.y = scalesX;
+
+        // let chartH = new Chart(document.getElementById('chartH'), chartOptionsH);
+
+        let webSocket, closeTimeoutTimerId;
+
+        const webSocketInit = () => {
+            webSocket = null;
+            webSocket = new WebSocket('ws://192.168.1.17:81/');
+            webSocket.onclose = webSocketInit;
+            webSocket.onmessage = (event) => {
+                // on message clear the timeout
+                if (closeTimeoutTimerId) {
+                    clearTimeout(closeTimeoutTimerId);
+                }
+                closeTimeoutTimerId = setTimeout(() => {
+                    webSocket.close();
+                }, 200);
+
+                let data;
+                try {
+                    data = JSON.parse(event.data);
+                } catch (e) {
+                    return;
+                }
+
+                [
+                    chartV,
+                    // chartH
+                ].forEach(function (chart) {
+                    chart.data.labels = [];
+                    chart.data.datasets[0].data = [];
+                    chart.data.datasets[1].data = [];
+                    chart.data.datasets[2].data = [];
+
+                    data.forEach(function (datum) {
+                        chart.data.labels.push(datum.label);
+
+                        const lowValue = Math.min(maxLow, datum.value);
+                        chart.data.datasets[0].data.push(lowValue);
+
+                        const mediumValue = Math.min(Math.max(0, datum.value - lowValue), maxMedium);
+                        chart.data.datasets[1].data.push(mediumValue);
+
+                        const highValue = Math.max(0, datum.value - lowValue - mediumValue);
+                        chart.data.datasets[2].data.push(highValue);
+                    });
+
+                    chart.update();
+                });
+            };
+        };
+
+        webSocketInit();
+    }
+</script>
+</body>
+</html>
