@@ -4,8 +4,8 @@
 TemperatureSensor::TemperatureSensor(const int pin):
     pin(pin),
     dht(pin, DHT22),
-    temperatureTimeDelay(TimeDelay(10 * 1000, true)),
-    humidityTimeDelay(TimeDelay(60 * 1000, true)) {
+    temperatureTimeDelay(TimeDelay(TEMPERATURE_SENSOR_TEMPERATURE_DELAY, true)),
+    humidityTimeDelay(TimeDelay(TEMPERATURE_SENSOR_HUMIDITY_DELAY, true)) {
   sensorFails = 0;
   temperature = 0;
   humidity = 0;

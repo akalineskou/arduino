@@ -5,7 +5,7 @@ InfraredTransmitter::InfraredTransmitter(const int pin, const ACMode &acMode):
     pin(pin),
     acMode(acMode),
     irSend(pin),
-    timeDelay(TimeDelay(0.5 * 1000, true)) {
+    timeDelay(TimeDelay(IR_SEND_DELAY, true)) {
   lastACCommand = Off;
 
   lightToggled = false;

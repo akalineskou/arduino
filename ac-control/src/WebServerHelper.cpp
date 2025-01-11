@@ -14,7 +14,7 @@ WebServerHelper::WebServerHelper(
     temperatureData(temperatureData),
     acMode(acMode),
     webServer(80),
-    timeDelay(TimeDelay(1 * 1000, true)) {}
+    timeDelay(TimeDelay(WEB_SERVER_CLIENT_DELAY, true)) {}
 
 void WebServerHelper::setup(const char* webServerAuthUsername, const char* webServerAuthPassword) {
   webServer.begin();
