@@ -22,9 +22,10 @@ ACControl acControl(infraredTransmitter, temperatureData);
 WebServerHelper webServerHelper(acControl, temperatureSensor, infraredTransmitter, temperatureData, acMode);
 
 void setup() {
-#if DEBUG
+  // for some reason needed for the IR transmitter to work
   Serial.begin(115200);
 
+#if DEBUG
   // wait for serial monitor to start completely.
   delay(2500);
 #endif
@@ -99,7 +100,7 @@ void setup() {
 #endif
 
     // start with sending Οff in case of an unexpected reboot (force command since it starts Οff)
-    infraredTransmitter.sendCommand(Off, true, true);
+    infraredTransmitter.sendCommand(Off, true);
   }
 }
 

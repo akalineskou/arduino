@@ -37,14 +37,14 @@ bool ACControl::isEnabled() const {
   return enabled;
 }
 
-void ACControl::start(const bool force) {
-  infraredTransmitter.sendCommand(Start, force);
+void ACControl::start() {
+  infraredTransmitter.sendCommand(Start);
 
   turnOffTimeDelay.restart();
 }
 
-void ACControl::stop(const bool force) {
-  infraredTransmitter.sendCommand(Stop, force);
+void ACControl::stop() {
+  infraredTransmitter.sendCommand(Stop);
 
   turnOffTimeDelay.restart();
 }

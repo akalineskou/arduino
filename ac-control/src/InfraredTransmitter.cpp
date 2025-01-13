@@ -1,11 +1,7 @@
 #include "Directive.h"
 #include "InfraredTransmitter.h"
 
-InfraredTransmitter::InfraredTransmitter(const int pin, const ACMode &acMode):
-    pin(pin),
-    acMode(acMode),
-    irSend(pin),
-    timeDelay(TimeDelay(IR_SEND_DELAY, true)) {
+InfraredTransmitter::InfraredTransmitter(const int pin, const ACMode &acMode): pin(pin), acMode(acMode), irSend(pin) {
   lastACCommand = Off;
 
   lightToggled = false;
@@ -15,11 +11,7 @@ void InfraredTransmitter::setup() {
   irSend.begin();
 }
 
-void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forceTimeDelay, const bool forceCommand) {
-  if (!timeDelay.delayPassed(forceTimeDelay)) {
-    return;
-  }
-
+void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forceCommand) {
   if (acCommand == lastACCommand && !forceCommand) {
     // same A/C command, ignoring send
     return;

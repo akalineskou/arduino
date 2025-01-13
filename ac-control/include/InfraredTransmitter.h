@@ -4,14 +4,12 @@
 
 #include "ACCommand.h"
 #include "ACMode.h"
-#include "TimeDelay.h"
 
 class InfraredTransmitter {
   int pin;
   ACMode acMode;
 
   IRHaierAC160 irSend;
-  TimeDelay timeDelay;
 
  public:
   ACCommand lastACCommand;
@@ -21,5 +19,5 @@ class InfraredTransmitter {
 
   void setup();
 
-  void sendCommand(ACCommand acCommand, bool forceTimeDelay = false, bool forceCommand = false);
+  void sendCommand(ACCommand acCommand, bool forceCommand = false);
 };

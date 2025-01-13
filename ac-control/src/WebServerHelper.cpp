@@ -197,7 +197,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     Serial.println("GET /force-ac-start");
 #endif
 
-    acControl.start(true);
+    acControl.start();
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
@@ -211,7 +211,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     Serial.println("GET /force-ac-stop");
 #endif
 
-    acControl.stop(true);
+    acControl.stop();
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);

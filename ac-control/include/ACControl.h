@@ -22,9 +22,9 @@ class ACControl {
 
   bool isEnabled() const;
 
-  void start(bool force = false);
+  void start();
 
-  void stop(bool force = false);
+  void stop();
 
  private:
   void control();
