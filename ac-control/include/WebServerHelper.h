@@ -16,7 +16,6 @@ class WebServerHelper {
   ACMode acMode;
 
   WebServer webServer;
-  TimeDelay timeDelay;
 
  public:
   explicit WebServerHelper(

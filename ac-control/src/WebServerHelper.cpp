@@ -13,8 +13,7 @@ WebServerHelper::WebServerHelper(
     infraredTransmitter(infraredTransmitter),
     temperatureData(temperatureData),
     acMode(acMode),
-    webServer(80),
-    timeDelay(TimeDelay(WEB_SERVER_CLIENT_DELAY, true)) {}
+    webServer(80) {}
 
 void WebServerHelper::setup(const char* webServerAuthUsername, const char* webServerAuthPassword) {
   webServer.begin();
@@ -235,10 +234,6 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 }
 
 void WebServerHelper::loop() {
-  if (!timeDelay.delayPassed()) {
-    return;
-  }
-
   webServer.handleClient();
 }
 

@@ -4,7 +4,7 @@
 ACControl::ACControl(InfraredTransmitter &infraredTransmitter, TemperatureData &temperatureData):
     infraredTransmitter(infraredTransmitter),
     temperatureData(temperatureData),
-    turnOffTimeDelay(TimeDelay(1 * 60 * 60 * 1000)) {
+    turnOffTimeDelay(TimeDelay(AC_CONTROL_TURN_OFF_DELAY)) {
   enabled = false;
 }
 

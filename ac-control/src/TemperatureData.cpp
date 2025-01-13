@@ -9,7 +9,7 @@ TemperatureData::TemperatureData(TemperatureSensor &temperatureSensor, const ACM
     temperatureStart = 1.0 * 10;
     temperatureStop = -0.5 * 10;
   } else {
-    temperatureTarget = 21.0 * 10;
+    temperatureTarget = 20.5 * 10;
     temperatureStart = -1.0 * 10;
     temperatureStop = 0.5 * 10;
   }

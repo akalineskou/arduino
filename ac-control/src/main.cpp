@@ -12,7 +12,7 @@
 #include "WifiHelper.h"
 
 Preferences rebootPreferences;
-TimeDelay rebootTimeDelay(12 * 60 * 60 * 1000);
+TimeDelay rebootTimeDelay(REBOOT_DELAY);
 
 ACMode acMode(Heat);
 InfraredTransmitter infraredTransmitter(23, acMode);
