@@ -15,4 +15,6 @@ class LedController {
   void on(Beat beat) const;
 
   void off(Beat beat) const;
+
+  static int offDelay(Beat beat);
 };

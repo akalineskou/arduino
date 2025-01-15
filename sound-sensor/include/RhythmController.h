@@ -1,35 +1,17 @@
 #pragma once
 
 #include "LedController.h"
-
-enum Rhythm {
-  Bayo,
-  Chiftetelli,
-  Zonaradikos,
-  Tsamikos,
-};
-
-static const char* Rhythms[] = {
-  "Bayo",
-  "Chiftetelli",
-  "Zonaradikos",
-  "Tsamikos",
-};
+#include "Rhythm.h"
 
 class RhythmController {
   LedController ledController;
-  int globalBeatCount;
-  int beatsCount;
-  int currentBeat;
-  int bpm;
-  unsigned long previousMillis;
+  Beat previousBeat;
   unsigned long previousBeatValue;
+  unsigned long previousBeatMillis;
+  unsigned long ledOffMillis;
 
  public:
   explicit RhythmController(LedController ledController);
 
-  void play(Rhythm rhythm, int _bpm, int &beatCount);
-
- private:
-  void beat(Beat beat, int beatValue);
+  void play(const RhythmData* rhythmData, int &beatCount);
 };

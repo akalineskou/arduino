@@ -37,3 +37,7 @@ void LedController::off(const Beat beat) const {
       break;
   }
 }
+
+int LedController::offDelay(const Beat beat) {
+  return beat == Dum ? 150 : 50;
+}

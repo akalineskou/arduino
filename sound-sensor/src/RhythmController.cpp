@@ -4,103 +4,54 @@
 #include "RhythmController.h"
 
 RhythmController::RhythmController(const LedController ledController): ledController(ledController) {
-  globalBeatCount = 0;
-  beatsCount = 0;
-  currentBeat = 0;
-  bpm = 0;
-  previousMillis = 0;
+  previousBeat = Dum;
   previousBeatValue = 0;
+  previousBeatMillis = 0;
+  ledOffMillis = 0;
 }
 
-void RhythmController::play(const Rhythm rhythm, const int _bpm, int &beatCount) {
-  bpm = _bpm;
-  globalBeatCount = beatCount;
+void RhythmController::play(const RhythmData* rhythmData, int &beatCount) {
+  unsigned long currentMillis = millis();
+  if (currentMillis - ledOffMillis >= LedController::offDelay(previousBeat)) {
+    ledController.off(previousBeat);
 
-  currentBeat = 0;
-
-  switch (rhythm) {
-    case Bayo:
-      beatsCount = 5;
-
-      beat(Dum, 4);
-
-      beat(Tek, 8);
-      beat(Tek, 8);
-      beat(Dum, 4);
-
-      beat(Tek, 4);
-      break;
-
-    case Chiftetelli:
-      beatsCount = 5;
-
-      beat(Dum, 8);
-      beat(Tek, 4);
-
-      beat(Tek, 8);
-      beat(Dum, 4);
-
-      beat(Tek, 4);
-      break;
-
-    case Zonaradikos:
-      beatsCount = 5;
-
-      beat(Dum, 4);
-
-      beat(Tek, 8);
-      beat(Tek, 8);
-      beat(Tek, 8);
-      beat(Tek, 8);
-      break;
-
-    case Tsamikos:
-      beatsCount = 8;
-
-      beat(Dum, 8 + 8 / 2);
-
-      beat(Tek, 16);
-      beat(Tek, 8);
-      beat(Tek, 8);
-
-      beat(Dum, 16);
-      beat(Tek, 16);
-      beat(Tek, 16);
-      beat(Tek, 16);
-      break;
+    ledOffMillis = currentMillis;
   }
 
-  beatCount = globalBeatCount;
-}
+  const auto beatData = rhythmData->beatData;
+  for (auto i = 0; i < beatData->count; i++) {
+    if (i + 1 != beatCount) {
+      // not current beat
+      continue;
+    }
 
-void RhythmController::beat(const Beat beat, const int beatValue) {
-  currentBeat++;
-  if (currentBeat != globalBeatCount) {
-    return;
-  }
+    currentMillis = millis();
+    if (previousBeatValue > 0 &&
+        currentMillis - previousBeatMillis <
+          static_cast<int>(round(4.0 / previousBeatValue * 60.0 / rhythmData->bpm * 1000))) {
+      // time has not passed
+      continue;
+    }
 
-  const unsigned long currentMillis = millis();
+    previousBeat = beatData->beatDatum[i].beat;
+    previousBeatValue = beatData->beatDatum[i].value;
+    previousBeatMillis = currentMillis;
 
-  if (previousBeatValue > 0 &&
-      currentMillis - previousMillis < static_cast<int>(round(4.0 / previousBeatValue * 60.0 / bpm * 1000))) {
-    return;
-  }
+    ledController.on(beatData->beatDatum[i].beat);
 
-  previousMillis = currentMillis;
-  previousBeatValue = beatValue;
+    ledOffMillis = millis();
 
-  ledController.on(beat);
-  delay(50);
-  ledController.off(beat);
-
-  if (globalBeatCount == beatsCount) {
-    globalBeatCount = 1;
+    if (beatCount == beatData->count) {
+      // last beat
+      beatCount = 1;
 
 #if DEBUG
-    Serial.println();
+      Serial.println();
 #endif
-    return;
-  }
 
-  globalBeatCount++;
+      continue;
+    }
+
+    beatCount++;
+  }
 }

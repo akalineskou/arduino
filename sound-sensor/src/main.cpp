@@ -2,7 +2,9 @@
 #include "Directive.h"
 #include "LedController.h"
 #include "MicrophoneHelper.h"
+#include "Rhythm.h"
 #include "RhythmController.h"
+#include "TimeDelay.h"
 
 #if CHART
   #include <WebSocketsServer.h>
@@ -18,9 +20,11 @@ LedController ledController(6, 5);
 RhythmController rhythmController(ledController);
 
 int rhythmBeatCount = 1;
-bool rhythmPlayed = false;
-Rhythm rhythm;
-int rhythmBpm;
+bool rhythmPlay = false;
+const RhythmData* rhythmData = RhythmDatas[0];
+
+TimeDelay idleRhythmTimeDelay(60 * 1000, true);
+TimeDelay rhythmChangeTimeDelay(5 * 1000, true);
 
 Bands bands{};
 
@@ -42,8 +46,6 @@ void setup() {
   Serial.println("Setup done");
 #endif
 
-  rhythm = static_cast<Rhythm>(random(0, sizeof(Rhythms) / sizeof(char*)));
-
 #if CHART
   WiFi.begin(wifiSSID, wifiPassword);
 
@@ -60,17 +62,29 @@ void setup() {
 }
 
 void loop() {
-  if (!rhythmPlayed) {
-#if DEBUG
-    if (rhythmBeatCount == 1) {
-      Serial.printf("Rhythm: %s\n", Rhythms[rhythm]);
-    }
-#endif
-    rhythmController.play(rhythm, 110, rhythmBeatCount);
+  if (!rhythmPlay && idleRhythmTimeDelay.delayPassed()) {
+    rhythmPlay = true;
 
-    if (rhythmBeatCount == 1) {
-      rhythmPlayed = true;
+#if DEBUG
+    Serial.println("Playing idle rhythm");
+#endif
+  }
+
+  if (rhythmPlay) {
+    if (rhythmBeatCount == 1 && rhythmChangeTimeDelay.delayPassed()) {
+      const RhythmData* newRhythmData;
+      do {
+        newRhythmData = RhythmDatas[random(0, sizeof(RhythmDatas) / sizeof(const RhythmData*))];
+      } while (newRhythmData->name == rhythmData->name);
+
+      rhythmData = newRhythmData;
+
+#if DEBUG
+      Serial.printf("Changing idle rhythm: %s, BPM: %d\n", rhythmData->name, rhythmData->bpm);
+#endif
     }
+
+    rhythmController.play(rhythmData, rhythmBeatCount);
   }
 
   microphoneHelper.getBands(bands);
@@ -78,7 +92,20 @@ void loop() {
   for (const auto beat: {Dum, Tek}) {
     if (bands.is(beat)) {
       ledController.on(beat);
-    } else {
+
+      // on each beat restart the time delay
+      idleRhythmTimeDelay.restart();
+
+      if (rhythmPlay) {
+        // reset only once
+#if DEBUG
+        Serial.println("Stopping idle rhythm");
+#endif
+
+        rhythmPlay = false;
+        rhythmBeatCount = 1;
+      }
+    } else if (!rhythmPlay) {
       ledController.off(beat);
     }
   }
