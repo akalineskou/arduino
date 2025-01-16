@@ -73,12 +73,18 @@ void loop() {
 
   if (idling) {
     if (rhythmBeatCount == 1 && rhythmChangeTimeDelay.delayPassed()) {
+#if !RHYTHM_OVERRIDE
       const RhythmData* newRhythmData;
       do {
         newRhythmData = RhythmDatas[random(0, sizeof(RhythmDatas) / sizeof(const RhythmData*))];
       } while (newRhythmData->name == rhythmData->name);
 
       rhythmData = newRhythmData;
+#else
+      rhythmData = RhythmDatas[RHYTHM_OVERRIDE - 1];
+
+      Serial.printf("Overriding rhythm with: %s\n", rhythmData->name);
+#endif
 
 #if APP_DEBUG
       Serial.printf("Changing idle rhythm: %s, BPM: %d\n", rhythmData->name, rhythmData->bpm);

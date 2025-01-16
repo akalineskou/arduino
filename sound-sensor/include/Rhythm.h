@@ -2,6 +2,8 @@
 
 #include "Beat.h"
 
+#define RHYTHM_OVERRIDE 0
+
 struct RhythmData {
   const char* name;
   const int bpm;
