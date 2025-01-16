@@ -13,9 +13,9 @@ class MicrophoneHelper {
   uint32_t sampleRate;
   i2s_port_t i2sPort;
   ArduinoFFT<double> FFT;
-  double vReal[BLOCK_SIZE]{};
-  double vImag[BLOCK_SIZE]{};
-  int32_t samples[BLOCK_SIZE]{};
+  double vReal[SAMPLES]{};
+  double vImag[SAMPLES]{};
+  int32_t rawData[SAMPLES]{};
 
  public:
   explicit MicrophoneHelper(int i2sClockPin, int i2sWsPin, int i2sDataInPin);

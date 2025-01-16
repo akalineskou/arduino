@@ -1,5 +1,7 @@
 #include "Bands.h"
 
+Band::Band(int bands[], const int count, const int minValue): bands(bands), count(count), minValue(minValue) {}
+
 Bands::Bands():
     dumBands(new Band[1]{Band(new int[4]{11, 12, 13, 14}, 4, 110000)}),
     dumCount(1),
@@ -44,7 +46,7 @@ std::string Bands::chartJson() const {
     json += R"({"label":"Tek", "value": )" + std::to_string(value(tekBands[i])) + "},";
   }
 
-  for (auto i = 0; i < BLOCK_SIZE_HALF; i++) {
+  for (auto i = 0; i < SAMPLES_HALF; i++) {
   #if !CHART_INCLUDE_ALL
     bool allowed = false;
 

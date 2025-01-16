@@ -2,7 +2,8 @@
 
 #define DEBUG false
 #define CHART false
-#define CHART_INCLUDE_ALL false
+#define CHART_INCLUDE_ALL true
+#define RHYTHM_PLAY true
 
-#define BLOCK_SIZE 512 // 64 * 8
-#define BLOCK_SIZE_HALF (BLOCK_SIZE / 2)
+#define SAMPLES 512 // 64 * 8
+#define SAMPLES_HALF (SAMPLES / 4)

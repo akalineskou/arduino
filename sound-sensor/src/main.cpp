@@ -42,10 +42,6 @@ void setup() {
   microphoneHelper.setup();
   ledController.setup();
 
-#if DEBUG
-  Serial.println("Setup done");
-#endif
-
 #if CHART
   WiFi.begin(wifiSSID, wifiPassword);
 
@@ -59,16 +55,22 @@ void setup() {
 
   webSocketsServer.begin();
 #endif
+
+#if DEBUG
+  Serial.println("Setup done.");
+#endif
 }
 
 void loop() {
+#if RHYTHM_PLAY
   if (!rhythmPlay && idleRhythmTimeDelay.delayPassed()) {
     rhythmPlay = true;
 
-#if DEBUG
+  #if DEBUG
     Serial.println("Playing idle rhythm");
-#endif
+  #endif
   }
+#endif
 
   if (rhythmPlay) {
     if (rhythmBeatCount == 1 && rhythmChangeTimeDelay.delayPassed()) {
