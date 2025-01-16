@@ -25,9 +25,7 @@ struct Bands {
 
   Bands();
 
-  int value(const Band &band) const;
-
-  bool is(Beat beat) const;
+  int getBeat(bool idling) const;
 
 #if APP_CHART
   std::string chartJson() const;

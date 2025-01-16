@@ -21,11 +21,11 @@ LedController ledController(6, 5);
 RhythmController rhythmController(ledController);
 
 int rhythmBeatCount = 1;
-bool rhythmPlay = false;
+bool idling = false;
 const RhythmData* rhythmData = RhythmDatas[0];
 
 TimeDelay idleRhythmTimeDelay(60 * 1000, true);
-TimeDelay rhythmChangeTimeDelay(5 * 1000, true);
+TimeDelay rhythmChangeTimeDelay(10 * 1000, true);
 
 Bands bands{};
 
@@ -39,7 +39,6 @@ void setup() {
   // if analog input pin 0 is unconnected, random analog noise will be generated
   randomSeed(analogRead(0));
 
-  microphoneHelper.setup();
   ledController.setup();
 
 #if APP_CHART
@@ -63,8 +62,8 @@ void setup() {
 
 void loop() {
 #if APP_RHYTHM_PLAY
-  if (!rhythmPlay && idleRhythmTimeDelay.delayPassed()) {
-    rhythmPlay = true;
+  if (!idling && idleRhythmTimeDelay.delayPassed()) {
+    idling = true;
 
   #if DEBUG
     Serial.println("Playing idle rhythm");
@@ -72,7 +71,7 @@ void loop() {
   }
 #endif
 
-  if (rhythmPlay) {
+  if (idling) {
     if (rhythmBeatCount == 1 && rhythmChangeTimeDelay.delayPassed()) {
       const RhythmData* newRhythmData;
       do {
@@ -89,27 +88,27 @@ void loop() {
     rhythmController.play(rhythmData, rhythmBeatCount);
   }
 
-  microphoneHelper.getBands(bands);
+  microphoneHelper.getBands(bands, idling);
 
-  for (const auto beat: {Dum, Tek}) {
-    if (bands.is(beat)) {
-      ledController.on(beat);
+  const int beatInt = bands.getBeat(idling);
+  if (beatInt != -1) {
+    ledController.on(static_cast<Beat>(beatInt));
 
-      // on each beat restart the time delay
-      idleRhythmTimeDelay.restart();
+    // on each beat restart the time delay
+    idleRhythmTimeDelay.restart();
 
-      if (rhythmPlay) {
-        // reset only once
+    if (idling) {
 #if APP_DEBUG
-        Serial.println("Stopping idle rhythm");
+      Serial.println("Stopping idle rhythm");
 #endif
 
-        rhythmPlay = false;
-        rhythmBeatCount = 1;
-      }
-    } else if (!rhythmPlay) {
-      ledController.off(beat);
+      // reset only once
+      idling = false;
+      rhythmBeatCount = 1;
     }
+  } else if (!idling) {
+    ledController.off(Dum);
+    ledController.off(Tek);
   }
 
 #if APP_CHART

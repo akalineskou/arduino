@@ -5,45 +5,34 @@ Band::Band(const int count, int bands[], const int minValue): count(count), band
 Bands::Bands():
     dumCount(1),
     dumBands(new Band[1]{Band(1, new int[1]{3}, 40000)}),
-    tekCount(3),
-    tekBands(new Band[3]{
-      Band(2, new int[2]{17, 18}, 4000),
-      Band(2, new int[2]{21, 22}, 4000),
-      Band(2, new int[2]{23, 24}, 4000),
+    tekCount(1),
+    tekBands(new Band[1]{
+      Band(9, new int[9]{15, 16, 17, 18, 21, 22, 23, 24, 25}, 4000),
     }) {}
 
-int Bands::value(const Band &band) const {
-  int value = 0;
-
-  for (auto i = 0; i < band.count; i++) {
-    value += data[band.bands[i]];
+int Bands::getBeat(const bool idling) const {
+  if (idling) {
+    return data[1] > 100 ? Dum : -1;
   }
 
-  return value / band.count;
-}
+  for (const auto beat: {Dum, Tek}) {
+    for (auto i = 0; i < (beat == Dum ? dumCount : tekCount); i++) {
+      const auto band = (beat == Dum ? dumBands : tekBands)[i];
 
-bool Bands::is(const Beat beat) const {
-  for (auto i = 0; i < (beat == Dum ? dumCount : tekCount); i++) {
-    const auto band = (beat == Dum ? dumBands : tekBands)[i];
-
-    if (value(band) > band.minValue) {
-      return true;
+      for (auto j = 0; j < band.count; j++) {
+        if (data[band.bands[j]] > band.minValue) {
+          return beat;
+        }
+      }
     }
   }
 
-  return false;
+  return -1;
 }
 
 #if APP_CHART
 std::string Bands::chartJson() const {
   std::string json = "[";
-
-  for (auto i = 0; i < dumCount; i++) {
-    json += R"({"label":"Dum", "value": )" + std::to_string(value(dumBands[i])) + "},";
-  }
-  for (auto i = 0; i < tekCount; i++) {
-    json += R"({"label":"Tek", "value": )" + std::to_string(value(tekBands[i])) + "},";
-  }
 
   for (auto i = 0; i < BAND_SIZE; i++) {
   #if !APP_CHART_INCLUDE_ALL

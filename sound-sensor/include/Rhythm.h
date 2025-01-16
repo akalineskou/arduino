@@ -89,7 +89,6 @@ static const RhythmData* RhythmDatas[] = {
     )
   ),
 
-  // Zonaradikos
   new RhythmData(
     "Zonaradikos",
     110,
@@ -106,7 +105,6 @@ static const RhythmData* RhythmDatas[] = {
     )
   ),
 
-  // Tsamikos
   new RhythmData(
     "Tsamikos",
     120,
@@ -124,6 +122,23 @@ static const RhythmData* RhythmDatas[] = {
         BeatDatum(Dum, 8),
 
         BeatDatum(Tek, 8),
+      }
+    )
+  ),
+
+  new RhythmData(
+    "Syrtos",
+    120,
+    new BeatData(
+      4,
+      new BeatDatum[4]{
+        BeatDatum(Dum, 4),
+
+        BeatDatum(Tek, 4),
+
+        BeatDatum(Dum, 4),
+
+        BeatDatum(Tek, 4),
       }
     )
   ),
