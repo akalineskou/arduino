@@ -1,17 +1,16 @@
 #include "Bands.h"
 
-Band::Band(int bands[], const int count, const int minValue): bands(bands), count(count), minValue(minValue) {}
+Band::Band(const int count, int bands[], const int minValue): count(count), bands(bands), minValue(minValue) {}
 
 Bands::Bands():
-    dumBands(new Band[1]{Band(new int[4]{11, 12, 13, 14}, 4, 110000)}),
     dumCount(1),
-    tekBands(new Band[4]{
-      Band(new int[4]{78, 79, 80, 81}, 4, 15000),
-      Band(new int[4]{87, 88, 89, 90}, 4, 15000),
-      Band(new int[5]{100, 101, 102, 103, 104}, 5, 10000),
-      Band(new int[5]{117, 118, 119, 120, 121}, 5, 10000),
-    }),
-    tekCount(4) {}
+    dumBands(new Band[1]{Band(1, new int[1]{3}, 40000)}),
+    tekCount(3),
+    tekBands(new Band[3]{
+      Band(2, new int[2]{17, 18}, 4000),
+      Band(2, new int[2]{21, 22}, 4000),
+      Band(2, new int[2]{23, 24}, 4000),
+    }) {}
 
 int Bands::value(const Band &band) const {
   int value = 0;
@@ -35,7 +34,7 @@ bool Bands::is(const Beat beat) const {
   return false;
 }
 
-#if CHART
+#if APP_CHART
 std::string Bands::chartJson() const {
   std::string json = "[";
 
@@ -46,8 +45,8 @@ std::string Bands::chartJson() const {
     json += R"({"label":"Tek", "value": )" + std::to_string(value(tekBands[i])) + "},";
   }
 
-  for (auto i = 0; i < SAMPLES_HALF; i++) {
-  #if !CHART_INCLUDE_ALL
+  for (auto i = 0; i < BAND_SIZE; i++) {
+  #if !APP_CHART_INCLUDE_ALL
     bool allowed = false;
 
     // use lambda to break from 2nd for loop

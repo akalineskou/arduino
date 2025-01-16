@@ -5,21 +5,23 @@
 #include "Beat.h"
 #include "Directive.h"
 
+#define BAND_SIZE 32
+
 struct Band {
-  int* bands;
   int count;
+  int* bands;
   int minValue;
 
-  Band(int* bands, int count, int minValue);
+  Band(int count, int* bands, int minValue);
 };
 
 struct Bands {
-  int data[SAMPLES_HALF]{};
+  int data[BAND_SIZE]{};
 
-  Band* dumBands;
   int dumCount;
-  Band* tekBands;
+  Band* dumBands;
   int tekCount;
+  Band* tekBands;
 
   Bands();
 
@@ -27,7 +29,7 @@ struct Bands {
 
   bool is(Beat beat) const;
 
-#if CHART
+#if APP_CHART
   std::string chartJson() const;
 #endif
 };

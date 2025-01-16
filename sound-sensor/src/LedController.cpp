@@ -11,7 +11,7 @@ void LedController::setup() const {
 }
 
 void LedController::on(const Beat beat) const {
-#if DEBUG
+#if APP_DEBUG
   Serial.println(Beats[beat]);
 #endif
 

@@ -1,3 +1,4 @@
+#include "Bands.h"
 #include "Beat.h"
 #include "Directive.h"
 #include "LedController.h"
@@ -6,7 +7,7 @@
 #include "RhythmController.h"
 #include "TimeDelay.h"
 
-#if CHART
+#if APP_CHART
   #include <WebSocketsServer.h>
   #include <WiFi.h>
 
@@ -31,38 +32,37 @@ Bands bands{};
 void setup() {
   Serial.begin(115200);
 
-#if DEBUG
+#if APP_DEBUG
   delay(1000);
 #endif
 
-  // if analog input pin 0 is unconnected, random analog noise will cause the call to randomSeed() to generate
-  // different seed numbers each time the sketch runs. randomSeed() will then shuffle the random function.
+  // if analog input pin 0 is unconnected, random analog noise will be generated
   randomSeed(analogRead(0));
 
   microphoneHelper.setup();
   ledController.setup();
 
-#if CHART
+#if APP_CHART
   WiFi.begin(wifiSSID, wifiPassword);
 
   while (WiFiClass::status() != WL_CONNECTED) {
     delay(100);
   }
 
-  #if DEBUG
+  #if APP_DEBUG
   Serial.printf("Connected to %s (%s).\n", wifiSSID, WiFi.localIP().toString().c_str());
   #endif
 
   webSocketsServer.begin();
 #endif
 
-#if DEBUG
+#if APP_DEBUG
   Serial.println("Setup done.");
 #endif
 }
 
 void loop() {
-#if RHYTHM_PLAY
+#if APP_RHYTHM_PLAY
   if (!rhythmPlay && idleRhythmTimeDelay.delayPassed()) {
     rhythmPlay = true;
 
@@ -81,7 +81,7 @@ void loop() {
 
       rhythmData = newRhythmData;
 
-#if DEBUG
+#if APP_DEBUG
       Serial.printf("Changing idle rhythm: %s, BPM: %d\n", rhythmData->name, rhythmData->bpm);
 #endif
     }
@@ -100,7 +100,7 @@ void loop() {
 
       if (rhythmPlay) {
         // reset only once
-#if DEBUG
+#if APP_DEBUG
         Serial.println("Stopping idle rhythm");
 #endif
 
@@ -112,7 +112,7 @@ void loop() {
     }
   }
 
-#if CHART
+#if APP_CHART
   webSocketsServer.loop();
 
   webSocketsServer.broadcastTXT(bands.chartJson().c_str());

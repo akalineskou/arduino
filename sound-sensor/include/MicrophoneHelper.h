@@ -1,21 +1,20 @@
 #pragma once
 
 #include <arduinoFFT.h>
-#include <driver/i2s.h>
 
 #include "Bands.h"
+
+#define SAMPLE_SIZE 1024
 
 class MicrophoneHelper {
   int i2sClockPin;
   int i2sWsPin;
   int i2sDataInPin;
 
-  uint32_t sampleRate;
-  i2s_port_t i2sPort;
-  ArduinoFFT<double> FFT;
-  double vReal[SAMPLES]{};
-  double vImag[SAMPLES]{};
-  int32_t rawData[SAMPLES]{};
+  float vReal[SAMPLE_SIZE]{};
+  float vImag[SAMPLE_SIZE]{};
+  ArduinoFFT<float> FFT;
+  int32_t rawData[SAMPLE_SIZE]{};
 
  public:
   explicit MicrophoneHelper(int i2sClockPin, int i2sWsPin, int i2sDataInPin);

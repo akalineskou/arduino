@@ -45,7 +45,7 @@ void RhythmController::play(const RhythmData* rhythmData, int &beatCount) {
       // last beat
       beatCount = 1;
 
-#if DEBUG
+#if APP_DEBUG
       Serial.println();
 #endif
 
