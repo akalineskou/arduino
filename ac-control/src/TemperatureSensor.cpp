@@ -4,11 +4,15 @@
 TemperatureSensor::TemperatureSensor(const int pin):
     pin(pin),
     dht(pin, DHT22),
-    temperatureTimeDelay(TimeDelay(TEMPERATURE_SENSOR_TEMPERATURE_DELAY, true)),
-    humidityTimeDelay(TimeDelay(TEMPERATURE_SENSOR_HUMIDITY_DELAY, true)) {
+    temperatureTimeDelay(TimeDelay(APP_TEMPERATURE_SENSOR_TEMPERATURE_DELAY, true)),
+    humidityTimeDelay(TimeDelay(APP_TEMPERATURE_SENSOR_HUMIDITY_DELAY, true)) {
   sensorFails = 0;
   temperature = 0;
   humidity = 0;
+
+#if APP_DEBUG && APP_DEBUG_RANDOM_TEMPERATURE_SENSOR
+  randomSeed(analogRead(0));
+#endif
 }
 
 void TemperatureSensor::setup() {
@@ -35,14 +39,14 @@ int TemperatureSensor::getHumidity() const {
   return humidity;
 }
 
-String TemperatureSensor::formatTemperature(const int temperature) {
+std::string TemperatureSensor::formatTemperature(const int temperature) {
   char buffer[10];
   sprintf(buffer, "%.2f°C", temperature / 10.0);
 
   return {buffer};
 }
 
-String TemperatureSensor::formatHumidity(const int humidity) {
+std::string TemperatureSensor::formatHumidity(const int humidity) {
   char buffer[8];
   sprintf(buffer, "%.2f%%", humidity / 10.0);
 
@@ -54,9 +58,15 @@ void TemperatureSensor::readTemperature(const bool forceTimeDelay) {
     return;
   }
 
+#if APP_DEBUG && APP_DEBUG_RANDOM_TEMPERATURE_SENSOR
+  temperature = random(190, 220);
+
+  return;
+#endif
+
   const float temperatureFloat = dht.readTemperature();
   if (isnan(temperatureFloat)) {
-#if DEBUG
+#if APP_DEBUG
     Serial.printf("Failed to read temperature from sensor %d!\n", pin);
 #endif
 
@@ -72,7 +82,7 @@ void TemperatureSensor::readTemperature(const bool forceTimeDelay) {
     return;
   }
 
-#if DEBUG && DEBUG_TEMPERATURE_CHANGE
+#if APP_DEBUG && APP_DEBUG_TEMPERATURE_CHANGE
   const int temperatureDiff = temperatureInt - temperature;
 
   Serial.printf(
@@ -92,9 +102,15 @@ void TemperatureSensor::readHumidity(const bool forceTimeDelay) {
     return;
   }
 
+#if APP_DEBUG && APP_DEBUG_RANDOM_TEMPERATURE_SENSOR
+  humidity = random(550, 900);
+
+  return;
+#endif
+
   const float humidityFloat = dht.readHumidity();
   if (isnan(humidityFloat)) {
-#if DEBUG
+#if APP_DEBUG
     Serial.printf("Failed to read humidity from sensor %d!\n", pin);
 #endif
     return;
@@ -105,7 +121,7 @@ void TemperatureSensor::readHumidity(const bool forceTimeDelay) {
     return;
   }
 
-#if DEBUG && DEBUG_TEMPERATURE_CHANGE
+#if APP_DEBUG && APP_DEBUG_TEMPERATURE_CHANGE
   const int humidityDiff = humidityInt - humidity;
 
   Serial.printf(

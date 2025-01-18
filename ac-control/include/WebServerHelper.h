@@ -13,6 +13,7 @@ class WebServerHelper {
   TemperatureSensor &temperatureSensor;
   InfraredTransmitter &infraredTransmitter;
   TemperatureData &temperatureData;
+  DatabaseHelper &databaseHelper;
   ACMode acMode;
 
   WebServer webServer;
@@ -23,6 +24,7 @@ class WebServerHelper {
     TemperatureSensor &temperatureSensor,
     InfraredTransmitter &infraredTransmitter,
     TemperatureData &temperatureData,
+    DatabaseHelper &databaseHelper,
     const ACMode &acMode
   );
 
@@ -32,4 +34,6 @@ class WebServerHelper {
 
  private:
   bool isAuthenticated(const char* webServerAuthUsername, const char* webServerAuthPassword);
+
+  static void stringReplace(std::string &string, const char* find, const char* replace);
 };

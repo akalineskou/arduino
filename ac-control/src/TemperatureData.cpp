@@ -15,17 +15,25 @@ TemperatureData::TemperatureData(TemperatureSensor &temperatureSensor, const ACM
   }
 }
 
+int TemperatureData::getTemperature() const {
+  return temperatureSensor.getTemperature();
+}
+
+int TemperatureData::getHumidity() const {
+  return temperatureSensor.getHumidity();
+}
+
 int TemperatureData::temperatureStartReached() const {
   bool temperatureStartReached;
 
   if (acMode == Cold) {
-    temperatureStartReached = temperatureSensor.getTemperature() > temperatureTargetStart();
+    temperatureStartReached = getTemperature() > temperatureTargetStart();
   } else {
-    temperatureStartReached = temperatureSensor.getTemperature() < temperatureTargetStart();
+    temperatureStartReached = getTemperature() < temperatureTargetStart();
   }
 
   if (temperatureStartReached) {
-#if DEBUG
+#if APP_DEBUG
     Serial.printf(
       "Temperature start %s reached.\n",
       TemperatureSensor::formatTemperature(temperatureTargetStart()).c_str()
@@ -40,13 +48,13 @@ int TemperatureData::temperatureStopReached() const {
   bool temperatureStopReached;
 
   if (acMode == Cold) {
-    temperatureStopReached = temperatureSensor.getTemperature() < temperatureTargetStop();
+    temperatureStopReached = getTemperature() < temperatureTargetStop();
   } else {
-    temperatureStopReached = temperatureSensor.getTemperature() > temperatureTargetStop();
+    temperatureStopReached = getTemperature() > temperatureTargetStop();
   }
 
   if (temperatureStopReached) {
-#if DEBUG
+#if APP_DEBUG
     Serial.printf(
       "Temperature stop %s reached.\n",
       TemperatureSensor::formatTemperature(temperatureTargetStop()).c_str()

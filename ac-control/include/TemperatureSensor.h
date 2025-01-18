@@ -27,9 +27,9 @@ class TemperatureSensor {
 
   int getHumidity() const;
 
-  static String formatTemperature(int temperature);
+  static std::string formatTemperature(int temperature);
 
-  static String formatHumidity(int humidity);
+  static std::string formatHumidity(int humidity);
 
  private:
   void readTemperature(bool forceTimeDelay = false);

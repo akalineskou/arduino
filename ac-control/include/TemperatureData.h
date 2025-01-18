@@ -15,6 +15,10 @@ class TemperatureData {
 
   explicit TemperatureData(TemperatureSensor &temperatureSensor, const ACMode &acMode);
 
+  int getTemperature() const;
+
+  int getHumidity() const;
+
   int temperatureStartReached() const;
 
   int temperatureStopReached() const;

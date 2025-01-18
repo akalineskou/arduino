@@ -69,12 +69,12 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forc
     }
   }
 
-#if DEBUG
+#if APP_DEBUG
   Serial.printf("Sending A/C command: %s.\n", ACCommands[acCommand]);
   Serial.println(irSend.toString().c_str());
 #endif
 
-#if !DEBUG || DEBUG_IR_SEND
+#if !APP_DEBUG || APP_DEBUG_IR_SEND
   irSend.send();
 #endif
 }

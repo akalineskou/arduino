@@ -1,10 +1,13 @@
 #include "ACControl.h"
 #include "Directive.h"
 
-ACControl::ACControl(InfraredTransmitter &infraredTransmitter, TemperatureData &temperatureData):
+ACControl::ACControl(
+  InfraredTransmitter &infraredTransmitter, TemperatureData &temperatureData, DatabaseHelper &databaseHelper
+):
     infraredTransmitter(infraredTransmitter),
     temperatureData(temperatureData),
-    turnOffTimeDelay(TimeDelay(AC_CONTROL_TURN_OFF_DELAY)) {
+    databaseHelper(databaseHelper),
+    turnOffTimeDelay(TimeDelay(APP_AC_CONTROL_TURN_OFF_DELAY)) {
   enabled = false;
 }
 
@@ -18,7 +21,7 @@ void ACControl::enable() {
   // restart time delay on enable
   turnOffTimeDelay.restart();
 
-#if DEBUG
+#if APP_DEBUG
   Serial.println("A/C control enabled.");
 #endif
 }
@@ -28,7 +31,7 @@ void ACControl::disable() {
 
   infraredTransmitter.sendCommand(Off, true);
 
-#if DEBUG
+#if APP_DEBUG
   Serial.println("A/C control disabled.");
 #endif
 }
@@ -37,16 +40,26 @@ bool ACControl::isEnabled() const {
   return enabled;
 }
 
+void ACControl::off() const {
+  infraredTransmitter.sendCommand(Off, true);
+
+  insertCommand(Off);
+}
+
 void ACControl::start() {
   infraredTransmitter.sendCommand(Start);
 
   turnOffTimeDelay.restart();
+
+  insertCommand(Start);
 }
 
 void ACControl::stop() {
   infraredTransmitter.sendCommand(Stop);
 
   turnOffTimeDelay.restart();
+
+  insertCommand(Stop);
 }
 
 void ACControl::control() {
@@ -55,7 +68,7 @@ void ACControl::control() {
   }
 
   if (temperatureData.temperatureSensorFailed()) {
-#if DEBUG
+#if APP_DEBUG
     Serial.println("Temperature sensor failed.");
 #endif
 
@@ -64,7 +77,7 @@ void ACControl::control() {
   }
 
   if (turnOffTimeDelay.delayPassed()) {
-#if DEBUG
+#if APP_DEBUG
     Serial.println("Turn off time delay passed.");
 #endif
 
@@ -77,4 +90,9 @@ void ACControl::control() {
   } else if (infraredTransmitter.lastACCommand != Stop && temperatureData.temperatureStopReached()) {
     stop();
   }
+}
+
+void ACControl::insertCommand(const ACCommand acCommand) const {
+  databaseHelper
+    .insertCommand(ACCommands[acCommand], temperatureData.getTemperature(), temperatureData.temperatureTarget);
 }
