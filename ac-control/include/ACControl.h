@@ -33,5 +33,5 @@ class ACControl {
  private:
   void control();
 
-  void insertCommand(ACCommand acCommand) const;
+  void databaseInsert(ACCommand acCommand) const;
 };

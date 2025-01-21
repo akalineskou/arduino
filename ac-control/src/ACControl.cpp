@@ -48,7 +48,7 @@ bool ACControl::isEnabled() const {
 void ACControl::off() const {
   infraredTransmitter.sendCommand(Off, true);
 
-  insertCommand(Off);
+  databaseInsert(Off);
 }
 
 void ACControl::start() {
@@ -56,7 +56,7 @@ void ACControl::start() {
 
   turnOffTimeDelay.restart();
 
-  insertCommand(Start);
+  databaseInsert(Start);
 }
 
 void ACControl::stop() {
@@ -64,7 +64,7 @@ void ACControl::stop() {
 
   turnOffTimeDelay.restart();
 
-  insertCommand(Stop);
+  databaseInsert(Stop);
 }
 
 void ACControl::control() {
@@ -97,7 +97,14 @@ void ACControl::control() {
   }
 }
 
-void ACControl::insertCommand(const ACCommand acCommand) const {
+void ACControl::databaseInsert(const ACCommand acCommand) const {
   databaseHelper
     .insertCommand(ACCommands[acCommand], temperatureData.getTemperature(), temperatureData.temperatureTarget);
+
+  databaseHelper.insertTemperatureReading(
+    temperatureData.getTemperature(),
+    temperatureData.temperatureTargetStart(),
+    temperatureData.temperatureTargetStop(),
+    temperatureData.getHumidity()
+  );
 }
