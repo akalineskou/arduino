@@ -49,7 +49,7 @@ class DatabaseHelper {
  public:
   explicit DatabaseHelper(TimeHelper &timeHelper);
 
-  void setup();
+  bool setup();
 
   void insertTemperatureReading(int temperature, int humidity);
 

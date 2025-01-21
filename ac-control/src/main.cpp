@@ -15,7 +15,7 @@
 #include "WifiHelper.h"
 #include "esp_task_wdt.h"
 
-Preferences rebootPreferences;
+Preferences errorPreferences;
 TimeDelay rebootTimeDelay(APP_REBOOT_DELAY);
 TimeDelay temperatureSensorDatabaseTimeDelay(APP_TEMPERATURE_SENSOR_DATABASE_DELAY, true);
 #if APP_DEBUG_HEAP
@@ -35,6 +35,8 @@ WebServerHelper webServerHelper(
   acControl, temperatureSensor, infraredTransmitter, temperatureData, databaseHelper, acMode
 );
 
+void increaseErrorPreferencesCount();
+
 void setup() {
   // for some reason needed for the IR transmitter to work
   Serial.begin(115200);
@@ -46,22 +48,20 @@ void setup() {
 
   enableLoopWDT();
 
-  // increase watchdog timer to 15 seconds
-  esp_task_wdt_init(15, true);
+  // increase watchdog timer
+  esp_task_wdt_init(10, true);
 
   // https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html
-  rebootPreferences.begin("reboot", false);
+  errorPreferences.begin("error", false);
 
-  bool isReboot = false;
+  if (errorPreferences.isKey("count") && errorPreferences.getInt("count") > 5) {
+#if APP_DEBUG
+    Serial.println("Turning off A/C on error count more than 5.");
+#endif
 
-  // // simulate reboot
-  // rebootPreferences.putBool("is-reboot", true);
+    acControl.off();
 
-  // check if reboot
-  if (rebootPreferences.isKey("is-reboot")) {
-    rebootPreferences.remove("is-reboot");
-
-    isReboot = true;
+    errorPreferences.remove("count");
   }
 
   temperatureSensor.setup();
@@ -69,11 +69,21 @@ void setup() {
   WifiHelper::setup(wifiSSID, wifiPassword);
   webServerHelper.setup(webServerAuthUsername, webServerAuthPassword);
   timeHelper.setup();
-  sdHelper.setup();
-  databaseHelper.setup();
+  if (!sdHelper.setup()) {
+    increaseErrorPreferencesCount();
+
+    while (true) {}
+  }
+  if (!databaseHelper.setup()) {
+    increaseErrorPreferencesCount();
+
+    while (true) {}
+  }
+
+  // remove on successful initialization
+  errorPreferences.remove("count");
 
   const auto preference = databaseHelper.selectPreference();
-
   if (preference != nullptr) {
 #if APP_DEBUG
     Serial.println();
@@ -113,15 +123,6 @@ void setup() {
 
     delete preference;
   }
-
-  if (!isReboot) {
-#if APP_DEBUG
-    Serial.println("Turning off A/C on start.");
-#endif
-
-    // start with sending Οff in case of an unexpected reboot (force command since it starts Οff)
-    acControl.off();
-  }
 }
 
 void loop() {
@@ -131,7 +132,7 @@ void loop() {
 #endif
 
     // save data to restore after reboot
-    rebootPreferences.putBool("is-reboot", true);
+    errorPreferences.putBool("is-reboot", true);
 
 #if APP_DEBUG
     Serial.println("Rebooting...");
@@ -161,4 +162,12 @@ void loop() {
     );
   }
 #endif
+}
+
+void increaseErrorPreferencesCount() {
+  if (!errorPreferences.isKey("count")) {
+    errorPreferences.putInt("count", 0);
+  }
+
+  errorPreferences.putInt("count", errorPreferences.getInt("count") + 1);
 }

@@ -9,7 +9,7 @@ DatabaseHelper::DatabaseHelper(TimeHelper &timeHelper): timeHelper(timeHelper) {
   responseCode = 0;
 }
 
-void DatabaseHelper::setup() {
+bool DatabaseHelper::setup() {
   sqlite3_initialize();
 
   responseCode = sqlite3_open("/sd/db.sqlite", &database);
@@ -18,7 +18,7 @@ void DatabaseHelper::setup() {
     Serial.printf("SQL open error: %s\n", sqlite3_errmsg(database));
 #endif
 
-    while (true);
+    return false;
   }
 
   sprintf(sql, "PRAGMA page_size=512;");
@@ -30,6 +30,8 @@ void DatabaseHelper::setup() {
   prepare();
   sqlite3_step(statement);
   sqlite3_finalize(statement);
+
+  return true;
 }
 
 void DatabaseHelper::insertTemperatureReading(const int temperature, const int humidity) {

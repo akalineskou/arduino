@@ -10,7 +10,7 @@ SdHelper::SdHelper(const uint8_t pinSck, const uint8_t pinMiso, const uint8_t pi
     pinMosi(pinMosi),
     pinSs(pinSs) {}
 
-void SdHelper::setup() const {
+bool SdHelper::setup() const {
   SPI.begin(
     static_cast<int8_t>(pinSck),
     static_cast<int8_t>(pinMiso),
@@ -23,7 +23,7 @@ void SdHelper::setup() const {
     Serial.println("Card Mount Failed");
 #endif
 
-    while (true);
+    return false;
   }
 
   if (SD.cardType() == CARD_NONE) {
@@ -31,8 +31,10 @@ void SdHelper::setup() const {
     Serial.println("No SD card attached");
 #endif
 
-    while (true);
+    return false;
   }
+
+  return true;
 }
 
 std::string SdHelper::readFile(const char* path) {

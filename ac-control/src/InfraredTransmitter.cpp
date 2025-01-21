@@ -74,9 +74,6 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forc
     }
   }
 
-  databaseHelper.updatePreferenceIrLastACCommand(ACCommands[acCommand]);
-  databaseHelper.updatePreferenceIrLightToggled(lightToggled);
-
 #if APP_DEBUG
   Serial.printf("Sending A/C command: %s.\n", ACCommands[acCommand]);
   Serial.println(irSend.toString().c_str());
@@ -85,4 +82,7 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forc
 #if !APP_DEBUG || APP_DEBUG_IR_SEND
   irSend.send();
 #endif
+
+  databaseHelper.updatePreferenceIrLastACCommand(ACCommands[acCommand]);
+  databaseHelper.updatePreferenceIrLightToggled(lightToggled);
 }
