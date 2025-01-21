@@ -342,10 +342,12 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
         TimeHelper::formatForCode(temperatureReading.time) + "\"},";
     }
 
+    if (temperatureReadings->numRows > 1) {
+      json.pop_back();
+    }
+
     delete[] temperatureReadings->temperatureReadings;
     delete temperatureReadings;
-
-    json.pop_back();
 
     json += "]";
 

@@ -153,7 +153,7 @@ void loop() {
 #if APP_DEBUG && APP_DEBUG_HEAP
   if (debugHeapTimeDelay.delayPassed()) {
     Serial.printf(
-      "\nHeap size: %d, Free Heap: %d, Min Free Heap: %d, Max Alloc Heap: %d\n\n",
+      "\nHeap size: %d, Free Heap: %d, Min Free Heap: %d, Max Alloc Heap: %d\n",
       ESP.getHeapSize(),
       heap_caps_get_free_size(MALLOC_CAP_8BIT),
       heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT),
