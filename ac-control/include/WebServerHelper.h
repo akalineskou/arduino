@@ -14,7 +14,7 @@ class WebServerHelper {
   InfraredTransmitter &infraredTransmitter;
   TemperatureData &temperatureData;
   DatabaseHelper &databaseHelper;
-  ACMode acMode;
+  ACMode &acMode;
 
   WebServer webServer;
 
@@ -25,7 +25,7 @@ class WebServerHelper {
     InfraredTransmitter &infraredTransmitter,
     TemperatureData &temperatureData,
     DatabaseHelper &databaseHelper,
-    const ACMode &acMode
+    ACMode &acMode
   );
 
   void setup(const char* webServerAuthUsername, const char* webServerAuthPassword);

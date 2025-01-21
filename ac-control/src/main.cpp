@@ -18,13 +18,16 @@
 Preferences rebootPreferences;
 TimeDelay rebootTimeDelay(APP_REBOOT_DELAY);
 TimeDelay temperatureSensorDatabaseTimeDelay(APP_TEMPERATURE_SENSOR_DATABASE_DELAY, true);
+#if APP_DEBUG_HEAP
+TimeDelay debugHeapTimeDelay(APP_DEBUG_HEAP_DELAY, true);
+#endif
 
 TimeHelper timeHelper;
 SdHelper sdHelper(18, 19, 23, 5);
 DatabaseHelper databaseHelper(timeHelper);
 
 ACMode acMode(Heat);
-InfraredTransmitter infraredTransmitter(22, acMode);
+InfraredTransmitter infraredTransmitter(22, databaseHelper, acMode);
 TemperatureSensor temperatureSensor(32);
 TemperatureData temperatureData(temperatureSensor, acMode);
 ACControl acControl(infraredTransmitter, temperatureData, databaseHelper);
@@ -43,8 +46,8 @@ void setup() {
 
   enableLoopWDT();
 
-  // increase watchdog timer to 10 seconds
-  esp_task_wdt_init(10, true);
+  // increase watchdog timer to 15 seconds
+  esp_task_wdt_init(15, true);
 
   // https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html
   rebootPreferences.begin("reboot", false);
@@ -53,54 +56,12 @@ void setup() {
 
   // // simulate reboot
   // rebootPreferences.putBool("is-reboot", true);
-  // rebootPreferences.putBool("ac-e", true);
-  // rebootPreferences.putString("it-lacc", "Start");
-  // rebootPreferences.putBool("it-lt", true);
-  // rebootPreferences.putInt("td-tt", 205);
 
-  // restore data after reboot
+  // check if reboot
   if (rebootPreferences.isKey("is-reboot")) {
     rebootPreferences.remove("is-reboot");
 
     isReboot = true;
-
-#if APP_DEBUG
-    Serial.println();
-    Serial.println("Restoring data after reboot...");
-#endif
-
-    // restore data after reboot
-    const bool enabled = rebootPreferences.getBool("ac-e");
-    rebootPreferences.remove("ac-e");
-
-    if (enabled) {
-      acControl.enable();
-    }
-#if APP_DEBUG
-    Serial.printf("acControl.enabled %d.\n", acControl.isEnabled());
-#endif
-
-    infraredTransmitter.lastACCommand = sToACCommand(rebootPreferences.getString("it-lacc").c_str());
-    rebootPreferences.remove("it-lacc");
-#if APP_DEBUG
-    Serial.printf("infraredTransmitter.lastACCommand %s.\n", ACCommands[infraredTransmitter.lastACCommand]);
-#endif
-
-    infraredTransmitter.lightToggled = rebootPreferences.getBool("it-lt");
-    rebootPreferences.remove("it-lt");
-#if APP_DEBUG
-    Serial.printf("infraredTransmitter.lightToggled %d.\n", infraredTransmitter.lightToggled);
-#endif
-
-    temperatureData.temperatureTarget = rebootPreferences.getInt("td-tt");
-    rebootPreferences.remove("td-tt");
-#if APP_DEBUG
-    Serial.printf("temperatureData.temperatureTarget %d.\n", temperatureData.temperatureTarget);
-#endif
-
-#if APP_DEBUG
-    Serial.println();
-#endif
   }
 
   temperatureSensor.setup();
@@ -110,6 +71,48 @@ void setup() {
   timeHelper.setup();
   sdHelper.setup();
   databaseHelper.setup();
+
+  const auto preference = databaseHelper.selectPreference();
+
+  if (preference != nullptr) {
+#if APP_DEBUG
+    Serial.println();
+    Serial.println("Restoring data...");
+#endif
+
+    if (preference->acEnabled) {
+      acControl.enable();
+    }
+#if APP_DEBUG
+    Serial.printf("acControl.enabled %d.\n", acControl.isEnabled());
+#endif
+
+    acMode = sToACMode(preference->acMode.c_str());
+#if APP_DEBUG
+    Serial.printf("acMode %s.\n", ACModes[acMode]);
+#endif
+
+    infraredTransmitter.lastACCommand = sToACCommand(preference->irLastACCommand.c_str());
+#if APP_DEBUG
+    Serial.printf("infraredTransmitter.lastACCommand %s.\n", ACCommands[infraredTransmitter.lastACCommand]);
+#endif
+
+    infraredTransmitter.lightToggled = preference->irLightToggled;
+#if APP_DEBUG
+    Serial.printf("infraredTransmitter.lightToggled %d.\n", infraredTransmitter.lightToggled);
+#endif
+
+    temperatureData.temperatureTarget = preference->tdTemperatureTarget;
+#if APP_DEBUG
+    Serial.printf("temperatureData.temperatureTarget %d.\n", temperatureData.temperatureTarget);
+#endif
+
+#if APP_DEBUG
+    Serial.println();
+#endif
+
+    delete preference;
+  }
 
   if (!isReboot) {
 #if APP_DEBUG
@@ -130,26 +133,6 @@ void loop() {
     // save data to restore after reboot
     rebootPreferences.putBool("is-reboot", true);
 
-    rebootPreferences.putBool("ac-e", acControl.isEnabled());
-#if APP_DEBUG
-    Serial.printf("acControl.enabled %d.\n", acControl.isEnabled());
-#endif
-
-    rebootPreferences.putString("it-lacc", ACCommands[infraredTransmitter.lastACCommand]);
-#if APP_DEBUG
-    Serial.printf("infraredTransmitter.lastACCommand %s.\n", ACCommands[infraredTransmitter.lastACCommand]);
-#endif
-
-    rebootPreferences.putBool("it-lt", infraredTransmitter.lightToggled);
-#if APP_DEBUG
-    Serial.printf("infraredTransmitter.lightToggled %d.\n", infraredTransmitter.lightToggled);
-#endif
-
-    rebootPreferences.putInt("td-tt", temperatureData.temperatureTarget);
-#if APP_DEBUG
-    Serial.printf("temperatureData.temperatureTarget %d.\n", temperatureData.temperatureTarget);
-#endif
-
 #if APP_DEBUG
     Serial.println("Rebooting...");
     Serial.println();
@@ -165,8 +148,10 @@ void loop() {
 
   if (temperatureSensorDatabaseTimeDelay.delayPassed()) {
     databaseHelper.insertTemperatureReading(temperatureSensor.getTemperature(), temperatureSensor.getHumidity());
+  }
 
-#if APP_DEBUG
+#if APP_DEBUG && APP_DEBUG_HEAP
+  if (debugHeapTimeDelay.delayPassed()) {
     Serial.printf(
       "\nHeap size: %d, Free Heap: %d, Min Free Heap: %d, Max Alloc Heap: %d\n\n",
       ESP.getHeapSize(),
@@ -174,6 +159,6 @@ void loop() {
       heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT),
       heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)
     );
-#endif
   }
+#endif
 }

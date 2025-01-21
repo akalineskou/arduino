@@ -1,5 +1,3 @@
-#include <SdHelper.h>
-
 #include "Directive.h"
 #include "WebServerHelper.h"
 
@@ -9,7 +7,7 @@ WebServerHelper::WebServerHelper(
   InfraredTransmitter &infraredTransmitter,
   TemperatureData &temperatureData,
   DatabaseHelper &databaseHelper,
-  const ACMode &acMode
+  ACMode &acMode
 ):
     acControl(acControl),
     temperatureSensor(temperatureSensor),
@@ -67,6 +65,9 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
   <p>
     Last A/C Command: <b>__LAST_AC_COMMAND__</b> (<a href="/force-ac-start">Start</a> | <a href="/force-ac-stop">Stop</a>)
   </p>
+  <p>
+    A/C Mode: __AC_MODE__ (<a href="/change-mode">Change</a>)
+  </p>
   <br>
 
   <p>
@@ -85,16 +86,9 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
   <br>
 
   <p>
-    <table>
-      <tr>
-        <th>Temperature</th>
-        <th>Humidity</th>
-        <th>Time</th>
-      </tr>
-
-    __TEMPERATURE_READING_ROWS__
-    </table>
+    <a href="/temperature-history">Temperature history</a>
   </p>
+  <br>
 
   <p>
     <table>
@@ -118,6 +112,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
                             : R"==(<b>Disabled</b> (<a href="/enable">Enable</a>))=="
     );
     stringReplace(html, "__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
+    stringReplace(html, "__AC_MODE__", ACModes[acMode]);
 
     stringReplace(
       html,
@@ -171,44 +166,8 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       TemperatureSensor::formatTemperature(temperatureData.temperatureTarget - static_cast<int>(0.5 * 10)).c_str()
     );
 
-    // todo add chart with more data
-    auto TemperatureReadingRows = std::string();
-    const auto temperatureReadings = databaseHelper.selectTemperatureReadings();
-    for (auto i = 0; i < temperatureReadings->numRows; ++i) {
-      const auto temperatureReading = temperatureReadings->temperatureReadings[i];
-
-      TemperatureReadingRows += std::string(R"==(
-<tr>
-  <td>__TEMPERATURE_READING_ROW_TEMPERATURE__</td>
-  <td>__TEMPERATURE_READING_ROW_HUMIDITY__</td>
-  <td>__TEMPERATURE_READING_ROW_DATE_TIME__</td>
-</tr>
-)==");
-
-      stringReplace(
-        TemperatureReadingRows,
-        "__TEMPERATURE_READING_ROW_TEMPERATURE__",
-        TemperatureSensor::formatTemperature(temperatureReading.temperature).c_str()
-      );
-      stringReplace(
-        TemperatureReadingRows,
-        "__TEMPERATURE_READING_ROW_HUMIDITY__",
-        TemperatureSensor::formatHumidity(temperatureReading.humidity).c_str()
-      );
-      stringReplace(
-        TemperatureReadingRows,
-        "__TEMPERATURE_READING_ROW_DATE_TIME__",
-        TimeHelper::getDateTimeFormatted(temperatureReading.time).c_str()
-      );
-    }
-
-    stringReplace(html, "__TEMPERATURE_READING_ROWS__", TemperatureReadingRows.c_str());
-
-    delete[] temperatureReadings->temperatureReadings;
-    delete temperatureReadings;
-
     auto CommandRows = std::string();
-    const auto commands = databaseHelper.selectCommands();
+    const auto commands = databaseHelper.selectCommands(10);
     for (auto i = 0; i < commands->numRows; ++i) {
       const auto command = commands->commands[i];
 
@@ -232,13 +191,13 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
         "__COMMAND_ROW_TEMPERATURE_TARGET__",
         TemperatureSensor::formatTemperature(command.temperature_target).c_str()
       );
-      stringReplace(CommandRows, "__COMMAND_ROW_DATE_TIME__", TimeHelper::getDateTimeFormatted(command.time).c_str());
+      stringReplace(CommandRows, "__COMMAND_ROW_DATE_TIME__", TimeHelper::formatForHuman(command.time).c_str());
     }
-
-    stringReplace(html, "__COMMANDS_ROWS__", CommandRows.c_str());
 
     delete[] commands->commands;
     delete commands;
+
+    stringReplace(html, "__COMMANDS_ROWS__", CommandRows.c_str());
 
     webServer.send(200, "text/html", html.c_str());
   });
@@ -283,6 +242,8 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 
     temperatureData.temperatureTarget += 0.5 * 10;
 
+    databaseHelper.updatePreferenceTdTemperatureTarget(temperatureData.temperatureTarget);
+
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
@@ -297,9 +258,12 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 
     temperatureData.temperatureTarget -= 0.5 * 10;
 
+    databaseHelper.updatePreferenceTdTemperatureTarget(temperatureData.temperatureTarget);
+
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
+
   webServer.on("/force-ac-start", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
     if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
       return webServer.requestAuthentication();
@@ -327,6 +291,241 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
+  });
+
+  webServer.on("/change-mode", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
+    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
+      return webServer.requestAuthentication();
+    }
+
+#if APP_DEBUG
+    Serial.println("GET /change-mode");
+#endif
+
+    if (acMode == Cold) {
+      acMode = Heat;
+
+      // reset temperature target to default
+      temperatureData.temperatureTarget = temperatureData.temperatureTargetHeat;
+    } else {
+      acMode = Cold;
+
+      // reset temperature target to default
+      temperatureData.temperatureTarget = temperatureData.temperatureTargetCold;
+    }
+
+    databaseHelper.updatePreferenceAcMode(ACModes[acMode]);
+    databaseHelper.updatePreferenceTdTemperatureTarget(temperatureData.temperatureTarget);
+
+    webServer.sendHeader("Location", "/", true);
+    webServer.send(302);
+  });
+
+  webServer.on("/temperature-history", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
+    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
+      return webServer.requestAuthentication();
+    }
+
+#if APP_DEBUG
+    Serial.println("GET /temperature-history");
+#endif
+
+    std::string json = "[";
+
+    const auto temperatureReadings =
+      databaseHelper.selectTemperatureReadings(6 * 60 / (APP_TEMPERATURE_SENSOR_DATABASE_DELAY / (60 * 1000)));
+    for (auto i = 0; i < temperatureReadings->numRows; ++i) {
+      const auto temperatureReading = temperatureReadings->temperatureReadings[i];
+
+      json += "{\"temperature\": " + std::to_string(temperatureReading.temperature / 10.0) +
+        ", \"humidity\": " + std::to_string(temperatureReading.humidity / 10.0) + ", \"time\": \"" +
+        TimeHelper::formatForCode(temperatureReading.time) + "\"},";
+    }
+
+    delete[] temperatureReadings->temperatureReadings;
+    delete temperatureReadings;
+
+    json.pop_back();
+
+    json += "]";
+
+    auto html = std::string(R"==(
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/3274/3274588.png"/>
+<style>
+    body {
+        text-align: center;
+        background-color: black;
+        color: white;
+    }
+
+    a {
+        text-decoration: none;
+        color: lightskyblue;
+    }
+
+    a:hover {
+        color: #ffffff;
+    }
+
+    a:active {
+        color: #78adff;
+    }
+</style>
+<head>
+    <title>Temperature chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+</head>
+<body onload="init()">
+<h2>Temperature history (<a href="/">Back</a>)</h2>
+
+<canvas id="chart"></canvas>
+
+<script>
+    function init() {
+        let chart = new Chart(document.getElementById('chart'), {
+            type: "line",
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                stacked: false,
+                scales: {
+                    x: {
+                        type: "time",
+                        distribution: "linear",
+                    },
+                    yTemperature: {
+                        min: 10,
+                        max: 30,
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                    },
+                    yHumidity: {
+                        min: 50,
+                        max: 70,
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+
+                        // grid line settings
+                        grid: {
+                            drawOnChartArea: false, // only want the grid lines for one axis to show up
+                        },
+                    },
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                    },
+                    annotation: {
+                        annotations: {
+                            lineMin: {
+                                type: 'line',
+                                yMin: __TEMPERATURE_TARGET_START__,
+                                yMax: __TEMPERATURE_TARGET_START__,
+                                borderWidth: 2,
+                                borderColor: '__TEMPERATURE_TARGET_START_COLOR__',
+                                label: {
+                                    display: true,
+                                    content: '__TEMPERATURE_TARGET_START_LABEL__',
+                                    position: 'start',
+                                },
+                            },
+                            lineMax: {
+                                type: 'line',
+                                yMin: __TEMPERATURE_TARGET_STOP__,
+                                yMax: __TEMPERATURE_TARGET_STOP__,
+                                borderWidth: 2,
+                                borderColor: '__TEMPERATURE_TARGET_STOP_COLOR__',
+                                label: {
+                                    display: true,
+                                    content: '__TEMPERATURE_TARGET_STOP_LABEL__',
+                                    position: 'start',
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        data: [],
+                        label: "Temperature",
+                        borderColor: "#3e95cd",
+                        fill: false,
+                        yAxisID: 'yTemperature',
+                    },
+                    {
+                        data: [],
+                        label: "Humidity",
+                        borderColor: "#bababa",
+                        fill: false,
+                        yAxisID: 'yHumidity',
+                    },
+                ],
+            },
+        });
+
+        let json = __JSON_DATA__;
+
+        json.reverse();
+
+        for (json of json) {
+            chart.data.datasets[0].data.push({
+                x: json.time,
+                y: json.temperature,
+            });
+            chart.data.datasets[1].data.push({
+                x: json.time,
+                y: json.humidity,
+            });
+        }
+
+        chart.update();
+    }
+</script>
+</body>
+</html>
+)==");
+
+    stringReplace(
+      html,
+      "__TEMPERATURE_TARGET_START__",
+      std::to_string(temperatureData.temperatureTargetStart() / 10.0).c_str()
+    );
+    stringReplace(
+      html,
+      "__TEMPERATURE_TARGET_STOP__",
+      std::to_string(temperatureData.temperatureTargetStop() / 10.0).c_str()
+    );
+    if (acMode == Cold) {
+      stringReplace(html, "__TEMPERATURE_TARGET_START_COLOR__", "green");
+      stringReplace(html, "__TEMPERATURE_TARGET_STOP_COLOR__", "red");
+
+      stringReplace(html, "__TEMPERATURE_TARGET_START_LABEL__", "Stop");
+      stringReplace(html, "__TEMPERATURE_TARGET_STOP_LABEL__", "Start");
+    } else {
+      stringReplace(html, "__TEMPERATURE_TARGET_START_COLOR__", "red");
+      stringReplace(html, "__TEMPERATURE_TARGET_STOP_COLOR__", "green");
+
+      stringReplace(html, "__TEMPERATURE_TARGET_START_LABEL__", "Start");
+      stringReplace(html, "__TEMPERATURE_TARGET_STOP_LABEL__", "Stop");
+    }
+
+    stringReplace(html, "__JSON_DATA__", json.c_str());
+
+    webServer.send(200, "text/html", html.c_str());
   });
 
   webServer.onNotFound([this] {
@@ -360,5 +559,7 @@ bool WebServerHelper::isAuthenticated(const char* webServerAuthUsername, const c
 }
 
 void WebServerHelper::stringReplace(std::string &string, const char* find, const char* replace) {
-  string.replace(string.find(find), std::string(find).length(), replace);
+  while (string.find(find) != std::string::npos) {
+    string.replace(string.find(find), std::string(find).length(), replace);
+  }
 }

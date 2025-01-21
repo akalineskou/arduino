@@ -1,15 +1,18 @@
 #include "Directive.h"
 #include "TemperatureData.h"
 
-TemperatureData::TemperatureData(TemperatureSensor &temperatureSensor, const ACMode &acMode):
+TemperatureData::TemperatureData(TemperatureSensor &temperatureSensor, ACMode &acMode):
     temperatureSensor(temperatureSensor),
     acMode(acMode) {
+  temperatureTargetCold = 29.0 * 10;
+  temperatureTargetHeat = 20.5 * 10;
+
   if (acMode == Cold) {
-    temperatureTarget = 29.0 * 10;
+    temperatureTarget = temperatureTargetCold;
     temperatureStart = 1.0 * 10;
     temperatureStop = -0.5 * 10;
   } else {
-    temperatureTarget = 20.5 * 10;
+    temperatureTarget = temperatureTargetHeat;
     temperatureStart = -1.0 * 10;
     temperatureStop = 0.5 * 10;
   }

@@ -4,6 +4,7 @@
 #include "WifiHelper.h"
 
 void WifiHelper::setup(const char* wifiSSID, const char* wifiPassword) {
+  WiFiClass::mode(WIFI_STA);
   WiFi.begin(wifiSSID, wifiPassword);
 
   while (WiFiClass::status() != WL_CONNECTED) {

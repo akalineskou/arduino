@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/3274/3274588.png"/>
+<style>
+    body {
+        text-align: center;
+        background-color: black;
+        color: white;
+    }
+
+    a {
+        text-decoration: none;
+        color: lightskyblue;
+    }
+
+    a:hover {
+        color: #ffffff;
+    }
+
+    a:active {
+        color: #78adff;
+    }
+</style>
+<head>
+    <title>Temperature chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+</head>
+<body onload="init()">
+<h2>Temperature history (<a href="/">Back</a>)</h2>
+
+<canvas id="chart"></canvas>
+
+<script>
+    function init() {
+        let chart = new Chart(document.getElementById('chart'), {
+            type: "line",
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                stacked: false,
+                scales: {
+                    x: {
+                        type: "time",
+                        distribution: "linear",
+                    },
+                    yTemperature: {
+                        min: 10,
+                        max: 30,
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                    },
+                    yHumidity: {
+                        min: 50,
+                        max: 70,
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+
+                        // grid line settings
+                        grid: {
+                            drawOnChartArea: false, // only want the grid lines for one axis to show up
+                        },
+                    },
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                    },
+                    annotation: {
+                        annotations: {
+                            lineMin: {
+                                type: 'line',
+                                yMin: 18,
+                                yMax: 18,
+                                borderWidth: 2,
+                                borderColor: 'red',
+                                label: {
+                                    display: true,
+                                    content: 'Start',
+                                    position: 'start',
+                                },
+                            },
+                            lineMax: {
+                                type: 'line',
+                                yMin: 22,
+                                yMax: 22,
+                                borderWidth: 2,
+                                borderColor: 'green',
+                                label: {
+                                    display: true,
+                                    content: 'Stop',
+                                    position: 'start',
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        data: [],
+                        label: "Temperature",
+                        borderColor: "#3e95cd",
+                        fill: false,
+                        yAxisID: 'yTemperature',
+                    },
+                    {
+                        data: [],
+                        label: "Humidity",
+                        borderColor: "#bababa",
+                        fill: false,
+                        yAxisID: 'yHumidity',
+                    },
+                ],
+            },
+        });
+
+        let json = [{"temperature": 18.900000, "humidity": 63.700000, "time": "2025-01-21 16:57:47"}, {
+            "temperature": 18.900000,
+            "humidity": 63.600000,
+            "time": "2025-01-21 16:55:12"
+        }, {"temperature": 19.000000, "humidity": 63.600000, "time": "2025-01-21 16:54:27"}, {
+            "temperature": 19.000000,
+            "humidity": 63.300000,
+            "time": "2025-01-21 16:54:02"
+        }, {"temperature": 19.000000, "humidity": 63.100000, "time": "2025-01-21 16:45:38"}, {
+            "temperature": 19.000000,
+            "humidity": 63.200000,
+            "time": "2025-01-21 16:45:26"
+        }, {"temperature": 19.100000, "humidity": 63.100000, "time": "2025-01-21 16:40:32"}, {
+            "temperature": 19.100000,
+            "humidity": 62.900000,
+            "time": "2025-01-21 16:35:32"
+        }, {"temperature": 19.200000, "humidity": 62.700000, "time": "2025-01-21 16:30:32"}, {
+            "temperature": 19.300000,
+            "humidity": 62.500000,
+            "time": "2025-01-21 16:25:32"
+        }, {"temperature": 19.400000, "humidity": 62.300000, "time": "2025-01-21 16:20:32"}, {
+            "temperature": 19.500000,
+            "humidity": 61.900000,
+            "time": "2025-01-21 16:15:32"
+        }, {"temperature": 19.600000, "humidity": 61.600000, "time": "2025-01-21 16:10:32"}, {
+            "temperature": 19.700000,
+            "humidity": 61.200000,
+            "time": "2025-01-21 16:05:32"
+        }, {"temperature": 19.900000, "humidity": 60.600000, "time": "2025-01-21 16:00:29"}, {
+            "temperature": 20.000000,
+            "humidity": 60.100000,
+            "time": "2025-01-21 15:58:19"
+        }, {"temperature": 20.600000, "humidity": 58.700000, "time": "2025-01-21 15:53:19"}, {
+            "temperature": 21.000000,
+            "humidity": 58.500000,
+            "time": "2025-01-21 15:50:52"
+        }, {"temperature": 21.200000, "humidity": 57.800000, "time": "2025-01-21 15:48:06"}, {
+            "temperature": 20.800000,
+            "humidity": 58.700000,
+            "time": "2025-01-21 15:45:40"
+        }, {"temperature": 20.000000, "humidity": 60.800000, "time": "2025-01-21 15:40:40"}, {
+            "temperature": 19.400000,
+            "humidity": 61.600000,
+            "time": "2025-01-21 15:35:40"
+        }, {"temperature": 19.600000, "humidity": 61.200000, "time": "2025-01-21 15:30:40"}, {
+            "temperature": 19.800000,
+            "humidity": 60.600000,
+            "time": "2025-01-21 15:25:40"
+        }, {"temperature": 20.300000, "humidity": 59.100000, "time": "2025-01-21 15:20:40"}, {
+            "temperature": 21.100000,
+            "humidity": 57.400000,
+            "time": "2025-01-21 15:15:40"
+        }, {"temperature": 20.900000, "humidity": 58.100000, "time": "2025-01-21 15:10:40"}, {
+            "temperature": 20.400000,
+            "humidity": 59.300000,
+            "time": "2025-01-21 15:05:40"
+        }, {"temperature": 19.600000, "humidity": 61.500000, "time": "2025-01-21 15:00:40"}, {
+            "temperature": 18.500000,
+            "humidity": 64.000000,
+            "time": "2025-01-21 14:55:40"
+        }, {"temperature": 18.300000, "humidity": 64.100000, "time": "2025-01-21 14:50:40"}, {
+            "temperature": 18.300000,
+            "humidity": 64.100000,
+            "time": "2025-01-21 14:49:23"
+        }, {"temperature": 18.300000, "humidity": 64.000000, "time": "2025-01-21 14:45:16"}, {
+            "temperature": 18.300000,
+            "humidity": 64.000000,
+            "time": "2025-01-21 14:42:09"
+        }, {"temperature": 18.400000, "humidity": 64.000000, "time": "2025-01-21 14:37:09"}, {
+            "temperature": 18.400000,
+            "humidity": 64.000000,
+            "time": "2025-01-21 14:33:25"
+        }, {"temperature": 18.300000, "humidity": 64.000000, "time": "2025-01-21 14:28:25"}, {
+            "temperature": 18.400000,
+            "humidity": 64.000000,
+            "time": "2025-01-21 14:23:25"
+        }, {"temperature": 18.400000, "humidity": 63.700000, "time": "2025-01-21 14:18:25"}, {
+            "temperature": 18.400000,
+            "humidity": 63.500000,
+            "time": "2025-01-21 14:13:25"
+        }, {"temperature": 18.400000, "humidity": 63.400000, "time": "2025-01-21 14:08:25"}, {
+            "temperature": 18.500000,
+            "humidity": 63.200000,
+            "time": "2025-01-21 14:03:25"
+        }, {"temperature": 18.400000, "humidity": 63.200000, "time": "2025-01-21 13:58:25"}, {
+            "temperature": 18.400000,
+            "humidity": 63.200000,
+            "time": "2025-01-21 13:55:39"
+        }, {"temperature": 18.400000, "humidity": 63.200000, "time": "2025-01-21 13:55:24"}, {
+            "temperature": 18.400000,
+            "humidity": 63.200000,
+            "time": "2025-01-21 13:52:25"
+        }, {"temperature": 18.400000, "humidity": 63.100000, "time": "2025-01-21 13:52:21"}, {
+            "temperature": 18.400000,
+            "humidity": 63.100000,
+            "time": "2025-01-21 13:51:54"
+        }, {"temperature": 18.400000, "humidity": 63.100000, "time": "2025-01-21 13:51:29"}, {
+            "temperature": 18.400000,
+            "humidity": 63.100000,
+            "time": "2025-01-21 13:51:18"
+        }, {"temperature": 18.400000, "humidity": 63.100000, "time": "2025-01-21 13:51:08"}, {
+            "temperature": 18.500000,
+            "humidity": 63.100000,
+            "time": "2025-01-21 13:50:58"
+        }, {"temperature": 18.400000, "humidity": 63.100000, "time": "2025-01-21 13:50:42"}, {
+            "temperature": 18.400000,
+            "humidity": 63.000000,
+            "time": "2025-01-21 13:48:28"
+        }, {"temperature": 18.500000, "humidity": 63.000000, "time": "2025-01-21 13:45:09"}, {
+            "temperature": 18.500000,
+            "humidity": 62.900000,
+            "time": "2025-01-21 13:40:09"
+        }, {"temperature": 18.500000, "humidity": 62.700000, "time": "2025-01-21 13:37:48"}, {
+            "temperature": 18.500000,
+            "humidity": 62.800000,
+            "time": "2025-01-21 13:36:24"
+        }, {"temperature": 18.600000, "humidity": 62.700000, "time": "2025-01-21 13:31:24"}, {
+            "temperature": 18.600000,
+            "humidity": 62.500000,
+            "time": "2025-01-21 13:26:24"
+        }, {"temperature": 18.600000, "humidity": 62.600000, "time": "2025-01-21 13:21:24"}, {
+            "temperature": 18.600000,
+            "humidity": 62.400000,
+            "time": "2025-01-21 13:18:50"
+        }, {"temperature": 18.700000, "humidity": 62.200000, "time": "2025-01-21 13:13:50"}, {
+            "temperature": 18.700000,
+            "humidity": 62.100000,
+            "time": "2025-01-21 13:08:50"
+        }, {"temperature": 18.800000, "humidity": 61.900000, "time": "2025-01-21 13:03:50"}, {
+            "temperature": 18.800000,
+            "humidity": 61.900000,
+            "time": "2025-01-21 13:01:21"
+        }, {"temperature": 18.800000, "humidity": 61.700000, "time": "2025-01-21 12:59:23"}, {
+            "temperature": 18.900000,
+            "humidity": 61.500000,
+            "time": "2025-01-21 12:54:23"
+        }, {"temperature": 18.900000, "humidity": 61.400000, "time": "2025-01-21 12:51:56"}, {
+            "temperature": 19.000000,
+            "humidity": 61.400000,
+            "time": "2025-01-21 12:46:56"
+        }, {"temperature": 19.100000, "humidity": 61.100000, "time": "2025-01-21 12:42:45"}, {
+            "temperature": 19.100000,
+            "humidity": 60.900000,
+            "time": "2025-01-21 12:40:42"
+        }];
+
+        json.reverse();
+
+        for (json of json) {
+            console.log(json);
+            chart.data.datasets[0].data.push({
+                x: json.time,
+                y: json.temperature,
+            });
+            chart.data.datasets[1].data.push({
+                x: json.time,
+                y: json.humidity,
+            });
+        }
+
+        chart.update();
+    }
+</script>
+</body>
+</html>

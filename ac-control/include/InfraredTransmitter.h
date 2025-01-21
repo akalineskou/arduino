@@ -7,7 +7,8 @@
 
 class InfraredTransmitter {
   int pin;
-  ACMode acMode;
+  DatabaseHelper &databaseHelper;
+  ACMode &acMode;
 
   IRHaierAC160 irSend;
 
@@ -15,7 +16,7 @@ class InfraredTransmitter {
   ACCommand lastACCommand;
   bool lightToggled;
 
-  InfraredTransmitter(int pin, const ACMode &acMode);
+  InfraredTransmitter(int pin, DatabaseHelper &databaseHelper, ACMode &acMode);
 
   void setup();
 

@@ -14,8 +14,12 @@ class TimeHelper {
 
   void loop();
 
-  static std::string getDateTimeFormatted(time_t time);
+  static std::string formatForCode(time_t time);
+
+  static std::string formatForHuman(time_t time);
 
  private:
   void setTime();
+
+  static std::string format(time_t time, const char* format);
 };

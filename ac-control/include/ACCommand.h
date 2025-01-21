@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Arduino.h>
+
 enum ACCommand {
   Off,
   Start,

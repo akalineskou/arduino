@@ -1,7 +1,12 @@
+#include "DatabaseHelper.h"
 #include "Directive.h"
 #include "InfraredTransmitter.h"
 
-InfraredTransmitter::InfraredTransmitter(const int pin, const ACMode &acMode): pin(pin), acMode(acMode), irSend(pin) {
+InfraredTransmitter::InfraredTransmitter(const int pin, DatabaseHelper &databaseHelper, ACMode &acMode):
+    pin(pin),
+    databaseHelper(databaseHelper),
+    acMode(acMode),
+    irSend(pin) {
   lastACCommand = Off;
 
   lightToggled = false;
@@ -68,6 +73,9 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forc
       lightToggled = true;
     }
   }
+
+  databaseHelper.updatePreferenceIrLastACCommand(ACCommands[acCommand]);
+  databaseHelper.updatePreferenceIrLightToggled(lightToggled);
 
 #if APP_DEBUG
   Serial.printf("Sending A/C command: %s.\n", ACCommands[acCommand]);

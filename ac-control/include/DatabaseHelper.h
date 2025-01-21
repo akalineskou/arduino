@@ -2,6 +2,7 @@
 
 #include <sqlite3.h>
 
+#include "Directive.h"
 #include "TimeHelper.h"
 
 struct TemperatureReading {
@@ -29,6 +30,14 @@ struct Commands {
   Command* commands = nullptr;
 };
 
+struct Preference {
+  bool acEnabled = false;
+  std::string acMode{};
+  std::string irLastACCommand{};
+  bool irLightToggled = false;
+  int tdTemperatureTarget = 0;
+};
+
 class DatabaseHelper {
   TimeHelper &timeHelper;
 
@@ -42,8 +51,6 @@ class DatabaseHelper {
 
   void setup();
 
-  int prepare();
-
   void insertTemperatureReading(int temperature, int humidity);
 
   TemperatureReadings* selectTemperatureReadings(int maxRows = 5);
@@ -51,4 +58,23 @@ class DatabaseHelper {
   void insertCommand(const char* command, int temperature, int temperature_target);
 
   Commands* selectCommands(int maxRows = 5);
+
+  Preference* selectPreference();
+
+  void updatePreferenceAcEnabled(bool acEnabled);
+
+  void updatePreferenceAcMode(const char* acMode);
+
+  void updatePreferenceIrLastACCommand(const char* irLastACCommand);
+
+  void updatePreferenceIrLightToggled(bool irLightToggled);
+
+  void updatePreferenceTdTemperatureTarget(int tdTemperatureTarget);
+
+ private:
+  int prepare();
+
+#if APP_DEBUG
+  void expandSql() const;
+#endif
 };

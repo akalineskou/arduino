@@ -32,25 +32,6 @@ void DatabaseHelper::setup() {
   sqlite3_finalize(statement);
 }
 
-int DatabaseHelper::prepare() {
-  responseCode = sqlite3_prepare_v2(database, sql, -1, &statement, nullptr);
-  if (responseCode != SQLITE_OK) {
-#if APP_DEBUG
-    Serial.printf("SQL prepare error: %s\n", sqlite3_errmsg(database));
-#endif
-
-    sqlite3_finalize(statement);
-  }
-
-#if APP_DEBUG
-  const auto expandedSql = sqlite3_expanded_sql(statement);
-  Serial.println(expandedSql);
-  sqlite3_free(expandedSql);
-#endif
-
-  return responseCode;
-}
-
 void DatabaseHelper::insertTemperatureReading(const int temperature, const int humidity) {
 #if APP_DEBUG
   Serial.println("Inserting temperature reading");
@@ -65,6 +46,10 @@ void DatabaseHelper::insertTemperatureReading(const int temperature, const int h
   sqlite3_bind_int(statement, 1, temperature);
   sqlite3_bind_int(statement, 2, humidity);
   sqlite3_bind_int(statement, 3, timeHelper.currentTime);
+
+#if APP_DEBUG
+  expandSql();
+#endif
 
   responseCode = sqlite3_step(statement);
   if (responseCode == SQLITE_ERROR) {
@@ -89,6 +74,10 @@ TemperatureReadings* DatabaseHelper::selectTemperatureReadings(const int maxRows
   }
 
   sqlite3_bind_int(statement, 1, maxRows);
+
+#if APP_DEBUG
+  expandSql();
+#endif
 
   const auto temperatureReadings = new TemperatureReadings{};
   temperatureReadings->temperatureReadings = new TemperatureReading[maxRows];
@@ -130,6 +119,10 @@ void DatabaseHelper::insertCommand(const char* command, const int temperature, c
   sqlite3_bind_int(statement, 3, temperature_target);
   sqlite3_bind_int(statement, 4, timeHelper.currentTime);
 
+#if APP_DEBUG
+  expandSql();
+#endif
+
   responseCode = sqlite3_step(statement);
   if (responseCode == SQLITE_ERROR) {
 #if APP_DEBUG
@@ -154,6 +147,10 @@ Commands* DatabaseHelper::selectCommands(const int maxRows) {
 
   sqlite3_bind_int(statement, 1, maxRows);
 
+#if APP_DEBUG
+  expandSql();
+#endif
+
   const auto commands = new Commands{};
   commands->commands = new Command[maxRows];
 
@@ -175,3 +172,204 @@ Commands* DatabaseHelper::selectCommands(const int maxRows) {
 
   return commands;
 }
+
+Preference* DatabaseHelper::selectPreference() {
+#if APP_DEBUG
+  Serial.println("Selecting preference");
+#endif
+
+  sprintf(
+    sql,
+    "SELECT acEnabled, acMode, irLastACCommand, irLightToggled, tdTemperatureTarget FROM preference LIMIT 1"
+  );
+
+  if (prepare() != SQLITE_OK) {
+    return nullptr;
+  }
+
+#if APP_DEBUG
+  expandSql();
+#endif
+
+  Preference* preference = nullptr;
+
+  responseCode = sqlite3_step(statement);
+  if (responseCode == SQLITE_ROW) {
+    preference = new Preference{};
+    preference->acEnabled = sqlite3_column_int(statement, 0);
+    preference->acMode = std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
+    preference->irLastACCommand = std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 2)));
+    preference->irLightToggled = sqlite3_column_int(statement, 3);
+    preference->tdTemperatureTarget = sqlite3_column_int(statement, 4);
+  } else {
+#if APP_DEBUG
+    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+#endif
+  }
+
+  sqlite3_clear_bindings(statement);
+  sqlite3_finalize(statement);
+
+  return preference;
+}
+
+void DatabaseHelper::updatePreferenceAcEnabled(const bool acEnabled) {
+#if APP_DEBUG
+  Serial.println("Updating preference acEnabled");
+#endif
+
+  sprintf(sql, "UPDATE preference SET acEnabled = ?1");
+
+  if (prepare() != SQLITE_OK) {
+    return;
+  }
+
+  sqlite3_bind_int(statement, 1, acEnabled);
+
+#if APP_DEBUG
+  expandSql();
+#endif
+
+  responseCode = sqlite3_step(statement);
+  if (responseCode == SQLITE_ERROR) {
+#if APP_DEBUG
+    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+#endif
+  }
+
+  sqlite3_clear_bindings(statement);
+  sqlite3_finalize(statement);
+}
+
+void DatabaseHelper::updatePreferenceAcMode(const char* acMode) {
+#if APP_DEBUG
+  Serial.println("Updating preference acMode");
+#endif
+
+  sprintf(sql, "UPDATE preference SET acMode = ?1");
+
+  if (prepare() != SQLITE_OK) {
+    return;
+  }
+
+  sqlite3_bind_text(statement, 1, acMode, static_cast<int>(strlen(acMode)), SQLITE_STATIC);
+
+#if APP_DEBUG
+  expandSql();
+#endif
+
+  responseCode = sqlite3_step(statement);
+  if (responseCode == SQLITE_ERROR) {
+#if APP_DEBUG
+    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+#endif
+  }
+
+  sqlite3_clear_bindings(statement);
+  sqlite3_finalize(statement);
+}
+
+void DatabaseHelper::updatePreferenceIrLastACCommand(const char* irLastACCommand) {
+#if APP_DEBUG
+  Serial.println("Updating preference irLastACCommand");
+#endif
+
+  sprintf(sql, "UPDATE preference SET irLastACCommand = ?1");
+
+  if (prepare() != SQLITE_OK) {
+    return;
+  }
+
+  sqlite3_bind_text(statement, 1, irLastACCommand, static_cast<int>(strlen(irLastACCommand)), SQLITE_STATIC);
+
+#if APP_DEBUG
+  expandSql();
+#endif
+
+  responseCode = sqlite3_step(statement);
+  if (responseCode == SQLITE_ERROR) {
+#if APP_DEBUG
+    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+#endif
+  }
+
+  sqlite3_clear_bindings(statement);
+  sqlite3_finalize(statement);
+}
+
+void DatabaseHelper::updatePreferenceIrLightToggled(bool irLightToggled) {
+#if APP_DEBUG
+  Serial.println("Updating preference irLightToggled");
+#endif
+
+  sprintf(sql, "UPDATE preference SET irLightToggled = ?1");
+
+  if (prepare() != SQLITE_OK) {
+    return;
+  }
+
+  sqlite3_bind_int(statement, 1, irLightToggled);
+
+#if APP_DEBUG
+  expandSql();
+#endif
+
+  responseCode = sqlite3_step(statement);
+  if (responseCode == SQLITE_ERROR) {
+#if APP_DEBUG
+    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+#endif
+  }
+
+  sqlite3_clear_bindings(statement);
+  sqlite3_finalize(statement);
+}
+
+void DatabaseHelper::updatePreferenceTdTemperatureTarget(int tdTemperatureTarget) {
+#if APP_DEBUG
+  Serial.println("Updating preference tdTemperatureTarget");
+#endif
+
+  sprintf(sql, "UPDATE preference SET tdTemperatureTarget = ?1");
+
+  if (prepare() != SQLITE_OK) {
+    return;
+  }
+
+  sqlite3_bind_int(statement, 1, tdTemperatureTarget);
+
+#if APP_DEBUG
+  expandSql();
+#endif
+
+  responseCode = sqlite3_step(statement);
+  if (responseCode == SQLITE_ERROR) {
+#if APP_DEBUG
+    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+#endif
+  }
+
+  sqlite3_clear_bindings(statement);
+  sqlite3_finalize(statement);
+}
+
+int DatabaseHelper::prepare() {
+  responseCode = sqlite3_prepare_v2(database, sql, -1, &statement, nullptr);
+  if (responseCode != SQLITE_OK) {
+#if APP_DEBUG
+    Serial.printf("SQL prepare error: %s\n", sqlite3_errmsg(database));
+#endif
+
+    sqlite3_finalize(statement);
+  }
+
+  return responseCode;
+}
+
+#if APP_DEBUG
+void DatabaseHelper::expandSql() const {
+  const auto expandedSql = sqlite3_expanded_sql(statement);
+  Serial.println(expandedSql);
+  sqlite3_free(expandedSql);
+}
+#endif

@@ -1,4 +1,5 @@
 #include "ACControl.h"
+#include "DatabaseHelper.h"
 #include "Directive.h"
 
 ACControl::ACControl(
@@ -21,6 +22,8 @@ void ACControl::enable() {
   // restart time delay on enable
   turnOffTimeDelay.restart();
 
+  databaseHelper.updatePreferenceAcEnabled(enabled);
+
 #if APP_DEBUG
   Serial.println("A/C control enabled.");
 #endif
@@ -30,6 +33,8 @@ void ACControl::disable() {
   enabled = false;
 
   infraredTransmitter.sendCommand(Off, true);
+
+  databaseHelper.updatePreferenceAcEnabled(enabled);
 
 #if APP_DEBUG
   Serial.println("A/C control disabled.");
