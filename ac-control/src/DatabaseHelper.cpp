@@ -34,20 +34,28 @@ bool DatabaseHelper::setup() {
   return true;
 }
 
-void DatabaseHelper::insertTemperatureReading(const int temperature, const int humidity) {
+void DatabaseHelper::insertTemperatureReading(
+  const int temperature, const int temperatureTargetStart, const int temperatureTargetStop, const int humidity
+) {
 #if APP_DEBUG
   Serial.println("Inserting temperature reading");
 #endif
 
-  sprintf(sql, "INSERT INTO temperature_readings (id, temperature, humidity, time) VALUES(null, ?1, ?2, ?3)");
+  sprintf(
+    sql,
+    "INSERT INTO temperature_readings (id, temperature, temperatureTargetStart, temperatureTargetStop, humidity, time) "
+    "VALUES(null, ?1, ?2, ?3, ?4, ?5)"
+  );
 
   if (prepare() != SQLITE_OK) {
     return;
   }
 
   sqlite3_bind_int(statement, 1, temperature);
-  sqlite3_bind_int(statement, 2, humidity);
-  sqlite3_bind_int(statement, 3, timeHelper.currentTime);
+  sqlite3_bind_int(statement, 2, temperatureTargetStart);
+  sqlite3_bind_int(statement, 3, temperatureTargetStop);
+  sqlite3_bind_int(statement, 4, humidity);
+  sqlite3_bind_int(statement, 5, timeHelper.currentTime);
 
 #if APP_DEBUG
   expandSql();
@@ -69,7 +77,11 @@ TemperatureReadings* DatabaseHelper::selectTemperatureReadings(const int maxRows
   Serial.println("Selecting temperature readings");
 #endif
 
-  sprintf(sql, "SELECT id, temperature, humidity, time FROM temperature_readings ORDER BY time DESC LIMIT ?1");
+  sprintf(
+    sql,
+    "SELECT id, temperature, temperatureTargetStart, temperatureTargetStop, humidity, time FROM temperature_readings "
+    "ORDER BY time DESC LIMIT ?1"
+  );
 
   if (prepare() != SQLITE_OK) {
     return nullptr;
@@ -88,8 +100,10 @@ TemperatureReadings* DatabaseHelper::selectTemperatureReadings(const int maxRows
   while (sqlite3_step(statement) == SQLITE_ROW) {
     temperatureReadings->temperatureReadings[i].id = sqlite3_column_int(statement, 0);
     temperatureReadings->temperatureReadings[i].temperature = sqlite3_column_int(statement, 1);
-    temperatureReadings->temperatureReadings[i].humidity = sqlite3_column_int(statement, 2);
-    temperatureReadings->temperatureReadings[i].time = sqlite3_column_int(statement, 3);
+    temperatureReadings->temperatureReadings[i].temperatureTargetStart = sqlite3_column_int(statement, 2);
+    temperatureReadings->temperatureReadings[i].temperatureTargetStop = sqlite3_column_int(statement, 3);
+    temperatureReadings->temperatureReadings[i].humidity = sqlite3_column_int(statement, 4);
+    temperatureReadings->temperatureReadings[i].time = sqlite3_column_int(statement, 5);
 
     i++;
   }

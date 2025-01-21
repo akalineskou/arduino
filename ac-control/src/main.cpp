@@ -148,7 +148,12 @@ void loop() {
   timeHelper.loop();
 
   if (temperatureSensorDatabaseTimeDelay.delayPassed()) {
-    databaseHelper.insertTemperatureReading(temperatureSensor.getTemperature(), temperatureSensor.getHumidity());
+    databaseHelper.insertTemperatureReading(
+      temperatureData.getTemperature(),
+      temperatureData.temperatureTargetStart(),
+      temperatureData.temperatureTargetStop(),
+      temperatureData.getHumidity()
+    );
   }
 
 #if APP_DEBUG && APP_DEBUG_HEAP

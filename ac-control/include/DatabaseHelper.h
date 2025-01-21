@@ -8,6 +8,8 @@
 struct TemperatureReading {
   int id = 0;
   int temperature = 0;
+  int temperatureTargetStart = 0;
+  int temperatureTargetStop = 0;
   int humidity = 0;
   long int time = 0;
 };
@@ -51,7 +53,7 @@ class DatabaseHelper {
 
   bool setup();
 
-  void insertTemperatureReading(int temperature, int humidity);
+  void insertTemperatureReading(int temperature, int temperatureTargetStart, int temperatureTargetStop, int humidity);
 
   TemperatureReadings* selectTemperatureReadings(int maxRows = 5);
 

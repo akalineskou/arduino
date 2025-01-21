@@ -338,11 +338,13 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       const auto temperatureReading = temperatureReadings->temperatureReadings[i];
 
       json += "{\"temperature\": " + std::to_string(temperatureReading.temperature / 10.0) +
+        ", \"temperatureTargetStart\": " + std::to_string(temperatureReading.temperatureTargetStart / 10.0) +
+        ", \"temperatureTargetStop\": " + std::to_string(temperatureReading.temperatureTargetStop / 10.0) +
         ", \"humidity\": " + std::to_string(temperatureReading.humidity / 10.0) + ", \"time\": \"" +
         TimeHelper::formatForCode(temperatureReading.time) + "\"},";
     }
 
-    if (temperatureReadings->numRows > 1) {
+    if (temperatureReadings->numRows > 0) {
       json.pop_back();
     }
 
@@ -381,7 +383,6 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     <title>Temperature chart</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
 </head>
 <body onload="init()">
 <h2>Temperature history (<a href="/">Back</a>)</h2>
@@ -405,11 +406,23 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
                         distribution: "linear",
                     },
                     yTemperature: {
-                        min: 10,
-                        max: 30,
+                        min: __TEMPERATURE_MIN__,
+                        max: __TEMPERATURE_MAX__,
                         type: 'linear',
                         display: true,
                         position: 'left',
+                    },
+                    yTemperatureTargetStart: {
+                        min: __TEMPERATURE_MIN__,
+                        max: __TEMPERATURE_MAX__,
+                        type: 'linear',
+                        display: false,
+                    },
+                    yTemperatureTargetStop: {
+                        min: __TEMPERATURE_MIN__,
+                        max: __TEMPERATURE_MAX__,
+                        type: 'linear',
+                        display: false,
                     },
                     yHumidity: {
                         min: 50,
@@ -428,34 +441,6 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
                     legend: {
                         display: true,
                     },
-                    annotation: {
-                        annotations: {
-                            lineMin: {
-                                type: 'line',
-                                yMin: __TEMPERATURE_TARGET_START__,
-                                yMax: __TEMPERATURE_TARGET_START__,
-                                borderWidth: 2,
-                                borderColor: '__TEMPERATURE_TARGET_START_COLOR__',
-                                label: {
-                                    display: true,
-                                    content: '__TEMPERATURE_TARGET_START_LABEL__',
-                                    position: 'start',
-                                },
-                            },
-                            lineMax: {
-                                type: 'line',
-                                yMin: __TEMPERATURE_TARGET_STOP__,
-                                yMax: __TEMPERATURE_TARGET_STOP__,
-                                borderWidth: 2,
-                                borderColor: '__TEMPERATURE_TARGET_STOP_COLOR__',
-                                label: {
-                                    display: true,
-                                    content: '__TEMPERATURE_TARGET_STOP_LABEL__',
-                                    position: 'start',
-                                },
-                            },
-                        },
-                    },
                 },
             },
             data: {
@@ -467,6 +452,20 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
                         borderColor: "#3e95cd",
                         fill: false,
                         yAxisID: 'yTemperature',
+                    },
+                    {
+                        data: [],
+                        label: "Temperature target __TEMPERATURE_TARGET_START_LABEL__",
+                        borderColor: "__TEMPERATURE_TARGET_START_COLOR__",
+                        fill: false,
+                        yAxisID: 'yTemperatureTargetStart',
+                    },
+                    {
+                        data: [],
+                        label: "Temperature target __TEMPERATURE_TARGET_STOP_LABEL__",
+                        borderColor: "__TEMPERATURE_TARGET_STOP_COLOR__",
+                        fill: false,
+                        yAxisID: 'yTemperatureTargetStop',
                     },
                     {
                         data: [],
@@ -490,6 +489,14 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
             });
             chart.data.datasets[1].data.push({
                 x: json.time,
+                y: json.temperatureTargetStart,
+            });
+            chart.data.datasets[2].data.push({
+                x: json.time,
+                y: json.temperatureTargetStop,
+            });
+            chart.data.datasets[3].data.push({
+                x: json.time,
                 y: json.humidity,
             });
         }
@@ -512,17 +519,23 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       std::to_string(temperatureData.temperatureTargetStop() / 10.0).c_str()
     );
     if (acMode == Cold) {
+      stringReplace(html, "__TEMPERATURE_MIN__", std::to_string(temperatureData.temperatureTarget / 10.0 + 5).c_str());
+      stringReplace(html, "__TEMPERATURE_MAX__", std::to_string(temperatureData.temperatureTarget / 10.0 - 5).c_str());
+
       stringReplace(html, "__TEMPERATURE_TARGET_START_COLOR__", "green");
       stringReplace(html, "__TEMPERATURE_TARGET_STOP_COLOR__", "red");
 
-      stringReplace(html, "__TEMPERATURE_TARGET_START_LABEL__", "Stop");
-      stringReplace(html, "__TEMPERATURE_TARGET_STOP_LABEL__", "Start");
+      stringReplace(html, "__TEMPERATURE_TARGET_START_LABEL__", "stop");
+      stringReplace(html, "__TEMPERATURE_TARGET_STOP_LABEL__", "start");
     } else {
+      stringReplace(html, "__TEMPERATURE_MIN__", std::to_string(temperatureData.temperatureTarget / 10.0 - 5).c_str());
+      stringReplace(html, "__TEMPERATURE_MAX__", std::to_string(temperatureData.temperatureTarget / 10.0 + 5).c_str());
+
       stringReplace(html, "__TEMPERATURE_TARGET_START_COLOR__", "red");
       stringReplace(html, "__TEMPERATURE_TARGET_STOP_COLOR__", "green");
 
-      stringReplace(html, "__TEMPERATURE_TARGET_START_LABEL__", "Start");
-      stringReplace(html, "__TEMPERATURE_TARGET_STOP_LABEL__", "Stop");
+      stringReplace(html, "__TEMPERATURE_TARGET_START_LABEL__", "start");
+      stringReplace(html, "__TEMPERATURE_TARGET_STOP_LABEL__", "stop");
     }
 
     stringReplace(html, "__JSON_DATA__", json.c_str());
