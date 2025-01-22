@@ -8,7 +8,7 @@
 <h2>Spectrum Analyzer</h2>
 
 <div style="width: 900px;">
-    <canvas id="chartV" height="300"></canvas>
+    <canvas id="chartV" height="250"></canvas>
 <!--    <canvas id="chartH" height="1000"></canvas>-->
 </div>
 
@@ -83,7 +83,7 @@
 
         const webSocketInit = () => {
             webSocket = null;
-            webSocket = new WebSocket('ws://192.168.1.17:81/');
+            webSocket = new WebSocket('ws://192.168.1.18:81/');
             webSocket.onclose = webSocketInit;
             webSocket.onmessage = (event) => {
                 // on message clear the timeout

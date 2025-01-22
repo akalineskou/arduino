@@ -4,10 +4,10 @@ Band::Band(const int count, int bands[], const int minValue): count(count), band
 
 Bands::Bands():
     dumCount(1),
-    dumBands(new Band[1]{Band(1, new int[1]{3}, 40000)}),
+    dumBands(new Band[1]{Band(1, new int[1]{3}, 55000)}),
     tekCount(1),
     tekBands(new Band[1]{
-      Band(9, new int[9]{15, 16, 17, 18, 21, 22, 23, 24, 25}, 4000),
+      Band(9, new int[9]{15, 16, 17, 18, 21, 22, 23, 24, 25}, 5000),
     }) {}
 
 int Bands::getBeat(const bool idling) const {
@@ -15,14 +15,28 @@ int Bands::getBeat(const bool idling) const {
     return data[1] > 100 ? Dum : -1;
   }
 
-  for (const auto beat: {Dum, Tek}) {
-    for (auto i = 0; i < (beat == Dum ? dumCount : tekCount); i++) {
-      const auto band = (beat == Dum ? dumBands : tekBands)[i];
+  int maxDum = 0;
 
-      for (auto j = 0; j < band.count; j++) {
-        if (data[band.bands[j]] > band.minValue) {
-          return beat;
-        }
+  for (auto i = 0; i < dumCount; i++) {
+    const auto band = dumBands[i];
+
+    for (auto j = 0; j < band.count; j++) {
+      if (data[band.bands[j]] > band.minValue) {
+        return Dum;
+      }
+
+      if (data[band.bands[j]] > maxDum) {
+        maxDum = data[band.bands[j]];
+      }
+    }
+  }
+
+  for (auto i = 0; i < tekCount; i++) {
+    const auto band = tekBands[i];
+
+    for (auto j = 0; j < band.count; j++) {
+      if (data[band.bands[j]] > band.minValue * (maxDum > 20000 ? 2 : 1)) {
+        return Tek;
       }
     }
   }
