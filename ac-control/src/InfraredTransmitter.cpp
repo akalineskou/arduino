@@ -76,7 +76,7 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand) {
 #endif
 
 #if !APP_DEBUG || APP_DEBUG_IR_SEND
-  irSend.send();
+  irSend.send(kSingleRepeat);
 #endif
 
   databaseHelper.updatePreferenceIrLastACCommand(ACCommands[acCommand]);
