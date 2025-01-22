@@ -16,11 +16,7 @@ void InfraredTransmitter::setup() {
   irSend.begin();
 }
 
-void InfraredTransmitter::sendCommand(const ACCommand acCommand, const bool forceCommand) {
-  if (acCommand == lastACCommand && !forceCommand) {
-    // same A/C command, ignoring send
-    return;
-  }
+void InfraredTransmitter::sendCommand(const ACCommand acCommand) {
   lastACCommand = acCommand;
 
   /// /.pio -> ir_Haier.cpp -> IRHaierAC160::IRHaierAC160

@@ -32,7 +32,7 @@ void ACControl::enable() {
 void ACControl::disable() {
   enabled = false;
 
-  infraredTransmitter.sendCommand(Off, true);
+  infraredTransmitter.sendCommand(Off);
 
   databaseHelper.updatePreferenceAcEnabled(enabled);
 
@@ -41,12 +41,8 @@ void ACControl::disable() {
 #endif
 }
 
-bool ACControl::isEnabled() const {
-  return enabled;
-}
-
 void ACControl::off() const {
-  infraredTransmitter.sendCommand(Off, true);
+  infraredTransmitter.sendCommand(Off);
 
   databaseInsert(Off);
 }

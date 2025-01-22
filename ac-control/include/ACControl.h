@@ -9,11 +9,11 @@ class ACControl {
   InfraredTransmitter &infraredTransmitter;
   TemperatureData &temperatureData;
   DatabaseHelper &databaseHelper;
-
-  bool enabled;
   TimeDelay turnOffTimeDelay;
 
  public:
+  bool enabled;
+
   ACControl(InfraredTransmitter &infraredTransmitter, TemperatureData &temperatureData, DatabaseHelper &databaseHelper);
 
   void loop();
@@ -21,8 +21,6 @@ class ACControl {
   void enable();
 
   void disable();
-
-  bool isEnabled() const;
 
   void off() const;
 

@@ -20,5 +20,5 @@ class InfraredTransmitter {
 
   void setup();
 
-  void sendCommand(ACCommand acCommand, bool forceCommand = false);
+  void sendCommand(ACCommand acCommand);
 };

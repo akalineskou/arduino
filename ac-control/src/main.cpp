@@ -90,11 +90,9 @@ void setup() {
     Serial.println("Restoring data...");
 #endif
 
-    if (preference->acEnabled) {
-      acControl.enable();
-    }
+    acControl.enabled = preference->acEnabled;
 #if APP_DEBUG
-    Serial.printf("acControl.enabled %d.\n", acControl.isEnabled());
+    Serial.printf("acControl.enabled %d.\n", acControl.enabled);
 #endif
 
     acMode = sToACMode(preference->acMode.c_str());

@@ -108,8 +108,8 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     stringReplace(
       html,
       "__AC_CONTROL_STATUS__",
-      acControl.isEnabled() ? R"==(<b>Enabled</b> (<a href="/disable">Disable</a>))=="
-                            : R"==(<b>Disabled</b> (<a href="/enable">Enable</a>))=="
+      acControl.enabled ? R"==(<b>Enabled</b> (<a href="/disable">Disable</a>))=="
+                        : R"==(<b>Disabled</b> (<a href="/enable">Enable</a>))=="
     );
     stringReplace(html, "__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
     stringReplace(html, "__AC_MODE__", ACModes[acMode]);
