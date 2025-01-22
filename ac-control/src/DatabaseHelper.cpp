@@ -44,7 +44,7 @@ void DatabaseHelper::insertTemperatureReading(
   sprintf(
     sql,
     "INSERT INTO temperature_readings (id, temperature, temperatureTargetStart, temperatureTargetStop, humidity, time) "
-    "VALUES(null, ?1, ?2, ?3, ?4, ?5)"
+    "VALUES(null, ?1, ?2, ?3, ?4, ?5) "
   );
 
   if (prepare() != SQLITE_OK) {
@@ -72,29 +72,58 @@ void DatabaseHelper::insertTemperatureReading(
   sqlite3_finalize(statement);
 }
 
-TemperatureReadings* DatabaseHelper::selectTemperatureReadings(const int maxRows) {
+TemperatureReadings* DatabaseHelper::selectTemperatureReadings(const int hours) {
 #if APP_DEBUG
   Serial.println("Selecting temperature readings");
 #endif
 
   sprintf(
     sql,
-    "SELECT id, temperature, temperatureTargetStart, temperatureTargetStop, humidity, time FROM temperature_readings "
-    "ORDER BY time DESC LIMIT ?1"
+    "SELECT COUNT(id) "
+    "FROM temperature_readings "
+    "WHERE time > ?1 "
+    "ORDER BY time DESC "
   );
 
   if (prepare() != SQLITE_OK) {
     return nullptr;
   }
 
-  sqlite3_bind_int(statement, 1, maxRows);
+  sqlite3_bind_int(statement, 1, timeHelper.currentTime - hours * 3600);
+
+  responseCode = sqlite3_step(statement);
+  if (responseCode == SQLITE_ERROR) {
+#if APP_DEBUG
+    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+#endif
+  }
+
+  const int numRows = sqlite3_column_int(statement, 0);
+
+  sqlite3_clear_bindings(statement);
+  sqlite3_finalize(statement);
+
+  sprintf(
+    sql,
+    "SELECT id, temperature, temperatureTargetStart, temperatureTargetStop, humidity, time "
+    "FROM temperature_readings "
+    "WHERE time > ?1 "
+    "ORDER BY time DESC "
+  );
+
+  if (prepare() != SQLITE_OK) {
+    return nullptr;
+  }
+
+  sqlite3_bind_int(statement, 1, timeHelper.currentTime - hours * 3600);
 
 #if APP_DEBUG
   expandSql();
 #endif
 
   const auto temperatureReadings = new TemperatureReadings{};
-  temperatureReadings->temperatureReadings = new TemperatureReading[maxRows];
+  temperatureReadings->temperatureReadings = new TemperatureReading[numRows];
+  temperatureReadings->numRows = numRows;
 
   int i = 0;
   while (sqlite3_step(statement) == SQLITE_ROW) {
@@ -107,8 +136,6 @@ TemperatureReadings* DatabaseHelper::selectTemperatureReadings(const int maxRows
 
     i++;
   }
-
-  temperatureReadings->numRows = i;
 
   sqlite3_clear_bindings(statement);
   sqlite3_finalize(statement);
@@ -123,7 +150,8 @@ void DatabaseHelper::insertCommand(const char* command, const int temperature, c
 
   sprintf(
     sql,
-    "INSERT INTO commands (id, command, temperature, temperature_target, time) VALUES (null, ?1, ?2, ?3, ?4)"
+    "INSERT INTO commands (id, command, temperature, temperature_target, time) "
+    "VALUES (null, ?1, ?2, ?3, ?4) "
   );
 
   if (prepare() != SQLITE_OK) {
@@ -155,7 +183,13 @@ Commands* DatabaseHelper::selectCommands(const int maxRows) {
   Serial.println("Selecting commands");
 #endif
 
-  sprintf(sql, "SELECT id, command, temperature, temperature_target, time FROM commands ORDER BY time DESC LIMIT ?1");
+  sprintf(
+    sql,
+    "SELECT id, command, temperature, temperature_target, time "
+    "FROM commands "
+    "ORDER BY time DESC "
+    "LIMIT ?1 "
+  );
 
   if (prepare() != SQLITE_OK) {
     return nullptr;
@@ -196,7 +230,9 @@ Preference* DatabaseHelper::selectPreference() {
 
   sprintf(
     sql,
-    "SELECT acEnabled, acMode, irLastACCommand, irLightToggled, tdTemperatureTarget FROM preference LIMIT 1"
+    "SELECT acEnabled, acMode, irLastACCommand, irLightToggled, tdTemperatureTarget "
+    "FROM preference "
+    "LIMIT 1 "
   );
 
   if (prepare() != SQLITE_OK) {
@@ -234,7 +270,11 @@ void DatabaseHelper::updatePreferenceAcEnabled(const bool acEnabled) {
   Serial.println("Updating preference acEnabled");
 #endif
 
-  sprintf(sql, "UPDATE preference SET acEnabled = ?1");
+  sprintf(
+    sql,
+    "UPDATE preference SET "
+    "acEnabled = ?1 "
+  );
 
   if (prepare() != SQLITE_OK) {
     return;
@@ -262,7 +302,11 @@ void DatabaseHelper::updatePreferenceAcMode(const char* acMode) {
   Serial.println("Updating preference acMode");
 #endif
 
-  sprintf(sql, "UPDATE preference SET acMode = ?1");
+  sprintf(
+    sql,
+    "UPDATE preference SET "
+    "acMode = ?1 "
+  );
 
   if (prepare() != SQLITE_OK) {
     return;
@@ -290,7 +334,11 @@ void DatabaseHelper::updatePreferenceIrLastACCommand(const char* irLastACCommand
   Serial.println("Updating preference irLastACCommand");
 #endif
 
-  sprintf(sql, "UPDATE preference SET irLastACCommand = ?1");
+  sprintf(
+    sql,
+    "UPDATE preference SET "
+    "irLastACCommand = ?1 "
+  );
 
   if (prepare() != SQLITE_OK) {
     return;
@@ -313,12 +361,16 @@ void DatabaseHelper::updatePreferenceIrLastACCommand(const char* irLastACCommand
   sqlite3_finalize(statement);
 }
 
-void DatabaseHelper::updatePreferenceIrLightToggled(bool irLightToggled) {
+void DatabaseHelper::updatePreferenceIrLightToggled(const bool irLightToggled) {
 #if APP_DEBUG
   Serial.println("Updating preference irLightToggled");
 #endif
 
-  sprintf(sql, "UPDATE preference SET irLightToggled = ?1");
+  sprintf(
+    sql,
+    "UPDATE preference SET "
+    "irLightToggled = ?1 "
+  );
 
   if (prepare() != SQLITE_OK) {
     return;
@@ -341,12 +393,16 @@ void DatabaseHelper::updatePreferenceIrLightToggled(bool irLightToggled) {
   sqlite3_finalize(statement);
 }
 
-void DatabaseHelper::updatePreferenceTdTemperatureTarget(int tdTemperatureTarget) {
+void DatabaseHelper::updatePreferenceTdTemperatureTarget(const int tdTemperatureTarget) {
 #if APP_DEBUG
   Serial.println("Updating preference tdTemperatureTarget");
 #endif
 
-  sprintf(sql, "UPDATE preference SET tdTemperatureTarget = ?1");
+  sprintf(
+    sql,
+    "UPDATE preference SET "
+    "tdTemperatureTarget = ?1 "
+  );
 
   if (prepare() != SQLITE_OK) {
     return;

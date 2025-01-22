@@ -332,16 +332,15 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 
     std::string json = "[";
 
-    const auto temperatureReadings =
-      databaseHelper.selectTemperatureReadings(6 * 60 / (APP_TEMPERATURE_SENSOR_DATABASE_DELAY / (60 * 1000)));
+    const auto temperatureReadings = databaseHelper.selectTemperatureReadings(6);
     for (auto i = 0; i < temperatureReadings->numRows; ++i) {
       const auto temperatureReading = temperatureReadings->temperatureReadings[i];
 
-      json += "{\"temperature\": " + std::to_string(temperatureReading.temperature / 10.0) +
-        ", \"temperatureTargetStart\": " + std::to_string(temperatureReading.temperatureTargetStart / 10.0) +
-        ", \"temperatureTargetStop\": " + std::to_string(temperatureReading.temperatureTargetStop / 10.0) +
-        ", \"humidity\": " + std::to_string(temperatureReading.humidity / 10.0) + ", \"time\": \"" +
-        TimeHelper::formatForCode(temperatureReading.time) + "\"},";
+      json += R"=({"temperature":)=" + std::to_string(temperatureReading.temperature / 10.0) +
+        R"=(,"temperatureTargetStart":)=" + std::to_string(temperatureReading.temperatureTargetStart / 10.0) +
+        R"=(,"temperatureTargetStop":)=" + std::to_string(temperatureReading.temperatureTargetStop / 10.0) +
+        R"=(,"humidity":)=" + std::to_string(temperatureReading.humidity / 10.0) +
+        R"=(,"time":")=" + TimeHelper::formatForCode(temperatureReading.time) + R"=("},)=";
     }
 
     if (temperatureReadings->numRows > 0) {
@@ -385,7 +384,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
 </head>
 <body onload="init()">
-<h2>Temperature history (<a href="/">Back</a>)</h2>
+<h2>Temperature history <small>(6 hours) (<a href="/">Back</a>)</small></h2>
 
 <canvas id="chart"></canvas>
 
@@ -404,6 +403,9 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
                     x: {
                         type: "time",
                         distribution: "linear",
+                        grid: {
+                            color: "rgba(255, 255, 255, 0.2)",
+                        },
                     },
                     yTemperature: {
                         min: __TEMPERATURE_MIN__,
@@ -411,6 +413,14 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
                         type: 'linear',
                         display: true,
                         position: 'left',
+                        grid: {
+                            color: "rgba(255, 255, 255, 0.2)",
+                        },
+                        title: {
+                            text: "Temperature",
+                            display: true,
+                            color: "#3e95cd",
+                        },
                     },
                     yTemperatureTargetStart: {
                         min: __TEMPERATURE_MIN__,
@@ -430,10 +440,13 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
                         type: 'linear',
                         display: true,
                         position: 'right',
-
-                        // grid line settings
+                        title: {
+                            text: "Humidity",
+                            display: true,
+                            color: "#bababa",
+                        },
                         grid: {
-                            drawOnChartArea: false, // only want the grid lines for one axis to show up
+                            drawOnChartArea: false,
                         },
                     },
                 },

@@ -29,7 +29,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
 </head>
 <body onload="init()">
-<h2>Temperature history (<a href="/">Back</a>)</h2>
+<h2>Temperature history <small>(6 hours) (<a href="/">Back</a>)</small></h2>
 
 <canvas id="chart"></canvas>
 
@@ -48,23 +48,34 @@
                     x: {
                         type: "time",
                         distribution: "linear",
+                        grid: {
+                            color: "rgba(255, 255, 255, 0.2)",
+                        },
                     },
                     yTemperature: {
-                        min: 10,
-                        max: 30,
+                        min: 15,
+                        max: 25,
                         type: 'linear',
                         display: true,
                         position: 'left',
+                        grid: {
+                            color: "rgba(255, 255, 255, 0.2)",
+                        },
+                        title: {
+                            text: "Temperature",
+                            display: true,
+                            color: "#3e95cd",
+                        },
                     },
                     yTemperatureTargetStart: {
-                        min: 10,
-                        max: 30,
+                        min: 15,
+                        max: 25,
                         type: 'linear',
                         display: false,
                     },
                     yTemperatureTargetStop: {
-                        min: 10,
-                        max: 30,
+                        min: 15,
+                        max: 25,
                         type: 'linear',
                         display: false,
                     },
@@ -74,10 +85,13 @@
                         type: 'linear',
                         display: true,
                         position: 'right',
-
-                        // grid line settings
+                        title: {
+                            text: "Humidity",
+                            display: true,
+                            color: "#bababa",
+                        },
                         grid: {
-                            drawOnChartArea: false, // only want the grid lines for one axis to show up
+                            drawOnChartArea: false,
                         },
                     },
                 },
@@ -123,41 +137,527 @@
         });
 
         let json = [{
-            "temperature": 18.600000,
-            "temperatureTargetStart": 18.500000,
-            "temperatureTargetStop": 20.000000,
-            "humidity": 65.600000,
-            "time": "2025-01-21 23:48:23"
+            "temperature": 20.400000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 60.800000,
+            "time": "2025-01-22 14:25:01"
         }, {
-            "temperature": 18.600000,
-            "temperatureTargetStart": 18.500000,
-            "temperatureTargetStop": 20.000000,
-            "humidity": 65.600000,
-            "time": "2025-01-21 23:47:07"
+            "temperature": 20.500000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 60.600000,
+            "time": "2025-01-22 14:20:15"
         }, {
-            "temperature": 18.600000,
-            "temperatureTargetStart": 18.500000,
-            "temperatureTargetStop": 20.000000,
-            "humidity": 65.500000,
-            "time": "2025-01-21 23:46:13"
+            "temperature": 20.600000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 60.400000,
+            "time": "2025-01-22 14:15:15"
         }, {
-            "temperature": 18.600000,
-            "temperatureTargetStart": 18.500000,
-            "temperatureTargetStop": 20.000000,
+            "temperature": 20.600000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 60.400000,
+            "time": "2025-01-22 14:14:24"
+        }, {
+            "temperature": 20.800000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 59.800000,
+            "time": "2025-01-22 14:09:51"
+        }, {
+            "temperature": 20.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 59.300000,
+            "time": "2025-01-22 14:04:51"
+        }, {
+            "temperature": 21.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 58.600000,
+            "time": "2025-01-22 13:59:51"
+        }, {
+            "temperature": 21.500000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 57.600000,
+            "time": "2025-01-22 13:54:51"
+        }, {
+            "temperature": 22.000000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 56.200000,
+            "time": "2025-01-22 13:49:51"
+        }, {
+            "temperature": 22.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 54.600000,
+            "time": "2025-01-22 13:44:51"
+        }, {
+            "temperature": 22.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 54.800000,
+            "time": "2025-01-22 13:43:30"
+        }, {
+            "temperature": 22.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 54.800000,
+            "time": "2025-01-22 13:43:26"
+        }, {
+            "temperature": 22.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 54.800000,
+            "time": "2025-01-22 13:43:26"
+        }, {
+            "temperature": 22.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 54.800000,
+            "time": "2025-01-22 13:43:20"
+        }, {
+            "temperature": 22.800000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 54.800000,
+            "time": "2025-01-22 13:42:53"
+        }, {
+            "temperature": 22.800000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 54.800000,
+            "time": "2025-01-22 13:42:24"
+        }, {
+            "temperature": 22.700000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 54.900000,
+            "time": "2025-01-22 13:39:51"
+        }, {
+            "temperature": 22.700000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 54.800000,
+            "time": "2025-01-22 13:34:51"
+        }, {
+            "temperature": 22.600000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 55.000000,
+            "time": "2025-01-22 13:29:51"
+        }, {
+            "temperature": 22.500000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 55.400000,
+            "time": "2025-01-22 13:24:51"
+        }, {
+            "temperature": 22.400000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 55.500000,
+            "time": "2025-01-22 13:19:51"
+        }, {
+            "temperature": 22.200000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 55.900000,
+            "time": "2025-01-22 13:14:51"
+        }, {
+            "temperature": 22.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 56.100000,
+            "time": "2025-01-22 13:09:51"
+        }, {
+            "temperature": 22.000000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 56.300000,
+            "time": "2025-01-22 13:04:51"
+        }, {
+            "temperature": 21.800000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 56.700000,
+            "time": "2025-01-22 12:59:51"
+        }, {
+            "temperature": 21.700000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 57.100000,
+            "time": "2025-01-22 12:51:58"
+        }, {
+            "temperature": 21.500000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 57.600000,
+            "time": "2025-01-22 12:49:42"
+        }, {
+            "temperature": 21.400000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 58.100000,
+            "time": "2025-01-22 12:44:42"
+        }, {
+            "temperature": 21.000000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 59.100000,
+            "time": "2025-01-22 12:39:42"
+        }, {
+            "temperature": 20.600000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 61.000000,
+            "time": "2025-01-22 12:35:32"
+        }, {
+            "temperature": 20.300000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 61.000000,
+            "time": "2025-01-22 12:34:42"
+        }, {
+            "temperature": 19.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 64.000000,
+            "time": "2025-01-22 12:29:42"
+        }, {
+            "temperature": 18.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.900000,
+            "time": "2025-01-22 12:26:12"
+        }, {
+            "temperature": 19.000000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.900000,
+            "time": "2025-01-22 12:24:42"
+        }, {
+            "temperature": 19.000000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.700000,
+            "time": "2025-01-22 12:19:42"
+        }, {
+            "temperature": 19.000000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.700000,
+            "time": "2025-01-22 12:14:42"
+        }, {
+            "temperature": 19.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.700000,
+            "time": "2025-01-22 12:09:42"
+        }, {
+            "temperature": 19.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.500000,
+            "time": "2025-01-22 12:04:42"
+        }, {
+            "temperature": 19.200000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.500000,
+            "time": "2025-01-22 11:59:42"
+        }, {
+            "temperature": 19.200000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.300000,
+            "time": "2025-01-22 11:54:42"
+        }, {
+            "temperature": 19.300000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.200000,
+            "time": "2025-01-22 11:49:42"
+        }, {
+            "temperature": 19.400000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.100000,
+            "time": "2025-01-22 11:44:42"
+        }, {
+            "temperature": 19.600000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 62.500000,
+            "time": "2025-01-22 11:39:42"
+        }, {
+            "temperature": 20.000000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 60.700000,
+            "time": "2025-01-22 11:34:42"
+        }, {
+            "temperature": 20.700000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 59.500000,
+            "time": "2025-01-22 11:29:42"
+        }, {
+            "temperature": 20.600000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 60.200000,
+            "time": "2025-01-22 11:28:22"
+        }, {
+            "temperature": 19.800000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 61.700000,
+            "time": "2025-01-22 11:24:42"
+        }, {
+            "temperature": 18.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.500000,
+            "time": "2025-01-22 11:19:42"
+        }, {
+            "temperature": 18.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.600000,
+            "time": "2025-01-22 11:17:12"
+        }, {
+            "temperature": 19.000000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.500000,
+            "time": "2025-01-22 11:14:42"
+        }, {
+            "temperature": 19.000000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.600000,
+            "time": "2025-01-22 11:09:42"
+        }, {
+            "temperature": 19.200000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.200000,
+            "time": "2025-01-22 11:04:42"
+        }, {
+            "temperature": 19.300000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 62.600000,
+            "time": "2025-01-22 10:59:42"
+        }, {
+            "temperature": 19.500000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 62.100000,
+            "time": "2025-01-22 10:54:42"
+        }, {
+            "temperature": 19.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 60.800000,
+            "time": "2025-01-22 10:49:42"
+        }, {
+            "temperature": 20.700000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 58.900000,
+            "time": "2025-01-22 10:44:42"
+        }, {
+            "temperature": 20.600000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 60.200000,
+            "time": "2025-01-22 10:42:32"
+        }, {
+            "temperature": 19.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 61.400000,
+            "time": "2025-01-22 10:39:42"
+        }, {
+            "temperature": 18.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.600000,
+            "time": "2025-01-22 10:34:42"
+        }, {
+            "temperature": 18.900000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.600000,
+            "time": "2025-01-22 10:32:52"
+        }, {
+            "temperature": 19.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 63.200000,
+            "time": "2025-01-22 10:29:42"
+        }, {
+            "temperature": 19.300000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 62.100000,
+            "time": "2025-01-22 10:24:42"
+        }, {
+            "temperature": 20.000000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 60.000000,
+            "time": "2025-01-22 10:19:42"
+        }, {
+            "temperature": 20.600000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 59.400000,
+            "time": "2025-01-22 10:14:52"
+        }, {
+            "temperature": 20.500000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 59.400000,
+            "time": "2025-01-22 10:14:42"
+        }, {
+            "temperature": 19.700000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 61.600000,
+            "time": "2025-01-22 10:09:42"
+        }, {
+            "temperature": 18.300000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 64.900000,
+            "time": "2025-01-22 10:04:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
             "humidity": 65.300000,
-            "time": "2025-01-21 23:41:13"
+            "time": "2025-01-22 09:59:42"
         }, {
-            "temperature": 18.600000,
-            "temperatureTargetStart": 18.500000,
-            "temperatureTargetStop": 20.000000,
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
             "humidity": 65.300000,
-            "time": "2025-01-21 23:40:42"
+            "time": "2025-01-22 09:59:14"
         }, {
-            "temperature": 18.600000,
-            "temperatureTargetStart": 18.500000,
-            "temperatureTargetStop": 20.000000,
-            "humidity": 65.500000,
-            "time": "2025-01-21 23:35:50"
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 65.000000,
+            "time": "2025-01-22 09:54:42"
+        }, {
+            "temperature": 18.000000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 64.900000,
+            "time": "2025-01-22 09:49:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 64.800000,
+            "time": "2025-01-22 09:44:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 64.900000,
+            "time": "2025-01-22 09:39:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 65.000000,
+            "time": "2025-01-22 09:34:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 64.900000,
+            "time": "2025-01-22 09:29:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 65.100000,
+            "time": "2025-01-22 09:24:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 64.900000,
+            "time": "2025-01-22 09:19:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 64.800000,
+            "time": "2025-01-22 09:14:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 65.000000,
+            "time": "2025-01-22 09:09:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 65.000000,
+            "time": "2025-01-22 09:04:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 65.000000,
+            "time": "2025-01-22 08:59:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 65.100000,
+            "time": "2025-01-22 08:54:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 65.100000,
+            "time": "2025-01-22 08:49:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 65.100000,
+            "time": "2025-01-22 08:44:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 65.100000,
+            "time": "2025-01-22 08:39:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 65.100000,
+            "time": "2025-01-22 08:34:42"
+        }, {
+            "temperature": 18.100000,
+            "temperatureTargetStart": 19.000000,
+            "temperatureTargetStop": 20.500000,
+            "humidity": 65.000000,
+            "time": "2025-01-22 08:29:42"
         }];
 
         json.reverse();

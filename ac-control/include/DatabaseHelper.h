@@ -55,7 +55,7 @@ class DatabaseHelper {
 
   void insertTemperatureReading(int temperature, int temperatureTargetStart, int temperatureTargetStop, int humidity);
 
-  TemperatureReadings* selectTemperatureReadings(int maxRows = 5);
+  TemperatureReadings* selectTemperatureReadings(int hours);
 
   void insertCommand(const char* command, int temperature, int temperature_target);
 
