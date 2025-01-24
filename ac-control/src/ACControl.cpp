@@ -58,9 +58,11 @@ void ACControl::start() {
   temperatureChangeTimeDelay.restart();
 
   temperatureStart = temperatureData.getTemperature();
+  temperatureStop = -1;
 
   databaseInsert(Start);
   databaseHelper.updatePreferenceByType(AcTemperatureStart, (void*) temperatureStart);
+  databaseHelper.updatePreferenceByType(AcTemperatureStart, (void*) temperatureStop);
 }
 
 void ACControl::stop() {
@@ -69,9 +71,11 @@ void ACControl::stop() {
   turnOffTimeDelay.restart();
   temperatureChangeTimeDelay.restart();
 
+  temperatureStart = -1;
   temperatureStop = temperatureData.getTemperature();
 
   databaseInsert(Stop);
+  databaseHelper.updatePreferenceByType(AcTemperatureStart, (void*) temperatureStart);
   databaseHelper.updatePreferenceByType(AcTemperatureStop, (void*) temperatureStop);
 }
 
@@ -98,17 +102,18 @@ void ACControl::control() {
     return;
   }
 
-  bool shouldStart = false;
-  bool shouldStop = false;
-
   if (temperatureChangeTimeDelay.delayPassed()) {
     if (infraredTransmitter.lastACCommand == Start && temperatureStart != -1) {
       if (temperatureData.temperatureStartReached(temperatureStart)) {
+        // still not running, set to Stop before rebooting
+        databaseHelper.updatePreferenceByType(IrLastACCommand, ACCommands[Stop]);
+
 #if APP_DEBUG
-        Serial.println("Temperature change not detected, starting again");
+        Serial.println("Temperature change not detected, rebooting...");
 #endif
 
-        shouldStart = true;
+        // wait for watchdog timer
+        delay(3600 * 1000);
       } else {
         // temperature changed, no need to check
         temperatureStart = -1;
@@ -117,11 +122,15 @@ void ACControl::control() {
       }
     } else if (infraredTransmitter.lastACCommand == Stop && temperatureStop != -1) {
       if (temperatureData.temperatureStopReached(temperatureStop)) {
+        // still running, set to Start before rebooting
+        databaseHelper.updatePreferenceByType(IrLastACCommand, ACCommands[Start]);
+
 #if APP_DEBUG
         Serial.println("Temperature change not detected, stopping again");
 #endif
 
-        shouldStop = true;
+        // wait for watchdog timer
+        delay(3600 * 1000);
       } else {
         // temperature changed, no need to check
         temperatureStop = -1;
@@ -131,15 +140,9 @@ void ACControl::control() {
     }
   }
 
-  if (!shouldStart && infraredTransmitter.lastACCommand != Start && temperatureData.temperatureStartReached()) {
-    shouldStart = true;
-  } else if (!shouldStop && infraredTransmitter.lastACCommand != Stop && temperatureData.temperatureStopReached()) {
-    shouldStop = true;
-  }
-
-  if (shouldStart) {
+  if (infraredTransmitter.lastACCommand != Start && temperatureData.temperatureStartReached()) {
     start();
-  } else if (shouldStop) {
+  } else if (infraredTransmitter.lastACCommand != Stop && temperatureData.temperatureStopReached()) {
     stop();
   }
 }

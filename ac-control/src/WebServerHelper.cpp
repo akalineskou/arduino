@@ -128,6 +128,24 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       </tr>
     </table>
   </p>
+
+  <p>
+    <table style="width: 100%;">
+      <tr>
+        <th>Heap size</th>
+        <th>Free Heap</th>
+        <th>Min Free Heap</th>
+        <th>Max Alloc Heap</th>
+      </tr>
+
+      <tr>
+        <td>__DEBUG_HEAP_SIZE__</td>
+        <td>__DEBUG_FREE_HEAP__</td>
+        <td>__DEBUG_MIN_FREE_HEAP__</td>
+        <td>__DEBUG_MAX_ALLOC_HEAP__</td>
+      </tr>
+    </table>
+  </p>
 </body>
     )==");
 
@@ -241,6 +259,19 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     delete preference;
 
     stringReplace(html, "__PREFERENCE__", html.c_str());
+
+    stringReplace(html, "__DEBUG_HEAP_SIZE__", std::to_string(ESP.getHeapSize()).c_str());
+    stringReplace(html, "__DEBUG_FREE_HEAP__", std::to_string(heap_caps_get_free_size(MALLOC_CAP_8BIT)).c_str());
+    stringReplace(
+      html,
+      "__DEBUG_MIN_FREE_HEAP__",
+      std::to_string(heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT)).c_str()
+    );
+    stringReplace(
+      html,
+      "__DEBUG_MAX_ALLOC_HEAP__",
+      std::to_string(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)).c_str()
+    );
 
     webServer.send(200, "text/html", html.c_str());
   });

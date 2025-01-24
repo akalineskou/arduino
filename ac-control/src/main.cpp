@@ -51,6 +51,9 @@ void setup() {
   // increase watchdog timer
   esp_task_wdt_init(10, true);
 
+  temperatureSensor.setup();
+  infraredTransmitter.setup();
+
   // https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html
   errorPreferences.begin("error", false);
 
@@ -64,8 +67,6 @@ void setup() {
     errorPreferences.remove("count");
   }
 
-  temperatureSensor.setup();
-  infraredTransmitter.setup();
   WifiHelper::setup(wifiSSID, wifiPassword);
   webServerHelper.setup(webServerAuthUsername, webServerAuthPassword);
   timeHelper.setup();
@@ -135,13 +136,6 @@ void setup() {
 
 void loop() {
   if (rebootTimeDelay.delayPassed()) {
-#if APP_DEBUG
-    Serial.println("Storing data for reboot...");
-#endif
-
-    // save data to restore after reboot
-    errorPreferences.putBool("is-reboot", true);
-
 #if APP_DEBUG
     Serial.println("Rebooting...");
     Serial.println();
