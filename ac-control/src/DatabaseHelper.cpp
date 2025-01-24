@@ -7,28 +7,37 @@
 DatabaseHelper::DatabaseHelper(TimeHelper &timeHelper): timeHelper(timeHelper) {
   database = nullptr;
   statement = nullptr;
+  responseCode = 0;
 }
 
 bool DatabaseHelper::setup() {
   sqlite3_initialize();
 
-  if (sqlite3_open("/sd/db.sqlite", &database) != SQLITE_OK) {
+  if ((responseCode = sqlite3_open("/sd/db.sqlite", &database)) != SQLITE_OK) {
 #if APP_DEBUG
-    Serial.printf("SQL open error: %s\n", sqlite3_errmsg(database));
+    Serial.printf("SQL open error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
 #endif
 
     return false;
   }
 
-  sql = "PRAGMA page_size=512";
-  prepare();
-  sqlite3_step(statement);
-  sqlite3_finalize(statement);
+  const auto pragmas = {"PRAGMA page_size=512", "PRAGMA cache_size=0"};
+  for (const auto pragma: pragmas) {
+    sql = pragma;
+    if (prepare() == SQLITE_OK) {
+#if APP_DEBUG
+      expandSql();
+#endif
 
-  sql = "PRAGMA cache_size=0";
-  prepare();
-  sqlite3_step(statement);
-  sqlite3_finalize(statement);
+      if ((responseCode = sqlite3_step(statement)) != SQLITE_DONE) {
+#if APP_DEBUG
+        Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
+#endif
+      }
+
+      sqlite3_finalize(statement);
+    }
+  }
 
   return true;
 }
@@ -62,11 +71,11 @@ LIMIT 1
 
     bool hasCount = false;
 
-    if (sqlite3_step(statement) == SQLITE_ROW) {
+    if ((responseCode = sqlite3_step(statement)) == SQLITE_ROW) {
       hasCount = sqlite3_column_int(statement, 0);
     } else {
 #if APP_DEBUG && APP_DEBUG_DATABASE_TEMPERATURE_CHECK
-      Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+      Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
 #endif
     }
 
@@ -105,9 +114,9 @@ VALUES(null, ?1, ?2, ?3, ?4, ?5)
   expandSql();
 #endif
 
-  if (sqlite3_step(statement) == SQLITE_ERROR) {
+  if ((responseCode = sqlite3_step(statement)) == SQLITE_ERROR) {
 #if APP_DEBUG
-    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
 #endif
   }
 
@@ -139,11 +148,11 @@ ORDER BY time DESC
 
   int numRows = 0;
 
-  if (sqlite3_step(statement) == SQLITE_ROW) {
+  if ((responseCode = sqlite3_step(statement)) == SQLITE_ROW) {
     numRows = sqlite3_column_int(statement, 0);
   } else {
 #if APP_DEBUG
-    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
 #endif
   }
 
@@ -171,12 +180,12 @@ ORDER BY time DESC
   expandSql();
 #endif
 
-  const auto temperatureReadings = new TemperatureReadingsDto{};
+  auto temperatureReadings = new TemperatureReadingsDto{};
   temperatureReadings->temperatureReadings = new TemperatureReadingEntity[numRows];
   temperatureReadings->numRows = numRows;
 
   int i = 0;
-  while (sqlite3_step(statement) == SQLITE_ROW) {
+  while ((responseCode = sqlite3_step(statement)) == SQLITE_ROW) {
     temperatureReadings->temperatureReadings[i].id = sqlite3_column_int(statement, 0);
     temperatureReadings->temperatureReadings[i].temperature = sqlite3_column_int(statement, 1);
     temperatureReadings->temperatureReadings[i].temperatureTargetStart = sqlite3_column_int(statement, 2);
@@ -185,6 +194,19 @@ ORDER BY time DESC
     temperatureReadings->temperatureReadings[i].time = sqlite3_column_int(statement, 5);
 
     i++;
+  }
+
+  if (responseCode != SQLITE_DONE) {
+#if APP_DEBUG
+    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
+#endif
+  }
+
+  if (i == 0) {
+    delete[] temperatureReadings->temperatureReadings;
+    delete temperatureReadings;
+
+    temperatureReadings = nullptr;
   }
 
   sqlite3_clear_bindings(statement);
@@ -226,11 +248,11 @@ TemperatureReadingsDto* DatabaseHelper::selectTemperatureReadings(const int ever
 
   int numRows = 0;
 
-  if (sqlite3_step(statement) == SQLITE_ROW) {
+  if ((responseCode = sqlite3_step(statement)) == SQLITE_ROW) {
     numRows = sqlite3_column_int(statement, 0);
   } else {
 #if APP_DEBUG
-    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
 #endif
   }
 
@@ -270,12 +292,12 @@ ORDER BY
   expandSql();
 #endif
 
-  const auto temperatureReadings = new TemperatureReadingsDto{};
+  auto temperatureReadings = new TemperatureReadingsDto{};
   temperatureReadings->temperatureReadings = new TemperatureReadingEntity[numRows];
   temperatureReadings->numRows = numRows;
 
   int i = 0;
-  while (sqlite3_step(statement) == SQLITE_ROW) {
+  while ((responseCode = sqlite3_step(statement)) == SQLITE_ROW) {
     temperatureReadings->temperatureReadings[i].id = sqlite3_column_int(statement, 0);
     temperatureReadings->temperatureReadings[i].temperature = sqlite3_column_int(statement, 1);
     temperatureReadings->temperatureReadings[i].temperatureTargetStart = sqlite3_column_int(statement, 2);
@@ -284,6 +306,19 @@ ORDER BY
     temperatureReadings->temperatureReadings[i].time = sqlite3_column_int(statement, 5);
 
     i++;
+  }
+
+  if (responseCode != SQLITE_DONE) {
+#if APP_DEBUG
+    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
+#endif
+  }
+
+  if (i == 0) {
+    delete[] temperatureReadings->temperatureReadings;
+    delete temperatureReadings;
+
+    temperatureReadings = nullptr;
   }
 
   sqlite3_clear_bindings(statement);
@@ -315,9 +350,9 @@ VALUES (null, ?1, ?2, ?3, ?4)
   expandSql();
 #endif
 
-  if (sqlite3_step(statement) == SQLITE_ERROR) {
+  if ((responseCode = sqlite3_step(statement)) == SQLITE_ERROR) {
 #if APP_DEBUG
-    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
 #endif
   }
 
@@ -347,11 +382,11 @@ LIMIT ?1
   expandSql();
 #endif
 
-  const auto commands = new CommandsDto{};
+  auto commands = new CommandsDto{};
   commands->commands = new CommandEntity[maxRows];
 
   int i = 0;
-  while (sqlite3_step(statement) == SQLITE_ROW) {
+  while ((responseCode = sqlite3_step(statement)) == SQLITE_ROW) {
     commands->commands[i].id = sqlite3_column_int(statement, 0);
     commands->commands[i].command = std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
     commands->commands[i].temperature = sqlite3_column_int(statement, 2);
@@ -361,7 +396,20 @@ LIMIT ?1
     i++;
   }
 
-  commands->numRows = i;
+  if (responseCode != SQLITE_DONE) {
+#if APP_DEBUG
+    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
+#endif
+  }
+
+  if (i > 0) {
+    commands->numRows = i;
+  } else {
+    delete[] commands->commands;
+    delete commands;
+
+    commands = nullptr;
+  }
 
   sqlite3_clear_bindings(statement);
   sqlite3_finalize(statement);
@@ -390,7 +438,7 @@ LIMIT 1
 
   PreferenceEntity* preference = nullptr;
 
-  if (sqlite3_step(statement) == SQLITE_ROW) {
+  if ((responseCode = sqlite3_step(statement)) == SQLITE_ROW) {
     preference = new PreferenceEntity{};
     preference->acMode = std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 0)));
     preference->acEnabled = sqlite3_column_int(statement, 1);
@@ -401,7 +449,7 @@ LIMIT 1
     preference->tdTemperatureTarget = sqlite3_column_int(statement, 6);
   } else {
 #if APP_DEBUG
-    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
 #endif
   }
 
@@ -444,9 +492,9 @@ __PREFERENCE__ = ?1
   expandSql();
 #endif
 
-  if (sqlite3_step(statement) == SQLITE_ERROR) {
+  if ((responseCode = sqlite3_step(statement)) == SQLITE_ERROR) {
 #if APP_DEBUG
-    Serial.printf("SQL step error: %s\n", sqlite3_errmsg(database));
+    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
 #endif
   }
 
@@ -455,10 +503,10 @@ __PREFERENCE__ = ?1
 }
 
 int DatabaseHelper::prepare() {
-  const auto responseCode = sqlite3_prepare_v2(database, sql.c_str(), -1, &statement, nullptr);
+  responseCode = sqlite3_prepare_v2(database, sql.c_str(), -1, &statement, nullptr);
   if (responseCode != SQLITE_OK) {
 #if APP_DEBUG
-    Serial.printf("SQL prepare error: %s\n", sqlite3_errmsg(database));
+    Serial.printf("SQL prepare error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
 #endif
 
     sqlite3_finalize(statement);

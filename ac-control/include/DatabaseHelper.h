@@ -49,6 +49,7 @@ class DatabaseHelper {
   sqlite3* database;
   sqlite3_stmt* statement;
   std::string sql{};
+  int responseCode;
 
  public:
   explicit DatabaseHelper(TimeHelper &timeHelper);

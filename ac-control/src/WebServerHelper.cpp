@@ -193,11 +193,13 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     );
 
     auto commandRows = std::string();
-    const auto commands = databaseHelper.selectCommands(10);
-    for (auto i = 0; i < commands->numRows; ++i) {
-      const auto command = commands->commands[i];
 
-      commandRows += std::string(R"==(
+    const auto commands = databaseHelper.selectCommands(10);
+    if (commands != nullptr) {
+      for (auto i = 0; i < commands->numRows; ++i) {
+        const auto command = commands->commands[i];
+
+        commandRows += std::string(R"==(
 <tr>
   <td>__COMMAND_ROW_COMMAND__</td>
   <td>__COMMAND_ROW_TEMPERATURE__</td>
@@ -206,22 +208,23 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 </tr>
 )==");
 
-      stringReplace(commandRows, "__COMMAND_ROW_COMMAND__", command.command.c_str());
-      stringReplace(
-        commandRows,
-        "__COMMAND_ROW_TEMPERATURE__",
-        TemperatureSensor::formatTemperature(command.temperature).c_str()
-      );
-      stringReplace(
-        commandRows,
-        "__COMMAND_ROW_TEMPERATURE_TARGET__",
-        TemperatureSensor::formatTemperature(command.temperature_target).c_str()
-      );
-      stringReplace(commandRows, "__COMMAND_ROW_DATE_TIME__", TimeHelper::formatForHuman(command.time).c_str());
-    }
+        stringReplace(commandRows, "__COMMAND_ROW_COMMAND__", command.command.c_str());
+        stringReplace(
+          commandRows,
+          "__COMMAND_ROW_TEMPERATURE__",
+          TemperatureSensor::formatTemperature(command.temperature).c_str()
+        );
+        stringReplace(
+          commandRows,
+          "__COMMAND_ROW_TEMPERATURE_TARGET__",
+          TemperatureSensor::formatTemperature(command.temperature_target).c_str()
+        );
+        stringReplace(commandRows, "__COMMAND_ROW_DATE_TIME__", TimeHelper::formatForHuman(command.time).c_str());
+      }
 
-    delete[] commands->commands;
-    delete commands;
+      delete[] commands->commands;
+      delete commands;
+    }
 
     stringReplace(html, "__COMMANDS_ROWS__", commandRows.c_str());
 
