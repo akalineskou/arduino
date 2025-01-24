@@ -45,17 +45,20 @@ class DatabaseHelper {
 
   sqlite3* database;
   sqlite3_stmt* statement;
-  int responseCode;
-  char sql[255]{};
+  std::string sql{};
 
  public:
   explicit DatabaseHelper(TimeHelper &timeHelper);
 
   bool setup();
 
-  void insertTemperatureReading(int temperature, int temperatureTargetStart, int temperatureTargetStop, int humidity);
+  void insertTemperatureReading(
+    int temperature, int temperatureTargetStart, int temperatureTargetStop, int humidity, bool force = false
+  );
 
   TemperatureReadings* selectTemperatureReadings(int hours);
+
+  TemperatureReadings* selectTemperatureReadings(int everyMinutes, int hours);
 
   void insertCommand(const char* command, int temperature, int temperature_target);
 

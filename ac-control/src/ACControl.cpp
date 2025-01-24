@@ -32,7 +32,7 @@ void ACControl::enable() {
 void ACControl::disable() {
   enabled = false;
 
-  infraredTransmitter.sendCommand(Off);
+  off();
 
   databaseHelper.updatePreferenceAcEnabled(enabled);
 
@@ -101,6 +101,7 @@ void ACControl::databaseInsert(const ACCommand acCommand) const {
     temperatureData.getTemperature(),
     temperatureData.temperatureTargetStart(),
     temperatureData.temperatureTargetStop(),
-    temperatureData.getHumidity()
+    temperatureData.getHumidity(),
+    true
   );
 }

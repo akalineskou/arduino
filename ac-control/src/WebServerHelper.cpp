@@ -330,25 +330,32 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     Serial.println("GET /temperature-history");
 #endif
 
+    TemperatureReadings* temperatureReadings;
+    if (webServer.hasArg("everyMinutes") && webServer.hasArg("hours")) {
+      temperatureReadings =
+        databaseHelper.selectTemperatureReadings(webServer.arg("everyMinutes").toInt(), webServer.arg("hours").toInt());
+    } else {
+      temperatureReadings = databaseHelper.selectTemperatureReadings(6);
+    }
+
     std::string json = "[";
 
-    const auto temperatureReadings = databaseHelper.selectTemperatureReadings(6);
-    for (auto i = 0; i < temperatureReadings->numRows; ++i) {
-      const auto temperatureReading = temperatureReadings->temperatureReadings[i];
+    if (temperatureReadings != nullptr) {
+      for (auto i = 0; i < temperatureReadings->numRows; ++i) {
+        const auto temperatureReading = temperatureReadings->temperatureReadings[i];
 
-      json += R"=({"temperature":)=" + std::to_string(temperatureReading.temperature / 10.0) +
-        R"=(,"temperatureTargetStart":)=" + std::to_string(temperatureReading.temperatureTargetStart / 10.0) +
-        R"=(,"temperatureTargetStop":)=" + std::to_string(temperatureReading.temperatureTargetStop / 10.0) +
-        R"=(,"humidity":)=" + std::to_string(temperatureReading.humidity / 10.0) +
-        R"=(,"time":")=" + TimeHelper::formatForCode(temperatureReading.time) + R"=("},)=";
-    }
+        json += R"=({"temperature":)=" + std::to_string(temperatureReading.temperature / 10.0) +
+          R"=(,"temperatureTargetStart":)=" + std::to_string(temperatureReading.temperatureTargetStart / 10.0) +
+          R"=(,"temperatureTargetStop":)=" + std::to_string(temperatureReading.temperatureTargetStop / 10.0) +
+          R"=(,"humidity":)=" + std::to_string(temperatureReading.humidity / 10.0) +
+          R"=(,"time":")=" + TimeHelper::formatForCode(temperatureReading.time) + R"=("},)=";
+      }
 
-    if (temperatureReadings->numRows > 0) {
       json.pop_back();
-    }
 
-    delete[] temperatureReadings->temperatureReadings;
-    delete temperatureReadings;
+      delete[] temperatureReadings->temperatureReadings;
+      delete temperatureReadings;
+    }
 
     json += "]";
 
