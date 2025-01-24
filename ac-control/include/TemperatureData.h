@@ -21,9 +21,9 @@ class TemperatureData {
 
   int getHumidity() const;
 
-  int temperatureStartReached() const;
+  int temperatureStartReached(int temperatureCheck = -1) const;
 
-  int temperatureStopReached() const;
+  int temperatureStopReached(int temperatureCheck = -1) const;
 
   int temperatureTargetStart() const;
 

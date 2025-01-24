@@ -10,9 +10,12 @@ class ACControl {
   TemperatureData &temperatureData;
   DatabaseHelper &databaseHelper;
   TimeDelay turnOffTimeDelay;
+  TimeDelay temperatureChangeTimeDelay;
 
  public:
   bool enabled;
+  int temperatureStart;
+  int temperatureStop;
 
   ACControl(InfraredTransmitter &infraredTransmitter, TemperatureData &temperatureData, DatabaseHelper &databaseHelper);
 

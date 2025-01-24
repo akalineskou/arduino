@@ -1,6 +1,7 @@
 #include "DatabaseHelper.h"
 #include "Directive.h"
 #include "InfraredTransmitter.h"
+#include "Preference.h"
 
 InfraredTransmitter::InfraredTransmitter(const int pin, DatabaseHelper &databaseHelper, ACMode &acMode):
     pin(pin),
@@ -61,24 +62,26 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand) {
   }
 
   if (acCommand == Off) {
+    // reset on turn off
     lightToggled = false;
   } else {
     if (!lightToggled) {
+      // only needs to happen the first time it is turned on
       irSend.setLightToggle(true);
 
       lightToggled = true;
     }
   }
 
+#if !APP_DEBUG || APP_DEBUG_IR_SEND
+  irSend.send();
+#endif
+
 #if APP_DEBUG
   Serial.printf("Sending A/C command: %s.\n", ACCommands[acCommand]);
   Serial.println(irSend.toString().c_str());
 #endif
 
-#if !APP_DEBUG || APP_DEBUG_IR_SEND
-  irSend.send(kSingleRepeat);
-#endif
-
-  databaseHelper.updatePreferenceIrLastACCommand(ACCommands[acCommand]);
-  databaseHelper.updatePreferenceIrLightToggled(lightToggled);
+  databaseHelper.updatePreferenceByType(IrLastACCommand, ACCommands[acCommand]);
+  databaseHelper.updatePreferenceByType(IrLightToggled, (void*) lightToggled);
 }

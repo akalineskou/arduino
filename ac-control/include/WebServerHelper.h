@@ -34,6 +34,4 @@ class WebServerHelper {
 
  private:
   bool isAuthenticated(const char* webServerAuthUsername, const char* webServerAuthPassword);
-
-  static void stringReplace(std::string &string, const char* find, const char* replace);
 };

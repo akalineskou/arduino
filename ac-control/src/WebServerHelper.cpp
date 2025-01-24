@@ -1,4 +1,6 @@
 #include "Directive.h"
+#include "Helper.h"
+#include "Preference.h"
 #include "WebServerHelper.h"
 
 WebServerHelper::WebServerHelper(
@@ -91,7 +93,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
   <br>
 
   <p>
-    <table>
+    <table style="width: 100%;">
       <tr>
         <th>Command</th>
         <th>Temperature</th>
@@ -100,6 +102,30 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       </tr>
 
     __COMMANDS_ROWS__
+    </table>
+  </p>
+
+  <p>
+    <table style="width: 100%;">
+      <tr>
+        <th>AcMode</th>
+        <th>AcEnabled</th>
+        <th>AcTemperatureStart</th>
+        <th>AcTemperatureStop</th>
+        <th>IrLastACCommand</th>
+        <th>IrLightToggled</th>
+        <th>TdTemperatureTarget</th>
+      </tr>
+
+      <tr>
+        <td>__PREFERENCE_AcMode__</td>
+        <td>__PREFERENCE_AcEnabled__</td>
+        <td>__PREFERENCE_AcTemperatureStart__</td>
+        <td>__PREFERENCE_AcTemperatureStop__</td>
+        <td>__PREFERENCE_IrLastACCommand__</td>
+        <td>__PREFERENCE_IrLightToggled__</td>
+        <td>__PREFERENCE_TdTemperatureTarget__</td>
+      </tr>
     </table>
   </p>
 </body>
@@ -130,18 +156,18 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       stringReplace(
         html,
         "__TEMPERATURE_START_STOP__",
-        "Stop <small>&lt;</small> <b>__TEMPERATURE_STOP__</b> "
+        "Stop <small>&le;</small> <b>__TEMPERATURE_STOP__</b> "
         "&nbsp; | "
-        "&nbsp; Start <small>&gt;</small> "
+        "&nbsp; Start <small>&ge;</small> "
         "<b>__TEMPERATURE_START__</b>"
       );
     } else {
       stringReplace(
         html,
         "__TEMPERATURE_START_STOP__",
-        "Start <b><small>&lt;</small> __TEMPERATURE_START__</b> "
+        "Start <b><small>&le;</small> __TEMPERATURE_START__</b> "
         "&nbsp; | "
-        "&nbsp; Stop <b><small>&gt;</small> "
+        "&nbsp; Stop <b><small>&ge;</small> "
         "__TEMPERATURE_STOP__</b>"
       );
     }
@@ -166,12 +192,12 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       TemperatureSensor::formatTemperature(temperatureData.temperatureTarget - static_cast<int>(0.5 * 10)).c_str()
     );
 
-    auto CommandRows = std::string();
+    auto commandRows = std::string();
     const auto commands = databaseHelper.selectCommands(10);
     for (auto i = 0; i < commands->numRows; ++i) {
       const auto command = commands->commands[i];
 
-      CommandRows += std::string(R"==(
+      commandRows += std::string(R"==(
 <tr>
   <td>__COMMAND_ROW_COMMAND__</td>
   <td>__COMMAND_ROW_TEMPERATURE__</td>
@@ -180,24 +206,38 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 </tr>
 )==");
 
-      stringReplace(CommandRows, "__COMMAND_ROW_COMMAND__", command.command.c_str());
+      stringReplace(commandRows, "__COMMAND_ROW_COMMAND__", command.command.c_str());
       stringReplace(
-        CommandRows,
+        commandRows,
         "__COMMAND_ROW_TEMPERATURE__",
         TemperatureSensor::formatTemperature(command.temperature).c_str()
       );
       stringReplace(
-        CommandRows,
+        commandRows,
         "__COMMAND_ROW_TEMPERATURE_TARGET__",
         TemperatureSensor::formatTemperature(command.temperature_target).c_str()
       );
-      stringReplace(CommandRows, "__COMMAND_ROW_DATE_TIME__", TimeHelper::formatForHuman(command.time).c_str());
+      stringReplace(commandRows, "__COMMAND_ROW_DATE_TIME__", TimeHelper::formatForHuman(command.time).c_str());
     }
 
     delete[] commands->commands;
     delete commands;
 
-    stringReplace(html, "__COMMANDS_ROWS__", CommandRows.c_str());
+    stringReplace(html, "__COMMANDS_ROWS__", commandRows.c_str());
+
+    const auto preference = databaseHelper.selectPreference();
+
+    stringReplace(html, "__PREFERENCE_AcMode__", preference->acMode.c_str());
+    stringReplace(html, "__PREFERENCE_AcEnabled__", preference->acEnabled ? "Yes" : "No");
+    stringReplace(html, "__PREFERENCE_AcTemperatureStart__", std::to_string(preference->acTemperatureStart).c_str());
+    stringReplace(html, "__PREFERENCE_AcTemperatureStop__", std::to_string(preference->acTemperatureStop).c_str());
+    stringReplace(html, "__PREFERENCE_IrLastACCommand__", preference->irLastACCommand.c_str());
+    stringReplace(html, "__PREFERENCE_IrLightToggled__", preference->irLightToggled ? "Yes" : "No");
+    stringReplace(html, "__PREFERENCE_TdTemperatureTarget__", std::to_string(preference->tdTemperatureTarget).c_str());
+
+    delete preference;
+
+    stringReplace(html, "__PREFERENCE__", html.c_str());
 
     webServer.send(200, "text/html", html.c_str());
   });
@@ -242,7 +282,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 
     temperatureData.temperatureTarget += 0.5 * 10;
 
-    databaseHelper.updatePreferenceTdTemperatureTarget(temperatureData.temperatureTarget);
+    databaseHelper.updatePreferenceByType(TdTemperatureTarget, (void*) temperatureData.temperatureTarget);
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
@@ -258,7 +298,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 
     temperatureData.temperatureTarget -= 0.5 * 10;
 
-    databaseHelper.updatePreferenceTdTemperatureTarget(temperatureData.temperatureTarget);
+    databaseHelper.updatePreferenceByType(TdTemperatureTarget, (void*) temperatureData.temperatureTarget);
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
@@ -314,8 +354,13 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       temperatureData.temperatureTarget = temperatureData.temperatureTargetCold;
     }
 
-    databaseHelper.updatePreferenceAcMode(ACModes[acMode]);
-    databaseHelper.updatePreferenceTdTemperatureTarget(temperatureData.temperatureTarget);
+    acControl.temperatureStart = -1;
+    acControl.temperatureStop = -1;
+
+    databaseHelper.updatePreferenceByType(AcMode, ACModes[acMode]);
+    databaseHelper.updatePreferenceByType(AcTemperatureStart, (void*) acControl.temperatureStart);
+    databaseHelper.updatePreferenceByType(AcTemperatureStop, (void*) acControl.temperatureStop);
+    databaseHelper.updatePreferenceByType(TdTemperatureTarget, (void*) temperatureData.temperatureTarget);
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
@@ -330,7 +375,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     Serial.println("GET /temperature-history");
 #endif
 
-    TemperatureReadings* temperatureReadings;
+    TemperatureReadingsDto* temperatureReadings;
     if (webServer.hasArg("everyMinutes") && webServer.hasArg("hours")) {
       temperatureReadings =
         databaseHelper.selectTemperatureReadings(webServer.arg("everyMinutes").toInt(), webServer.arg("hours").toInt());
@@ -591,10 +636,4 @@ bool WebServerHelper::isAuthenticated(const char* webServerAuthUsername, const c
   }
 
   return webServer.authenticate(webServerAuthUsername, webServerAuthPassword);
-}
-
-void WebServerHelper::stringReplace(std::string &string, const char* find, const char* replace) {
-  while (string.find(find) != std::string::npos) {
-    string.replace(string.find(find), std::string(find).length(), replace);
-  }
 }

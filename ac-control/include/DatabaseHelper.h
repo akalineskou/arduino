@@ -3,9 +3,10 @@
 #include <sqlite3.h>
 
 #include "Directive.h"
+#include "Preference.h"
 #include "TimeHelper.h"
 
-struct TemperatureReading {
+struct TemperatureReadingEntity {
   int id = 0;
   int temperature = 0;
   int temperatureTargetStart = 0;
@@ -14,12 +15,12 @@ struct TemperatureReading {
   long int time = 0;
 };
 
-struct TemperatureReadings {
+struct TemperatureReadingsDto {
   int numRows = 0;
-  TemperatureReading* temperatureReadings = nullptr;
+  TemperatureReadingEntity* temperatureReadings = nullptr;
 };
 
-struct Command {
+struct CommandEntity {
   int id = 0;
   std::string command{};
   int temperature = 0;
@@ -27,14 +28,16 @@ struct Command {
   long int time = 0;
 };
 
-struct Commands {
+struct CommandsDto {
   int numRows = 0;
-  Command* commands = nullptr;
+  CommandEntity* commands = nullptr;
 };
 
-struct Preference {
-  bool acEnabled = false;
+struct PreferenceEntity {
   std::string acMode{};
+  bool acEnabled = false;
+  int acTemperatureStart = false;
+  int acTemperatureStop = false;
   std::string irLastACCommand{};
   bool irLightToggled = false;
   int tdTemperatureTarget = 0;
@@ -56,25 +59,17 @@ class DatabaseHelper {
     int temperature, int temperatureTargetStart, int temperatureTargetStop, int humidity, bool force = false
   );
 
-  TemperatureReadings* selectTemperatureReadings(int hours);
+  TemperatureReadingsDto* selectTemperatureReadings(int hours);
 
-  TemperatureReadings* selectTemperatureReadings(int everyMinutes, int hours);
+  TemperatureReadingsDto* selectTemperatureReadings(int everyMinutes, int hours);
 
   void insertCommand(const char* command, int temperature, int temperature_target);
 
-  Commands* selectCommands(int maxRows = 5);
+  CommandsDto* selectCommands(int maxRows = 5);
 
-  Preference* selectPreference();
+  PreferenceEntity* selectPreference();
 
-  void updatePreferenceAcEnabled(bool acEnabled);
-
-  void updatePreferenceAcMode(const char* acMode);
-
-  void updatePreferenceIrLastACCommand(const char* irLastACCommand);
-
-  void updatePreferenceIrLightToggled(bool irLightToggled);
-
-  void updatePreferenceTdTemperatureTarget(int tdTemperatureTarget);
+  void updatePreferenceByType(Preference preference, const void* preferenceValue);
 
  private:
   int prepare();

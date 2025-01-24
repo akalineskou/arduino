@@ -26,13 +26,17 @@ int TemperatureData::getHumidity() const {
   return temperatureSensor.getHumidity();
 }
 
-int TemperatureData::temperatureStartReached() const {
+int TemperatureData::temperatureStartReached(int temperatureCheck) const {
   bool temperatureStartReached;
 
+  if (temperatureCheck == -1) {
+    temperatureCheck = temperatureTargetStart();
+  }
+
   if (acMode == Cold) {
-    temperatureStartReached = getTemperature() > temperatureTargetStart();
+    temperatureStartReached = getTemperature() >= temperatureCheck;
   } else {
-    temperatureStartReached = getTemperature() < temperatureTargetStart();
+    temperatureStartReached = getTemperature() <= temperatureCheck;
   }
 
   if (temperatureStartReached) {
@@ -47,13 +51,17 @@ int TemperatureData::temperatureStartReached() const {
   return temperatureStartReached;
 }
 
-int TemperatureData::temperatureStopReached() const {
+int TemperatureData::temperatureStopReached(int temperatureCheck) const {
   bool temperatureStopReached;
 
+  if (temperatureCheck == -1) {
+    temperatureCheck = temperatureTargetStop();
+  }
+
   if (acMode == Cold) {
-    temperatureStopReached = getTemperature() < temperatureTargetStop();
+    temperatureStopReached = getTemperature() <= temperatureCheck;
   } else {
-    temperatureStopReached = getTemperature() > temperatureTargetStop();
+    temperatureStopReached = getTemperature() >= temperatureCheck;
   }
 
   if (temperatureStopReached) {

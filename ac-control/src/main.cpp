@@ -1,4 +1,5 @@
 #include <Preferences.h>
+#include <esp_task_wdt.h>
 
 #include "ACControl.h"
 #include "ACMode.h"
@@ -13,7 +14,6 @@
 #include "TimeHelper.h"
 #include "WebServerHelper.h"
 #include "WifiHelper.h"
-#include "esp_task_wdt.h"
 
 Preferences errorPreferences;
 TimeDelay rebootTimeDelay(APP_REBOOT_DELAY);
@@ -90,14 +90,24 @@ void setup() {
     Serial.println("Restoring data...");
 #endif
 
+    acMode = sToACMode(preference->acMode.c_str());
+#if APP_DEBUG
+    Serial.printf("acMode %s.\n", ACModes[acMode]);
+#endif
+
     acControl.enabled = preference->acEnabled;
 #if APP_DEBUG
     Serial.printf("acControl.enabled %d.\n", acControl.enabled);
 #endif
 
-    acMode = sToACMode(preference->acMode.c_str());
+    acControl.temperatureStart = preference->acTemperatureStart;
 #if APP_DEBUG
-    Serial.printf("acMode %s.\n", ACModes[acMode]);
+    Serial.printf("acControl.acTemperatureStart %d.\n", acControl.temperatureStart);
+#endif
+
+    acControl.temperatureStop = preference->acTemperatureStop;
+#if APP_DEBUG
+    Serial.printf("acControl.temperatureStop %d.\n", acControl.temperatureStop);
 #endif
 
     infraredTransmitter.lastACCommand = sToACCommand(preference->irLastACCommand.c_str());
