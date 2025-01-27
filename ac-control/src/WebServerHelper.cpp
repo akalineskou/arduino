@@ -419,6 +419,11 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 
     std::string json = "[";
 
+    int temperatureMin = 9999;
+    int temperatureMax = 0;
+    int humidityMin = temperatureMin;
+    int humidityMax = temperatureMax;
+
     if (temperatureReadings != nullptr) {
       for (auto i = 0; i < temperatureReadings->numRows; ++i) {
         const auto temperatureReading = temperatureReadings->temperatureReadings[i];
@@ -428,6 +433,20 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
           R"=(,"temperatureTargetStop":)=" + std::to_string(temperatureReading.temperatureTargetStop / 10.0) +
           R"=(,"humidity":)=" + std::to_string(temperatureReading.humidity / 10.0) +
           R"=(,"time":")=" + TimeHelper::formatForCode(temperatureReading.time) + R"=("},)=";
+
+        if (temperatureReading.temperature < temperatureMin) {
+          temperatureMin = temperatureReading.temperature;
+        }
+        if (temperatureReading.temperature > temperatureMax) {
+          temperatureMax = temperatureReading.temperature;
+        }
+
+        if (temperatureReading.humidity < humidityMin) {
+          humidityMin = temperatureReading.humidity;
+        }
+        if (temperatureReading.humidity > humidityMax) {
+          humidityMax = temperatureReading.humidity;
+        }
       }
 
       json.pop_back();
@@ -521,8 +540,8 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
                         display: false,
                     },
                     yHumidity: {
-                        min: 50,
-                        max: 70,
+                        min: __HUMIDITY_MIN__,
+                        max: __HUMIDITY_MAX__,
                         type: 'linear',
                         display: true,
                         position: 'right',
@@ -618,24 +637,32 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       std::to_string(temperatureData.temperatureTargetStop() / 10.0).c_str()
     );
     if (acMode == Cold) {
-      stringReplace(html, "__TEMPERATURE_MIN__", std::to_string(temperatureData.temperatureTarget / 10.0 + 5).c_str());
-      stringReplace(html, "__TEMPERATURE_MAX__", std::to_string(temperatureData.temperatureTarget / 10.0 - 5).c_str());
-
       stringReplace(html, "__TEMPERATURE_TARGET_START_COLOR__", "green");
       stringReplace(html, "__TEMPERATURE_TARGET_STOP_COLOR__", "red");
 
       stringReplace(html, "__TEMPERATURE_TARGET_START_LABEL__", "stop");
       stringReplace(html, "__TEMPERATURE_TARGET_STOP_LABEL__", "start");
     } else {
-      stringReplace(html, "__TEMPERATURE_MIN__", std::to_string(temperatureData.temperatureTarget / 10.0 - 5).c_str());
-      stringReplace(html, "__TEMPERATURE_MAX__", std::to_string(temperatureData.temperatureTarget / 10.0 + 5).c_str());
-
       stringReplace(html, "__TEMPERATURE_TARGET_START_COLOR__", "red");
       stringReplace(html, "__TEMPERATURE_TARGET_STOP_COLOR__", "green");
 
       stringReplace(html, "__TEMPERATURE_TARGET_START_LABEL__", "start");
       stringReplace(html, "__TEMPERATURE_TARGET_STOP_LABEL__", "stop");
     }
+
+    stringReplace(
+      html,
+      "__TEMPERATURE_MIN__",
+      std::to_string(static_cast<int>(round(temperatureMin / 10.0 - 1))).c_str()
+    );
+    stringReplace(
+      html,
+      "__TEMPERATURE_MAX__",
+      std::to_string(static_cast<int>(round(temperatureMax / 10.0 + 1))).c_str()
+    );
+
+    stringReplace(html, "__HUMIDITY_MIN__", std::to_string(static_cast<int>(round(humidityMin / 10.0 - 1))).c_str());
+    stringReplace(html, "__HUMIDITY_MAX__", std::to_string(static_cast<int>(round(humidityMax / 10.0 + 1))).c_str());
 
     stringReplace(html, "__JSON_DATA__", json.c_str());
 
