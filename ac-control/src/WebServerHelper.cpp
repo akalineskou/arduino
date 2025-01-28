@@ -434,6 +434,13 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
           R"=(,"humidity":)=" + std::to_string(temperatureReading.humidity / 10.0) +
           R"=(,"time":")=" + TimeHelper::formatForCode(temperatureReading.time) + R"=("},)=";
 
+        if (temperatureReading.temperatureTargetStart < temperatureMin) {
+          temperatureMin = temperatureReading.temperatureTargetStart;
+        }
+        if (temperatureReading.temperatureTargetStop > temperatureMax) {
+          temperatureMax = temperatureReading.temperatureTargetStop;
+        }
+
         if (temperatureReading.temperature < temperatureMin) {
           temperatureMin = temperatureReading.temperature;
         }
