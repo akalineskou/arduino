@@ -83,5 +83,5 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand) {
 #endif
 
   databaseHelper.updatePreferenceByType(IrLastACCommand, ACCommands[acCommand]);
-  databaseHelper.updatePreferenceByType(IrLightToggled, (void*) lightToggled);
+  databaseHelper.updatePreferenceByType(IrLightToggled, reinterpret_cast<void*>(lightToggled));
 }

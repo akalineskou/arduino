@@ -316,7 +316,10 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 
     temperatureData.temperatureTarget += 0.5 * 10;
 
-    databaseHelper.updatePreferenceByType(TdTemperatureTarget, (void*) temperatureData.temperatureTarget);
+    databaseHelper.updatePreferenceByType(
+      TdTemperatureTarget,
+      reinterpret_cast<void*>(temperatureData.temperatureTarget)
+    );
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
@@ -332,7 +335,10 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 
     temperatureData.temperatureTarget -= 0.5 * 10;
 
-    databaseHelper.updatePreferenceByType(TdTemperatureTarget, (void*) temperatureData.temperatureTarget);
+    databaseHelper.updatePreferenceByType(
+      TdTemperatureTarget,
+      reinterpret_cast<void*>(temperatureData.temperatureTarget)
+    );
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
@@ -392,9 +398,12 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     acControl.temperatureStop = -1;
 
     databaseHelper.updatePreferenceByType(AcMode, ACModes[acMode]);
-    databaseHelper.updatePreferenceByType(AcTemperatureStart, (void*) acControl.temperatureStart);
-    databaseHelper.updatePreferenceByType(AcTemperatureStop, (void*) acControl.temperatureStop);
-    databaseHelper.updatePreferenceByType(TdTemperatureTarget, (void*) temperatureData.temperatureTarget);
+    databaseHelper.updatePreferenceByType(AcTemperatureStart, reinterpret_cast<void*>(acControl.temperatureStart));
+    databaseHelper.updatePreferenceByType(AcTemperatureStop, reinterpret_cast<void*>(acControl.temperatureStop));
+    databaseHelper.updatePreferenceByType(
+      TdTemperatureTarget,
+      reinterpret_cast<void*>(temperatureData.temperatureTarget)
+    );
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);

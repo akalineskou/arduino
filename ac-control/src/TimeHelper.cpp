@@ -13,7 +13,7 @@ void TimeHelper::setup() {
   setTime();
 
 #if APP_DEBUG
-  Serial.printf("Current UTC time: %d\n", currentTime);
+  Serial.printf("Current UTC time: %d (%s)\n", currentTime, formatForHuman(currentTime).c_str());
 #endif
 
   yield();

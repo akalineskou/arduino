@@ -26,7 +26,7 @@ void ACControl::enable() {
   // restart time delay on enable
   turnOffTimeDelay.restart();
 
-  databaseHelper.updatePreferenceByType(AcEnabled, (void*) enabled);
+  databaseHelper.updatePreferenceByType(AcEnabled, reinterpret_cast<void*>(enabled));
 
 #if APP_DEBUG
   Serial.println("A/C control enabled.");
@@ -38,7 +38,7 @@ void ACControl::disable() {
 
   off();
 
-  databaseHelper.updatePreferenceByType(AcEnabled, (void*) enabled);
+  databaseHelper.updatePreferenceByType(AcEnabled, reinterpret_cast<void*>(enabled));
 
 #if APP_DEBUG
   Serial.println("A/C control disabled.");
@@ -61,8 +61,8 @@ void ACControl::start() {
   temperatureStop = -1;
 
   databaseInsert(Start);
-  databaseHelper.updatePreferenceByType(AcTemperatureStart, (void*) temperatureStart);
-  databaseHelper.updatePreferenceByType(AcTemperatureStart, (void*) temperatureStop);
+  databaseHelper.updatePreferenceByType(AcTemperatureStart, reinterpret_cast<void*>(temperatureStart));
+  databaseHelper.updatePreferenceByType(AcTemperatureStop, reinterpret_cast<void*>(temperatureStop));
 }
 
 void ACControl::stop() {
@@ -75,8 +75,8 @@ void ACControl::stop() {
   temperatureStop = temperatureData.getTemperature();
 
   databaseInsert(Stop);
-  databaseHelper.updatePreferenceByType(AcTemperatureStart, (void*) temperatureStart);
-  databaseHelper.updatePreferenceByType(AcTemperatureStop, (void*) temperatureStop);
+  databaseHelper.updatePreferenceByType(AcTemperatureStart, reinterpret_cast<void*>(temperatureStart));
+  databaseHelper.updatePreferenceByType(AcTemperatureStop, reinterpret_cast<void*>(temperatureStop));
 }
 
 void ACControl::control() {
@@ -118,7 +118,7 @@ void ACControl::control() {
         // temperature changed, no need to check
         temperatureStart = -1;
 
-        databaseHelper.updatePreferenceByType(AcTemperatureStart, (void*) temperatureStart);
+        databaseHelper.updatePreferenceByType(AcTemperatureStart, reinterpret_cast<void*>(temperatureStart));
       }
     } else if (infraredTransmitter.lastACCommand == Stop && temperatureStop != -1) {
       if (temperatureData.temperatureStopReached(temperatureStop)) {
@@ -135,7 +135,7 @@ void ACControl::control() {
         // temperature changed, no need to check
         temperatureStop = -1;
 
-        databaseHelper.updatePreferenceByType(AcTemperatureStop, (void*) temperatureStop);
+        databaseHelper.updatePreferenceByType(AcTemperatureStop, reinterpret_cast<void*>(temperatureStop));
       }
     }
   }
