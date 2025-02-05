@@ -4,7 +4,7 @@ Band::Band(const int count, int bands[], const int minValue): count(count), band
 
 Bands::Bands():
     dumCount(1),
-    dumBands(new Band[1]{Band(1, new int[1]{3}, 55000)}),
+    dumBands(new Band[1]{Band(1, new int[1]{3}, 50000)}),
     tekCount(1),
     tekBands(new Band[1]{
       Band(9, new int[9]{15, 16, 17, 18, 21, 22, 23, 24, 25}, 5000),

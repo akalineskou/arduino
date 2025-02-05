@@ -83,7 +83,7 @@
 
         const webSocketInit = () => {
             webSocket = null;
-            webSocket = new WebSocket('ws://192.168.1.18:81/');
+            webSocket = new WebSocket('ws://192.168.1.17:81/');
             webSocket.onclose = webSocketInit;
             webSocket.onmessage = (event) => {
                 // on message clear the timeout
