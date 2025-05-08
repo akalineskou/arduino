@@ -6,13 +6,29 @@ TemperatureData::TemperatureData(TemperatureSensor &temperatureSensor, ACMode &a
     acMode(acMode) {
   temperatureTargetCold = 29.0 * 10;
   temperatureTargetHeat = 20.5 * 10;
+  temperatureStart = -1;
+  temperatureStop = -1;
+
+  temperatureTarget = -1;
+}
+
+void TemperatureData::loop() {
+  updateTemperatures();
+}
+
+void TemperatureData::updateTemperatures(const bool force) {
+  if (temperatureTarget == -1 || force) {
+    if (acMode == Cold) {
+      temperatureTarget = temperatureTargetCold;
+    } else {
+      temperatureTarget = temperatureTargetHeat;
+    }
+  }
 
   if (acMode == Cold) {
-    temperatureTarget = temperatureTargetCold;
     temperatureStart = 1.0 * 10;
     temperatureStop = -0.5 * 10;
   } else {
-    temperatureTarget = temperatureTargetHeat;
     temperatureStart = -1.0 * 10;
     temperatureStop = 0.5 * 10;
   }

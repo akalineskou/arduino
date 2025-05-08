@@ -145,6 +145,7 @@ void loop() {
   }
 
   temperatureSensor.loop();
+  temperatureData.loop();
   acControl.loop();
   webServerHelper.loop();
   timeHelper.loop();

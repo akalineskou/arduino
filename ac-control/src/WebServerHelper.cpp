@@ -65,30 +65,30 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     A/C Control: __AC_CONTROL_STATUS__
   </p>
   <p>
-    Last A/C Command: <b>__LAST_AC_COMMAND__</b> (<a href="/force-ac-start">Start</a> | <a href="/force-ac-stop">Stop</a>)
+    Last A/C Command: <b><code>__LAST_AC_COMMAND__</code></b> (<a href="/force-ac-start">Start</a> | <a href="/force-ac-stop">Stop</a>)
   </p>
   <p>
-    A/C Mode: __AC_MODE__ (<a href="/change-mode">Change</a>)
+    A/C Mode: <code>__AC_MODE__</code> (<a href="/change-mode">__AC_MODE_CHANGE__</a>)
   </p>
   <br>
 
   <p>
     <a href="/decrease-target">__TARGET_TEMPERATURE_DECREASE__</a>
-    &nbsp; | &nbsp; Target: <b>__TEMPERATURE_TARGET__</b>
+    &nbsp; | &nbsp; Target: <b><code>__TEMPERATURE_TARGET__</code></b>
     &nbsp; | &nbsp; <a href="/increase-target">__TARGET_TEMPERATURE_INCREASE__</a>
   </p>
   <br>
 
   <p>
-    Temperature: <b>__TEMPERATURE__</b> (<small>__HUMIDITY__</small>)
+    Temperature: <b><code>__TEMPERATURE__</code></b> (<small><code>__HUMIDITY__</code></small>)
   </p>
   <p>
-    __TEMPERATURE_START_STOP__
+    Start: <b><code>temp __TEMPERATURE_START_OP__ __TEMPERATURE_START__</code></b> &nbsp; | &nbsp; Stop: <b><code>temp __TEMPERATURE_STOP_OP__ __TEMPERATURE_STOP__</code></b>
   </p>
   <br>
 
   <p>
-    <a href="/temperature-history">Temperature history</a>
+    <a href="/temperature-history?hours=3">Temperature history</a>
   </p>
   <br>
 
@@ -118,13 +118,13 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       </tr>
 
       <tr>
-        <td>__PREFERENCE_AcMode__</td>
-        <td>__PREFERENCE_AcEnabled__</td>
-        <td>__PREFERENCE_AcTemperatureStart__</td>
-        <td>__PREFERENCE_AcTemperatureStop__</td>
-        <td>__PREFERENCE_IrLastACCommand__</td>
-        <td>__PREFERENCE_IrLightToggled__</td>
-        <td>__PREFERENCE_TdTemperatureTarget__</td>
+        <td><code>__PREFERENCE_AcMode__</code></td>
+        <td><code>__PREFERENCE_AcEnabled__</code></td>
+        <td><code>__PREFERENCE_AcTemperatureStart__</code></td>
+        <td><code>__PREFERENCE_AcTemperatureStop__</code></td>
+        <td><code>__PREFERENCE_IrLastACCommand__</code></td>
+        <td><code>__PREFERENCE_IrLightToggled__</code></td>
+        <td><code>__PREFERENCE_TdTemperatureTarget__</code></td>
       </tr>
     </table>
   </p>
@@ -139,10 +139,10 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       </tr>
 
       <tr>
-        <td>__DEBUG_HEAP_SIZE__</td>
-        <td>__DEBUG_FREE_HEAP__</td>
-        <td>__DEBUG_MIN_FREE_HEAP__</td>
-        <td>__DEBUG_MAX_ALLOC_HEAP__</td>
+        <td><code>__DEBUG_HEAP_SIZE__</code></td>
+        <td><code>__DEBUG_FREE_HEAP__</code></td>
+        <td><code>__DEBUG_MIN_FREE_HEAP__</code></td>
+        <td><code>__DEBUG_MAX_ALLOC_HEAP__</code></td>
       </tr>
     </table>
   </p>
@@ -152,11 +152,12 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     stringReplace(
       html,
       "__AC_CONTROL_STATUS__",
-      acControl.enabled ? R"==(<b>Enabled</b> (<a href="/disable">Disable</a>))=="
-                        : R"==(<b>Disabled</b> (<a href="/enable">Enable</a>))=="
+      acControl.enabled ? R"==(<b><code>Enabled</code></b> (<a href="/disable">Disable</a>))=="
+                        : R"==(<b><code>Disabled</code></b> (<a href="/enable">Enable</a>))=="
     );
     stringReplace(html, "__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
     stringReplace(html, "__AC_MODE__", ACModes[acMode]);
+    stringReplace(html, "__AC_MODE_CHANGE__", ACModes[ACModesOther[acMode]]);
 
     stringReplace(
       html,
@@ -171,23 +172,11 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       TemperatureSensor::formatTemperature(temperatureData.temperatureTarget).c_str()
     );
     if (acMode == Cold) {
-      stringReplace(
-        html,
-        "__TEMPERATURE_START_STOP__",
-        "Stop <small>&le;</small> <b>__TEMPERATURE_STOP__</b> "
-        "&nbsp; | "
-        "&nbsp; Start <small>&ge;</small> "
-        "<b>__TEMPERATURE_START__</b>"
-      );
+      stringReplace(html, "__TEMPERATURE_START_OP__", "&ge;");
+      stringReplace(html, "__TEMPERATURE_STOP_OP__", "&le;");
     } else {
-      stringReplace(
-        html,
-        "__TEMPERATURE_START_STOP__",
-        "Start <b><small>&le;</small> __TEMPERATURE_START__</b> "
-        "&nbsp; | "
-        "&nbsp; Stop <b><small>&ge;</small> "
-        "__TEMPERATURE_STOP__</b>"
-      );
+      stringReplace(html, "__TEMPERATURE_START_OP__", "&le;");
+      stringReplace(html, "__TEMPERATURE_STOP_OP__", "&ge;");
     }
     stringReplace(
       html,
@@ -219,10 +208,10 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 
         commandRows += std::string(R"==(
 <tr>
-  <td>__COMMAND_ROW_COMMAND__</td>
-  <td>__COMMAND_ROW_TEMPERATURE__</td>
-  <td>__COMMAND_ROW_TEMPERATURE_TARGET__</td>
-  <td>__COMMAND_ROW_DATE_TIME__</td>
+  <td><code>__COMMAND_ROW_COMMAND__</code></td>
+  <td><code>__COMMAND_ROW_TEMPERATURE__</code></td>
+  <td><code>__COMMAND_ROW_TEMPERATURE_TARGET__</code></td>
+  <td><code>__COMMAND_ROW_DATE_TIME__</code></td>
 </tr>
 )==");
 
@@ -382,20 +371,12 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     Serial.println("GET /change-mode");
 #endif
 
-    if (acMode == Cold) {
-      acMode = Heat;
-
-      // reset temperature target to default
-      temperatureData.temperatureTarget = temperatureData.temperatureTargetHeat;
-    } else {
-      acMode = Cold;
-
-      // reset temperature target to default
-      temperatureData.temperatureTarget = temperatureData.temperatureTargetCold;
-    }
+    acMode = ACModesOther[acMode];
 
     acControl.temperatureStart = -1;
     acControl.temperatureStop = -1;
+
+    temperatureData.updateTemperatures(true);
 
     databaseHelper.updatePreferenceByType(AcMode, ACModes[acMode]);
     databaseHelper.updatePreferenceByType(AcTemperatureStart, reinterpret_cast<void*>(acControl.temperatureStart));
@@ -418,12 +399,20 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     Serial.println("GET /temperature-history");
 #endif
 
+    int hours = webServer.hasArg("hours") ? webServer.arg("hours").toInt() : 6;
+
+    if (hours <= 0) {
+      hours = 1;
+    }
+    if (hours > 8) {
+      hours = 8;
+    }
+
     TemperatureReadingsDto* temperatureReadings;
-    if (webServer.hasArg("everyMinutes") && webServer.hasArg("hours")) {
-      temperatureReadings =
-        databaseHelper.selectTemperatureReadings(webServer.arg("everyMinutes").toInt(), webServer.arg("hours").toInt());
+    if (webServer.hasArg("everyMinutes")) {
+      temperatureReadings = databaseHelper.selectTemperatureReadings(webServer.arg("everyMinutes").toInt(), hours);
     } else {
-      temperatureReadings = databaseHelper.selectTemperatureReadings(6);
+      temperatureReadings = databaseHelper.selectTemperatureReadings(hours);
     }
 
     std::string json = "[";
@@ -505,7 +494,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
 </head>
 <body onload="init()">
-<h2>Temperature history <small>(6 hours) (<a href="/">Back</a>)</small></h2>
+<h2>Temperature history <small>(<a href="/temperature-history?hours=__HISTORY__HOURS_MINUS__">-1</a> | __HISTORY__HOURS__ hours | <a href="/temperature-history?hours=__HISTORY__HOURS_PLUS__">+1</a>) (<a href="/">Back</a>)</small></h2>
 
 <canvas id="chart"></canvas>
 
@@ -641,6 +630,10 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 </body>
 </html>
 )==");
+
+    stringReplace(html, "__HISTORY__HOURS_MINUS__", std::to_string(hours - 1).c_str());
+    stringReplace(html, "__HISTORY__HOURS__", std::to_string(hours).c_str());
+    stringReplace(html, "__HISTORY__HOURS_PLUS__", std::to_string(hours + 1).c_str());
 
     stringReplace(
       html,

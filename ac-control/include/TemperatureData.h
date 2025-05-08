@@ -7,15 +7,19 @@ class TemperatureData {
   TemperatureSensor &temperatureSensor;
   ACMode &acMode;
 
+  int temperatureTargetCold;
+  int temperatureTargetHeat;
   int temperatureStart;
   int temperatureStop;
 
  public:
   int temperatureTarget;
-  int temperatureTargetCold;
-  int temperatureTargetHeat;
 
   explicit TemperatureData(TemperatureSensor &temperatureSensor, ACMode &acMode);
+
+  void loop();
+
+  void updateTemperatures(bool force = false);
 
   int getTemperature() const;
 

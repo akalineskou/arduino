@@ -9,7 +9,6 @@ InfraredTransmitter::InfraredTransmitter(const int pin, DatabaseHelper &database
     acMode(acMode),
     irSend(pin) {
   lastACCommand = Off;
-
   lightToggled = false;
 }
 
