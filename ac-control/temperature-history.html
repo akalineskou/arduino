@@ -29,8 +29,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
 </head>
 <body onload="init()">
-<h2>Temperature history <small>(<a href="/temperature-history?hours=5">-1</a> | 6 hours | <a href="/temperature-history?hours=7">+1</a>) (<a href="/">Back</a>)</small>
-</h2>
+<h2>Temperature history <small>(<a href="/">Back</a>)</small></h2>
+
+<div>
+    <a href="/temperature-history?page=2">Previous</a> | <code>15-May-2025 13:43:20</code> - <code>15-May-2025 19:43:20</code> | <a
+        href="/temperature-history?page=1">Next</a>
+</div>
+
+<div>
+    <a href="/temperature-history?hours=5">-1 hour</a> | <code>6 hours</code> | <a href="/temperature-history?hours=7">+1 hour</a>
+</div>
 
 <canvas id="chart"></canvas>
 

@@ -32,7 +32,7 @@ TemperatureSensor temperatureSensor(32);
 TemperatureData temperatureData(temperatureSensor, acMode);
 ACControl acControl(infraredTransmitter, temperatureData, databaseHelper);
 WebServerHelper webServerHelper(
-  acControl, temperatureSensor, infraredTransmitter, temperatureData, databaseHelper, acMode
+  acControl, temperatureSensor, infraredTransmitter, temperatureData, timeHelper, databaseHelper, acMode
 );
 
 void increaseErrorPreferencesCount();

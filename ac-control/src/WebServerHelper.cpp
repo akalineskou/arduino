@@ -8,6 +8,7 @@ WebServerHelper::WebServerHelper(
   TemperatureSensor &temperatureSensor,
   InfraredTransmitter &infraredTransmitter,
   TemperatureData &temperatureData,
+  TimeHelper &timeHelper,
   DatabaseHelper &databaseHelper,
   ACMode &acMode
 ):
@@ -15,6 +16,7 @@ WebServerHelper::WebServerHelper(
     temperatureSensor(temperatureSensor),
     infraredTransmitter(infraredTransmitter),
     temperatureData(temperatureData),
+    timeHelper(timeHelper),
     databaseHelper(databaseHelper),
     acMode(acMode),
     webServer(80) {}
@@ -88,7 +90,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
   <br>
 
   <p>
-    <a href="/temperature-history?hours=3">Temperature history</a>
+    <a href="/temperature-history?page=1&hours=6">Temperature history</a>
   </p>
   <br>
 
@@ -399,21 +401,23 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     Serial.println("GET /temperature-history");
 #endif
 
+    int page = webServer.hasArg("page") ? webServer.arg("page").toInt() : 1;
+
+    if (page <= 0) {
+      page = 1;
+    }
+
     int hours = webServer.hasArg("hours") ? webServer.arg("hours").toInt() : 6;
 
     if (hours <= 0) {
       hours = 1;
     }
-    if (hours > 8) {
-      hours = 8;
+    if (hours > 6) {
+      hours = 6;
     }
 
-    TemperatureReadingsDto* temperatureReadings;
-    if (webServer.hasArg("everyMinutes")) {
-      temperatureReadings = databaseHelper.selectTemperatureReadings(webServer.arg("everyMinutes").toInt(), hours);
-    } else {
-      temperatureReadings = databaseHelper.selectTemperatureReadings(hours);
-    }
+    const int startTime = timeHelper.currentTime - page * hours * 3600;
+    const int endTime = timeHelper.currentTime - (page - 1) * hours * 3600;
 
     std::string json = "[";
 
@@ -421,6 +425,8 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     int temperatureMax = 0;
     int humidityMin = temperatureMin;
     int humidityMax = temperatureMax;
+
+    const TemperatureReadingsDto* temperatureReadings = databaseHelper.selectTemperatureReadings(startTime, endTime);
 
     if (temperatureReadings != nullptr) {
       for (auto i = 0; i < temperatureReadings->numRows; ++i) {
@@ -494,7 +500,15 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
 </head>
 <body onload="init()">
-<h2>Temperature history <small>(<a href="/temperature-history?hours=__HISTORY__HOURS_MINUS__">-1</a> | __HISTORY__HOURS__ hours | <a href="/temperature-history?hours=__HISTORY__HOURS_PLUS__">+1</a>) (<a href="/">Back</a>)</small></h2>
+<h2>Temperature history <small>(<a href="/">Back</a>)</small></h2>
+
+<div>
+  <a href="/temperature-history?page=__HISTORY_PAGE_PLUS__&hours=__HISTORY_HOURS__">Previous</a> | <code>__HISTORY_START_TIME__</code> - <code>__HISTORY_END_TIME__</code> | <a href="/temperature-history?page=__HISTORY_PAGE_MINUS__&hours=__HISTORY_HOURS__">Next</a>
+</div>
+
+<div>
+  <a href="/temperature-history?page=__HISTORY_PAGE__&hours=__HISTORY_HOURS_MINUS__">-1 hour</a> | <code>__HISTORY_HOURS__ hours</code> | <a href="/temperature-history?page=__HISTORY_PAGE__&hours=__HISTORY_HOURS_PLUS__">+1 hour</a>
+</div>
 
 <canvas id="chart"></canvas>
 
@@ -631,9 +645,16 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 </html>
 )==");
 
-    stringReplace(html, "__HISTORY__HOURS_MINUS__", std::to_string(hours - 1).c_str());
-    stringReplace(html, "__HISTORY__HOURS__", std::to_string(hours).c_str());
-    stringReplace(html, "__HISTORY__HOURS_PLUS__", std::to_string(hours + 1).c_str());
+    stringReplace(html, "__HISTORY_PAGE_MINUS__", std::to_string(page - 1).c_str());
+    stringReplace(html, "__HISTORY_PAGE__", std::to_string(page).c_str());
+    stringReplace(html, "__HISTORY_PAGE_PLUS__", std::to_string(page + 1).c_str());
+
+    stringReplace(html, "__HISTORY_HOURS_MINUS__", std::to_string(hours - 1).c_str());
+    stringReplace(html, "__HISTORY_HOURS__", std::to_string(hours).c_str());
+    stringReplace(html, "__HISTORY_HOURS_PLUS__", std::to_string(hours + 1).c_str());
+
+    stringReplace(html, "__HISTORY_START_TIME__", TimeHelper::formatForHuman(startTime).c_str());
+    stringReplace(html, "__HISTORY_END_TIME__", TimeHelper::formatForHuman(endTime).c_str());
 
     stringReplace(
       html,

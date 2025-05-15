@@ -60,9 +60,7 @@ class DatabaseHelper {
     int temperature, int temperatureTargetStart, int temperatureTargetStop, int humidity, bool force = false
   );
 
-  TemperatureReadingsDto* selectTemperatureReadings(int hours);
-
-  TemperatureReadingsDto* selectTemperatureReadings(int everyMinutes, int hours);
+  TemperatureReadingsDto* selectTemperatureReadings(int startTime, int endTime);
 
   void insertCommand(const char* command, int temperature, int temperature_target);
 

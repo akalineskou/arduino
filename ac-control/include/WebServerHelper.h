@@ -13,6 +13,7 @@ class WebServerHelper {
   TemperatureSensor &temperatureSensor;
   InfraredTransmitter &infraredTransmitter;
   TemperatureData &temperatureData;
+  TimeHelper &timeHelper;
   DatabaseHelper &databaseHelper;
   ACMode &acMode;
 
@@ -24,6 +25,7 @@ class WebServerHelper {
     TemperatureSensor &temperatureSensor,
     InfraredTransmitter &infraredTransmitter,
     TemperatureData &temperatureData,
+    TimeHelper &timeHelper,
     DatabaseHelper &databaseHelper,
     ACMode &acMode
   );

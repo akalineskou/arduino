@@ -124,7 +124,7 @@ VALUES(null, ?1, ?2, ?3, ?4, ?5)
   sqlite3_finalize(statement);
 }
 
-TemperatureReadingsDto* DatabaseHelper::selectTemperatureReadings(const int hours) {
+TemperatureReadingsDto* DatabaseHelper::selectTemperatureReadings(const int startTime, const int endTime) {
 #if APP_DEBUG
   Serial.println("Selecting temperature readings");
 #endif
@@ -132,7 +132,7 @@ TemperatureReadingsDto* DatabaseHelper::selectTemperatureReadings(const int hour
   sql = R"(
 SELECT COUNT(id)
 FROM temperature_readings
-WHERE time >= ?1
+WHERE time BETWEEN ?1 AND ?2
 ORDER BY time DESC
 )";
 
@@ -140,7 +140,8 @@ ORDER BY time DESC
     return nullptr;
   }
 
-  sqlite3_bind_int(statement, 1, timeHelper.currentTime - hours * 3600);
+  sqlite3_bind_int(statement, 1, startTime);
+  sqlite3_bind_int(statement, 2, endTime);
 
 #if APP_DEBUG
   expandSql();
@@ -166,7 +167,7 @@ ORDER BY time DESC
   sql = R"(
 SELECT id, temperature, temperatureTargetStart, temperatureTargetStop, humidity, time
 FROM temperature_readings
-WHERE time >= ?1
+WHERE time BETWEEN ?1 AND ?2
 ORDER BY time DESC
 )";
 
@@ -174,119 +175,8 @@ ORDER BY time DESC
     return nullptr;
   }
 
-  sqlite3_bind_int(statement, 1, timeHelper.currentTime - hours * 3600);
-
-#if APP_DEBUG
-  expandSql();
-#endif
-
-  auto temperatureReadings = new TemperatureReadingsDto{};
-  temperatureReadings->temperatureReadings = new TemperatureReadingEntity[numRows];
-  temperatureReadings->numRows = numRows;
-
-  int i = 0;
-  while ((responseCode = sqlite3_step(statement)) == SQLITE_ROW) {
-    temperatureReadings->temperatureReadings[i].id = sqlite3_column_int(statement, 0);
-    temperatureReadings->temperatureReadings[i].temperature = sqlite3_column_int(statement, 1);
-    temperatureReadings->temperatureReadings[i].temperatureTargetStart = sqlite3_column_int(statement, 2);
-    temperatureReadings->temperatureReadings[i].temperatureTargetStop = sqlite3_column_int(statement, 3);
-    temperatureReadings->temperatureReadings[i].humidity = sqlite3_column_int(statement, 4);
-    temperatureReadings->temperatureReadings[i].time = sqlite3_column_int(statement, 5);
-
-    i++;
-  }
-
-  if (responseCode != SQLITE_DONE) {
-#if APP_DEBUG
-    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
-#endif
-  }
-
-  if (i == 0) {
-    delete[] temperatureReadings->temperatureReadings;
-    delete temperatureReadings;
-
-    temperatureReadings = nullptr;
-  }
-
-  sqlite3_clear_bindings(statement);
-  sqlite3_finalize(statement);
-
-  return temperatureReadings;
-}
-
-TemperatureReadingsDto* DatabaseHelper::selectTemperatureReadings(const int everyMinutes, const int hours) {
-#if APP_DEBUG
-  Serial.printf("Selecting temperature readings every %d minutes and %d hours\n", everyMinutes, hours);
-#endif
-
-  sql = R"(
-  SELECT
-      COUNT(time_rounded) AS total_row_count
-  FROM (
-           SELECT
-               (time + ?1 / 2 * 60) / (?1 * 60) * (?1 * 60) AS time_rounded
-           FROM
-               temperature_readings
-           WHERE
-               time >= ?2
-           GROUP BY
-               time_rounded
-       )
-  )";
-
-  if (prepare() != SQLITE_OK) {
-    return nullptr;
-  }
-
-  sqlite3_bind_int(statement, 1, everyMinutes);
-  sqlite3_bind_int(statement, 2, timeHelper.currentTime - hours * 3600);
-
-#if APP_DEBUG
-  expandSql();
-#endif
-
-  int numRows = 0;
-
-  if ((responseCode = sqlite3_step(statement)) == SQLITE_ROW) {
-    numRows = sqlite3_column_int(statement, 0);
-  } else {
-#if APP_DEBUG
-    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
-#endif
-  }
-
-  sqlite3_clear_bindings(statement);
-  sqlite3_finalize(statement);
-
-  if (numRows == 0) {
-    return nullptr;
-  }
-
-  sql = R"(
-SELECT
-    id,
-    round(avg(temperature)) AS temperature,
-    temperatureTargetStart,
-    temperatureTargetStop,
-    round(avg(humidity)) AS humidity,
-    (time + ?1 / 2 * 60) / (?1 * 60) * (?1 * 60) AS time_rounded
-FROM
-    temperature_readings
-WHERE
-    time >= ?2
-GROUP BY
-    time_rounded
-ORDER BY
-    time_rounded DESC;
-)";
-
-  if (prepare() != SQLITE_OK) {
-    return nullptr;
-  }
-
-  sqlite3_bind_int(statement, 1, everyMinutes);
-  sqlite3_bind_int(statement, 2, timeHelper.currentTime - hours * 3600);
+  sqlite3_bind_int(statement, 1, startTime);
+  sqlite3_bind_int(statement, 2, endTime);
 
 #if APP_DEBUG
   expandSql();
