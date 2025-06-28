@@ -1,6 +1,5 @@
 #include "InfraredReceiver.h"
-
-#define PIN_IR_RECEIVER 2
+#include "Directive.h"
 
 InfraredReceiver infraredReceiver(PIN_IR_RECEIVER);
 
