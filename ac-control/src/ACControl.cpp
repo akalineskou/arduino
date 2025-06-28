@@ -98,7 +98,7 @@ void ACControl::control() {
     Serial.println("Turn off time delay passed.");
 #endif
 
-    disable();
+    off();
     return;
   }
 
