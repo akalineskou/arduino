@@ -5,9 +5,9 @@
 #define APP_ENV_OTHER 3
 
 #if APP_ENV == APP_ENV_LIVIN_ROOM
-  #define PIN_IR_RECEIVER 2
+#define PIN_IR_RECEIVER 2
 #elif APP_ENV == APP_ENV_BEDROOM
-  #define PIN_IR_RECEIVER 2
+#define PIN_IR_RECEIVER 5
 #elif APP_ENV == APP_ENV_OTHER
-  #define PIN_IR_RECEIVER 2
+#define PIN_IR_RECEIVER 5
 #endif

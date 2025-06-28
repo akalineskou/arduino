@@ -4,13 +4,14 @@
 
 #include "ACCommand.h"
 #include "ACMode.h"
+#include "Directive.h"
 
 class InfraredTransmitter {
   int pin;
   DatabaseHelper &databaseHelper;
   ACMode &acMode;
 
-  IRHaierAC160 irSend;
+  IR_SEND_CLASS irSend;
 
  public:
   ACCommand lastACCommand;

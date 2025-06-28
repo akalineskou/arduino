@@ -19,20 +19,19 @@ void InfraredTransmitter::setup() {
 void InfraredTransmitter::sendCommand(const ACCommand acCommand) {
   lastACCommand = acCommand;
 
-  /// /.pio -> ir_Haier.cpp -> IRHaierAC160::IRHaierAC160
   // Fan: 1 (High)
-  irSend.setFan(kHaierAcYrw02FanHigh);
+  irSend.setFan(IR_SEND_FAN);
 
   if (acMode == Cold) {
     // Mode: 2 (Cool)
-    irSend.setMode(kHaierAcYrw02Cool);
+    irSend.setMode(IR_SEND_MODE_COOL);
     // Swing(V): 1 (Top)
-    irSend.setSwingV(kHaierAc160SwingVTop);
+    irSend.setSwingV(IR_SEND_MODE_COOL_SWING_V);
   } else {
     // Mode: 4 (Heat)
-    irSend.setMode(kHaierAcYrw02Heat);
+    irSend.setMode(IR_SEND_MODE_HEAT);
     // Swing(V): 8 (Low)
-    irSend.setSwingV(kHaierAc160SwingVLow);
+    irSend.setSwingV(IR_SEND_MODE_HEAT_SWING_V);
   }
 
   if (acCommand == Off) {
@@ -65,8 +64,10 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand) {
     lightToggled = false;
   } else {
     if (!lightToggled) {
+#if IR_SEND_HAS_TOGGLE_LIGHT
       // only needs to happen the first time it is turned on
       irSend.setLightToggle(true);
+#endif
 
       lightToggled = true;
     }

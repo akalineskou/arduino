@@ -14,6 +14,9 @@
 #include "TimeHelper.h"
 #include "WebServerHelper.h"
 #include "WifiHelper.h"
+#if APP_IR_TRANSMITTER
+  #include "InfraredReceiver.h"
+#endif
 
 Preferences errorPreferences;
 TimeDelay rebootTimeDelay(APP_REBOOT_DELAY);
@@ -23,12 +26,15 @@ TimeDelay debugHeapTimeDelay(APP_DEBUG_HEAP_DELAY, true);
 #endif
 
 TimeHelper timeHelper;
-SdHelper sdHelper(18, 19, 23, 5);
+SdHelper sdHelper(PIN_SD_SCK, PIN_SD_MISO, PIN_SD_MOSI, PIN_SD_SS);
 DatabaseHelper databaseHelper(timeHelper);
 
 ACMode acMode(Heat);
-InfraredTransmitter infraredTransmitter(22, databaseHelper, acMode);
-TemperatureSensor temperatureSensor(32);
+InfraredTransmitter infraredTransmitter(PIN_IR_TRANSMITTER, databaseHelper, acMode);
+#if APP_IR_TRANSMITTER
+InfraredReceiver infraredReceiver(PIN_IR_RECEIVER);
+#endif
+TemperatureSensor temperatureSensor(PIN_TEMP_SENSOR);
 TemperatureData temperatureData(temperatureSensor, acMode);
 ACControl acControl(infraredTransmitter, temperatureData, databaseHelper);
 WebServerHelper webServerHelper(
@@ -53,11 +59,17 @@ void setup() {
 
   temperatureSensor.setup();
   infraredTransmitter.setup();
+#if APP_IR_TRANSMITTER
+  infraredReceiver.setup();
+#endif
 
   // https://docs.espressif.com/projects/arduino-esp32/en/latest/tutorials/preferences.html
   errorPreferences.begin("error", false);
+  if (!errorPreferences.isKey("count")) {
+    errorPreferences.putInt("count", 0);
+  }
 
-  if (errorPreferences.isKey("count") && errorPreferences.getInt("count") > 5) {
+  if (errorPreferences.getInt("count") > 5) {
 #if APP_DEBUG
     Serial.println("Turning off A/C on error count more than 5.");
 #endif
@@ -144,6 +156,9 @@ void loop() {
     delay(3600 * 1000);
   }
 
+#if APP_IR_TRANSMITTER
+  infraredReceiver.loop();
+#endif
   temperatureSensor.loop();
   temperatureData.loop();
   acControl.loop();
@@ -173,9 +188,5 @@ void loop() {
 }
 
 void increaseErrorPreferencesCount() {
-  if (!errorPreferences.isKey("count")) {
-    errorPreferences.putInt("count", 0);
-  }
-
   errorPreferences.putInt("count", errorPreferences.getInt("count") + 1);
 }
