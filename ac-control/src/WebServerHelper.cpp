@@ -1,12 +1,10 @@
 #include "Directive.h"
 #include "Helper.h"
-#include "Preference.h"
 #include "WebServerHelper.h"
 
 WebServerHelper::WebServerHelper(
   ACControl &acControl,
   TemperatureSensor &temperatureSensor,
-  InfraredTransmitter &infraredTransmitter,
   TemperatureData &temperatureData,
   TimeHelper &timeHelper,
   DatabaseHelper &databaseHelper,
@@ -14,21 +12,16 @@ WebServerHelper::WebServerHelper(
 ):
     acControl(acControl),
     temperatureSensor(temperatureSensor),
-    infraredTransmitter(infraredTransmitter),
     temperatureData(temperatureData),
     timeHelper(timeHelper),
     databaseHelper(databaseHelper),
     acMode(acMode),
     webServer(80) {}
 
-void WebServerHelper::setup(const char* webServerAuthUsername, const char* webServerAuthPassword) {
+void WebServerHelper::setup() {
   webServer.begin();
 
-  webServer.on("/", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
-      return webServer.requestAuthentication();
-    }
-
+  webServer.on("/", HTTP_GET, [this] {
 #if APP_DEBUG
     Serial.println("GET /");
 #endif
@@ -148,6 +141,10 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       </tr>
     </table>
   </p>
+
+  <p style="display: none;">
+    <a href="/spam-off">Spam Off (toggle)</a>
+  </p>
 </body>
     )==");
 
@@ -157,7 +154,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
       acControl.enabled ? R"==(<b><code>Enabled</code></b> (<a href="/disable">Disable</a>))=="
                         : R"==(<b><code>Disabled</code></b> (<a href="/enable">Enable</a>))=="
     );
-    stringReplace(html, "__LAST_AC_COMMAND__", ACCommands[infraredTransmitter.lastACCommand]);
+    stringReplace(html, "__LAST_AC_COMMAND__", ACCommands[acControl.lastACCommand()]);
     stringReplace(html, "__AC_MODE__", ACModes[acMode]);
     stringReplace(html, "__AC_MODE_CHANGE__", ACModes[ACModesOther[acMode]]);
 
@@ -267,11 +264,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     webServer.send(200, "text/html", html.c_str());
   });
 
-  webServer.on("/enable", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
-      return webServer.requestAuthentication();
-    }
-
+  webServer.on("/enable", HTTP_GET, [this] {
 #if APP_DEBUG
     Serial.println("GET /enable");
 #endif
@@ -281,11 +274,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
-  webServer.on("/disable", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
-      return webServer.requestAuthentication();
-    }
-
+  webServer.on("/disable", HTTP_GET, [this] {
 #if APP_DEBUG
     Serial.println("GET /disable");
 #endif
@@ -296,50 +285,28 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     webServer.send(302);
   });
 
-  webServer.on("/increase-target", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
-      return webServer.requestAuthentication();
-    }
-
+  webServer.on("/increase-target", HTTP_GET, [this] {
 #if APP_DEBUG
     Serial.println("GET /increase-target");
 #endif
 
-    temperatureData.temperatureTarget += 0.5 * 10;
-
-    databaseHelper.updatePreferenceByType(
-      TdTemperatureTarget,
-      reinterpret_cast<void*>(temperatureData.temperatureTarget)
-    );
+    temperatureData.temperatureTargetIncrease();
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
-  webServer.on("/decrease-target", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
-      return webServer.requestAuthentication();
-    }
-
+  webServer.on("/decrease-target", HTTP_GET, [this] {
 #if APP_DEBUG
     Serial.println("GET /decrease-target");
 #endif
 
-    temperatureData.temperatureTarget -= 0.5 * 10;
-
-    databaseHelper.updatePreferenceByType(
-      TdTemperatureTarget,
-      reinterpret_cast<void*>(temperatureData.temperatureTarget)
-    );
+    temperatureData.temperatureTargetDecrease();
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
 
-  webServer.on("/force-ac-start", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
-      return webServer.requestAuthentication();
-    }
-
+  webServer.on("/force-ac-start", HTTP_GET, [this] {
 #if APP_DEBUG
     Serial.println("GET /force-ac-start");
 #endif
@@ -349,11 +316,7 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
-  webServer.on("/force-ac-stop", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
-      return webServer.requestAuthentication();
-    }
-
+  webServer.on("/force-ac-stop", HTTP_GET, [this] {
 #if APP_DEBUG
     Serial.println("GET /force-ac-stop");
 #endif
@@ -364,39 +327,18 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
     webServer.send(302);
   });
 
-  webServer.on("/change-mode", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
-      return webServer.requestAuthentication();
-    }
-
+  webServer.on("/change-mode", HTTP_GET, [this] {
 #if APP_DEBUG
     Serial.println("GET /change-mode");
 #endif
 
-    acMode = ACModesOther[acMode];
-
-    acControl.temperatureStart = -1;
-    acControl.temperatureStop = -1;
-
-    temperatureData.updateTemperatures(true);
-
-    databaseHelper.updatePreferenceByType(AcMode, ACModes[acMode]);
-    databaseHelper.updatePreferenceByType(AcTemperatureStart, reinterpret_cast<void*>(acControl.temperatureStart));
-    databaseHelper.updatePreferenceByType(AcTemperatureStop, reinterpret_cast<void*>(acControl.temperatureStop));
-    databaseHelper.updatePreferenceByType(
-      TdTemperatureTarget,
-      reinterpret_cast<void*>(temperatureData.temperatureTarget)
-    );
+    acControl.changeMode();
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
   });
 
-  webServer.on("/temperature-history", HTTP_GET, [this, webServerAuthUsername, webServerAuthPassword] {
-    if (!isAuthenticated(webServerAuthUsername, webServerAuthPassword)) {
-      return webServer.requestAuthentication();
-    }
-
+  webServer.on("/temperature-history", HTTP_GET, [this] {
 #if APP_DEBUG
     Serial.println("GET /temperature-history");
 #endif
@@ -698,33 +640,8 @@ void WebServerHelper::setup(const char* webServerAuthUsername, const char* webSe
 
     webServer.send(200, "text/html", html.c_str());
   });
-
-  webServer.onNotFound([this] {
-    webServer.send(404, "text/html", R"==(
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Resource not found</title>
-  <meta charset="utf-8">
-  <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/3274/3274588.png" />
-</head>
-<body style="text-align: center;">
-  <p>The resource was not found.</p>
-  <p><a href="/">Start again</a></p>
-</body>
-    )==");
-  });
 }
 
 void WebServerHelper::loop() {
   webServer.handleClient();
-}
-
-bool WebServerHelper::isAuthenticated(const char* webServerAuthUsername, const char* webServerAuthPassword) {
-  if (strlen(webServerAuthUsername) == 0 && strlen(webServerAuthPassword) == 0) {
-    // authentication disabled
-    return true;
-  }
-
-  return webServer.authenticate(webServerAuthUsername, webServerAuthPassword);
 }

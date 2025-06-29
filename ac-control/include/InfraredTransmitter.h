@@ -1,7 +1,5 @@
 #pragma once
 
-#include <ir_Haier.h>
-
 #include "ACCommand.h"
 #include "ACMode.h"
 #include "Directive.h"

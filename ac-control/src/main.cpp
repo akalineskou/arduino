@@ -7,14 +7,13 @@
 #include "Directive.h"
 #include "InfraredTransmitter.h"
 #include "SdHelper.h"
-#include "Secrets.h"
 #include "TemperatureData.h"
 #include "TemperatureSensor.h"
 #include "TimeDelay.h"
 #include "TimeHelper.h"
 #include "WebServerHelper.h"
 #include "WifiHelper.h"
-#if APP_IR_TRANSMITTER
+#if APP_IR_RECEIVER
   #include "InfraredReceiver.h"
 #endif
 
@@ -31,21 +30,25 @@ DatabaseHelper databaseHelper(timeHelper);
 
 ACMode acMode(Heat);
 InfraredTransmitter infraredTransmitter(PIN_IR_TRANSMITTER, databaseHelper, acMode);
-#if APP_IR_TRANSMITTER
-InfraredReceiver infraredReceiver(PIN_IR_RECEIVER);
-#endif
 TemperatureSensor temperatureSensor(PIN_TEMP_SENSOR);
-TemperatureData temperatureData(temperatureSensor, acMode);
-ACControl acControl(infraredTransmitter, temperatureData, databaseHelper);
-WebServerHelper webServerHelper(
-  acControl, temperatureSensor, infraredTransmitter, temperatureData, timeHelper, databaseHelper, acMode
-);
+TemperatureData temperatureData(temperatureSensor, databaseHelper, acMode);
+ACControl acControl(infraredTransmitter, temperatureData, databaseHelper, acMode);
+WebServerHelper webServerHelper(acControl, temperatureSensor, temperatureData, timeHelper, databaseHelper, acMode);
+
+#if APP_IR_RECEIVER
+InfraredReceiver infraredReceiver(PIN_IR_RECEIVER, acControl, temperatureData);
+#endif
 
 void increaseErrorPreferencesCount();
 
 void setup() {
   // for some reason needed for the IR transmitter to work
   Serial.begin(115200);
+
+#if defined(PIN_ONBOARD_LED)
+  digitalWrite(PIN_ONBOARD_LED, LOW);
+  neopixelWrite(PIN_ONBOARD_LED, 0, 0, 0);
+#endif
 
 #if APP_DEBUG
   // wait for serial monitor to start completely.
@@ -59,7 +62,7 @@ void setup() {
 
   temperatureSensor.setup();
   infraredTransmitter.setup();
-#if APP_IR_TRANSMITTER
+#if APP_IR_RECEIVER
   infraredReceiver.setup();
 #endif
 
@@ -79,8 +82,8 @@ void setup() {
     errorPreferences.remove("count");
   }
 
-  WifiHelper::setup(wifiSSID, wifiPassword);
-  webServerHelper.setup(webServerAuthUsername, webServerAuthPassword);
+  WifiHelper::setup();
+  webServerHelper.setup();
   timeHelper.setup();
   if (!sdHelper.setup()) {
     increaseErrorPreferencesCount();
@@ -156,7 +159,7 @@ void loop() {
     delay(3600 * 1000);
   }
 
-#if APP_IR_TRANSMITTER
+#if APP_IR_RECEIVER
   infraredReceiver.loop();
 #endif
   temperatureSensor.loop();

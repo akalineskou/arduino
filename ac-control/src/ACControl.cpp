@@ -4,16 +4,21 @@
 #include "Preference.h"
 
 ACControl::ACControl(
-  InfraredTransmitter &infraredTransmitter, TemperatureData &temperatureData, DatabaseHelper &databaseHelper
+  InfraredTransmitter &infraredTransmitter,
+  TemperatureData &temperatureData,
+  DatabaseHelper &databaseHelper,
+  ACMode &acMode
 ):
     infraredTransmitter(infraredTransmitter),
     temperatureData(temperatureData),
     databaseHelper(databaseHelper),
+    acMode(acMode),
     turnOffTimeDelay(TimeDelay(APP_AC_CONTROL_TURN_OFF_DELAY)),
     temperatureChangeTimeDelay(TimeDelay(APP_AC_CONTROL_CHECK_DELAY)) {
   enabled = false;
   temperatureStart = -1;
   temperatureStop = -1;
+  spamOff = false;
 }
 
 void ACControl::loop() {
@@ -79,7 +84,36 @@ void ACControl::stop() {
   databaseHelper.updatePreferenceByType(AcTemperatureStop, reinterpret_cast<void*>(temperatureStop));
 }
 
+void ACControl::changeMode() {
+  acMode = ACModesOther[acMode];
+
+  temperatureStart = -1;
+  temperatureStop = -1;
+
+  temperatureData.updateTemperatures(true);
+
+  databaseHelper.updatePreferenceByType(AcMode, ACModes[acMode]);
+  databaseHelper.updatePreferenceByType(AcTemperatureStart, reinterpret_cast<void*>(temperatureStart));
+  databaseHelper.updatePreferenceByType(AcTemperatureStop, reinterpret_cast<void*>(temperatureStop));
+  databaseHelper.updatePreferenceByType(
+    TdTemperatureTarget,
+    reinterpret_cast<void*>(temperatureData.temperatureTarget)
+  );
+}
+
+ACCommand ACControl::lastACCommand() const {
+  return infraredTransmitter.lastACCommand;
+}
+
 void ACControl::control() {
+  if (spamOff) {
+    if (enabled) {
+      disable();
+    } else {
+      infraredTransmitter.sendCommand(Off);
+    }
+  }
+
   if (!enabled) {
     return;
   }
@@ -104,7 +138,7 @@ void ACControl::control() {
 
   if (temperatureChangeTimeDelay.delayPassed()) {
     if (infraredTransmitter.lastACCommand == Start && temperatureStart != -1) {
-      if (temperatureData.temperatureStartReached(temperatureStart)) {
+      if (temperatureData.temperatureStartReached(temperatureStart, false)) {
         // still not running, set to Stop before rebooting
         databaseHelper.updatePreferenceByType(IrLastACCommand, ACCommands[Stop]);
 
@@ -121,7 +155,7 @@ void ACControl::control() {
         databaseHelper.updatePreferenceByType(AcTemperatureStart, reinterpret_cast<void*>(temperatureStart));
       }
     } else if (infraredTransmitter.lastACCommand == Stop && temperatureStop != -1) {
-      if (temperatureData.temperatureStopReached(temperatureStop)) {
+      if (temperatureData.temperatureStopReached(temperatureStop, false)) {
         // still running, set to Start before rebooting
         databaseHelper.updatePreferenceByType(IrLastACCommand, ACCommands[Start]);
 

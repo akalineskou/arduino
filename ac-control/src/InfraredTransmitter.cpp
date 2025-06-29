@@ -16,23 +16,47 @@ void InfraredTransmitter::setup() {
   irSend.begin();
 }
 
-void InfraredTransmitter::sendCommand(const ACCommand acCommand) {
+void InfraredTransmitter::sendCommand(ACCommand acCommand) {
   lastACCommand = acCommand;
 
-  // Fan: 1 (High)
-  irSend.setFan(IR_SEND_FAN);
+#if APP_ENV == APP_ENV_LIVIN_ROOM
+  irSend.setFan(kHaierAcYrw02FanHigh);
 
   if (acMode == Cold) {
-    // Mode: 2 (Cool)
-    irSend.setMode(IR_SEND_MODE_COOL);
-    // Swing(V): 1 (Top)
-    irSend.setSwingV(IR_SEND_MODE_COOL_SWING_V);
+    irSend.setMode(kHaierAcYrw02Cool);
+    irSend.setSwingV(kHaierAc160SwingVTop);
   } else {
-    // Mode: 4 (Heat)
-    irSend.setMode(IR_SEND_MODE_HEAT);
-    // Swing(V): 8 (Low)
-    irSend.setSwingV(IR_SEND_MODE_HEAT_SWING_V);
+    irSend.setMode(kHaierAcYrw02Heat);
+    irSend.setSwingV(kHaierAc160SwingVLow);
   }
+#elif APP_ENV == APP_ENV_BEDROOM
+  irSend.setFan(kHaierAcYrw02FanHigh);
+
+  if (acCommand == Stop) {
+    // set fan to low since fan does not turn off
+    irSend.setFan(kHaierAcYrw02FanLow);
+  }
+
+  if (acMode == Cold) {
+    irSend.setMode(kHaierAcYrw02Cool);
+    irSend.setSwingV(kHaierAcYrw02SwingVTop);
+  } else {
+    irSend.setMode(kHaierAcYrw02Heat);
+    irSend.setSwingV(kHaierAcYrw02SwingVBottom);
+  }
+#elif APP_ENV == APP_ENV_OTHER
+  irSend.setFan(kBosch144Fan100);
+
+  if (acCommand == Stop) {
+    irSend.setFan(kBosch144Fan20);
+  }
+
+  if (acMode == Cold) {
+    irSend.setMode(kBosch144Cool);
+  } else {
+    irSend.setMode(kBosch144Heat);
+  }
+#endif
 
   if (acCommand == Off) {
     // as a backup, before sending off, set temperature to stop values
@@ -45,10 +69,18 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand) {
     }
 
     // Power: Off
+#if APP_ENV == APP_ENV_LIVIN_ROOM || APP_ENV == APP_ENV_BEDROOM
     irSend.off();
+#elif APP_ENV == APP_ENV_OTHER
+    irSend.setPower(false);
+#endif
   } else {
     // Power: On
+#if APP_ENV == APP_ENV_LIVIN_ROOM || APP_ENV == APP_ENV_BEDROOM
     irSend.on();
+#elif APP_ENV == APP_ENV_OTHER
+    irSend.setPower(true);
+#endif
   }
 
   if ((acCommand == Start && acMode == Cold) || (acCommand == Stop && acMode == Heat)) {
@@ -64,7 +96,7 @@ void InfraredTransmitter::sendCommand(const ACCommand acCommand) {
     lightToggled = false;
   } else {
     if (!lightToggled) {
-#if IR_SEND_HAS_TOGGLE_LIGHT
+#if APP_ENV == APP_ENV_LIVIN_ROOM
       // only needs to happen the first time it is turned on
       irSend.setLightToggle(true);
 #endif
