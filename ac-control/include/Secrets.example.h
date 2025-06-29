@@ -12,6 +12,3 @@ auto wifiPassword = "";
 auto wifiSSID = "";
 auto wifiPassword = "";
 #endif
-
-auto webServerAuthUsername = "";
-auto webServerAuthPassword = "";

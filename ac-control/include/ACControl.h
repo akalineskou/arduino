@@ -9,6 +9,8 @@ class ACControl {
   InfraredTransmitter &infraredTransmitter;
   TemperatureData &temperatureData;
   DatabaseHelper &databaseHelper;
+  ACMode &acMode;
+
   TimeDelay turnOffTimeDelay;
   TimeDelay temperatureChangeTimeDelay;
 
@@ -16,8 +18,14 @@ class ACControl {
   bool enabled;
   int temperatureStart;
   int temperatureStop;
+  bool spamOff;
 
-  ACControl(InfraredTransmitter &infraredTransmitter, TemperatureData &temperatureData, DatabaseHelper &databaseHelper);
+  ACControl(
+    InfraredTransmitter &infraredTransmitter,
+    TemperatureData &temperatureData,
+    DatabaseHelper &databaseHelper,
+    ACMode &acMode
+  );
 
   void loop();
 
@@ -30,6 +38,10 @@ class ACControl {
   void start();
 
   void stop();
+
+  void changeMode();
+
+  ACCommand lastACCommand() const;
 
  private:
   void control();

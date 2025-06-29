@@ -1,8 +1,10 @@
 #include "Directive.h"
+#include "Preference.h"
 #include "TemperatureData.h"
 
-TemperatureData::TemperatureData(TemperatureSensor &temperatureSensor, ACMode &acMode):
+TemperatureData::TemperatureData(TemperatureSensor &temperatureSensor, DatabaseHelper &databaseHelper, ACMode &acMode):
     temperatureSensor(temperatureSensor),
+    databaseHelper(databaseHelper),
     acMode(acMode) {
   temperatureTargetCold = 29.0 * 10;
   temperatureTargetHeat = 20.5 * 10;
@@ -42,7 +44,7 @@ int TemperatureData::getHumidity() const {
   return temperatureSensor.getHumidity();
 }
 
-int TemperatureData::temperatureStartReached(int temperatureCheck) const {
+int TemperatureData::temperatureStartReached(int temperatureCheck, const bool equalCheck) const {
   bool temperatureStartReached;
 
   if (temperatureCheck == -1) {
@@ -50,9 +52,17 @@ int TemperatureData::temperatureStartReached(int temperatureCheck) const {
   }
 
   if (acMode == Cold) {
-    temperatureStartReached = getTemperature() >= temperatureCheck;
+    if (equalCheck) {
+      temperatureStartReached = getTemperature() >= temperatureCheck;
+    } else {
+      temperatureStartReached = getTemperature() > temperatureCheck;
+    }
   } else {
-    temperatureStartReached = getTemperature() <= temperatureCheck;
+    if (equalCheck) {
+      temperatureStartReached = getTemperature() <= temperatureCheck;
+    } else {
+      temperatureStartReached = getTemperature() < temperatureCheck;
+    }
   }
 
   if (temperatureStartReached) {
@@ -67,7 +77,7 @@ int TemperatureData::temperatureStartReached(int temperatureCheck) const {
   return temperatureStartReached;
 }
 
-int TemperatureData::temperatureStopReached(int temperatureCheck) const {
+int TemperatureData::temperatureStopReached(int temperatureCheck, const bool equalCheck) const {
   bool temperatureStopReached;
 
   if (temperatureCheck == -1) {
@@ -75,9 +85,17 @@ int TemperatureData::temperatureStopReached(int temperatureCheck) const {
   }
 
   if (acMode == Cold) {
-    temperatureStopReached = getTemperature() <= temperatureCheck;
+    if (equalCheck) {
+      temperatureStopReached = getTemperature() <= temperatureCheck;
+    } else {
+      temperatureStopReached = getTemperature() < temperatureCheck;
+    }
   } else {
-    temperatureStopReached = getTemperature() >= temperatureCheck;
+    if (equalCheck) {
+      temperatureStopReached = getTemperature() >= temperatureCheck;
+    } else {
+      temperatureStopReached = getTemperature() > temperatureCheck;
+    }
   }
 
   if (temperatureStopReached) {
@@ -98,6 +116,18 @@ int TemperatureData::temperatureTargetStart() const {
 
 int TemperatureData::temperatureTargetStop() const {
   return temperatureTarget + temperatureStop;
+}
+
+void TemperatureData::temperatureTargetIncrease() {
+  temperatureTarget += 0.5 * 10;
+
+  databaseHelper.updatePreferenceByType(TdTemperatureTarget, reinterpret_cast<void*>(temperatureTarget));
+}
+
+void TemperatureData::temperatureTargetDecrease() {
+  temperatureTarget -= 0.5 * 10;
+
+  databaseHelper.updatePreferenceByType(TdTemperatureTarget, reinterpret_cast<void*>(temperatureTarget));
 }
 
 bool TemperatureData::temperatureSensorFailed() const {

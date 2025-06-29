@@ -54,7 +54,7 @@ void DatabaseHelper::insertTemperatureReading(
     sql = R"(
 SELECT time + ?1 > ?2
 FROM temperature_readings
-ORDER BY time DESC
+ORDER BY time DESC, id DESC
 LIMIT 1
 )";
 
@@ -133,7 +133,7 @@ TemperatureReadingsDto* DatabaseHelper::selectTemperatureReadings(const int star
 SELECT COUNT(id)
 FROM temperature_readings
 WHERE time BETWEEN ?1 AND ?2
-ORDER BY time DESC
+ORDER BY time DESC, id DESC
 )";
 
   if (prepare() != SQLITE_OK) {
@@ -168,7 +168,7 @@ ORDER BY time DESC
 SELECT id, temperature, temperatureTargetStart, temperatureTargetStop, humidity, time
 FROM temperature_readings
 WHERE time BETWEEN ?1 AND ?2
-ORDER BY time DESC
+ORDER BY time DESC, id DESC
 )";
 
   if (prepare() != SQLITE_OK) {
@@ -258,7 +258,7 @@ CommandsDto* DatabaseHelper::selectCommands(const int maxRows) {
   sql = R"(
 SELECT id, command, temperature, temperature_target, time
 FROM commands
-ORDER BY time DESC
+ORDER BY time DESC, id DESC
 LIMIT ?1
 )";
 
