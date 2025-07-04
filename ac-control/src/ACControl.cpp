@@ -9,16 +9,17 @@ ACControl::ACControl(
   DatabaseHelper &databaseHelper,
   ACMode &acMode
 ):
+    turnOffTimeDelay(TimeDelay(APP_AC_CONTROL_TURN_OFF_DELAY)),
+    temperatureChangeTimeDelay(TimeDelay(APP_AC_CONTROL_CHECK_DELAY)),
     infraredTransmitter(infraredTransmitter),
     temperatureData(temperatureData),
     databaseHelper(databaseHelper),
-    acMode(acMode),
-    turnOffTimeDelay(TimeDelay(APP_AC_CONTROL_TURN_OFF_DELAY)),
-    temperatureChangeTimeDelay(TimeDelay(APP_AC_CONTROL_CHECK_DELAY)) {
+    acMode(acMode) {
   enabled = false;
   temperatureStart = -1;
   temperatureStop = -1;
   spamOff = false;
+  turnOffInsteadOfStop = false;
 }
 
 void ACControl::loop() {
@@ -105,6 +106,12 @@ ACCommand ACControl::lastACCommand() const {
   return infraredTransmitter.lastACCommand;
 }
 
+void ACControl::changeTurnOffInsteadOfStop() {
+  turnOffInsteadOfStop = !turnOffInsteadOfStop;
+
+  databaseHelper.updatePreferenceByType(AcTurnOffInsteadOfStop, reinterpret_cast<void*>(turnOffInsteadOfStop));
+}
+
 void ACControl::control() {
   if (spamOff) {
     if (enabled) {
@@ -132,7 +139,11 @@ void ACControl::control() {
     Serial.println("Turn off time delay passed.");
 #endif
 
-    off();
+    if (infraredTransmitter.lastACCommand != Off) {
+      off();
+    }
+
+    turnOffTimeDelay.restart();
     return;
   }
 
@@ -160,7 +171,7 @@ void ACControl::control() {
         databaseHelper.updatePreferenceByType(IrLastACCommand, ACCommands[Start]);
 
 #if APP_DEBUG
-        Serial.println("Temperature change not detected, stopping again");
+        Serial.println("Temperature change not detected, rebooting...");
 #endif
 
         // wait for watchdog timer
@@ -176,8 +187,12 @@ void ACControl::control() {
 
   if (infraredTransmitter.lastACCommand != Start && temperatureData.temperatureStartReached()) {
     start();
-  } else if (infraredTransmitter.lastACCommand != Stop && temperatureData.temperatureStopReached()) {
-    stop();
+  } else if (infraredTransmitter.lastACCommand == Start && temperatureData.temperatureStopReached()) {
+    if (turnOffInsteadOfStop) {
+      off();
+    } else {
+      stop();
+    }
   }
 }
 

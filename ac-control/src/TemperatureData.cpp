@@ -3,9 +3,9 @@
 #include "TemperatureData.h"
 
 TemperatureData::TemperatureData(TemperatureSensor &temperatureSensor, DatabaseHelper &databaseHelper, ACMode &acMode):
-    temperatureSensor(temperatureSensor),
     databaseHelper(databaseHelper),
-    acMode(acMode) {
+    acMode(acMode),
+    temperatureSensor(temperatureSensor) {
   temperatureTargetCold = 29.0 * 10;
   temperatureTargetHeat = 20.5 * 10;
   temperatureStart = -1;

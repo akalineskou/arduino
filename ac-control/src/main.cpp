@@ -33,7 +33,7 @@ InfraredTransmitter infraredTransmitter(PIN_IR_TRANSMITTER, databaseHelper, acMo
 TemperatureSensor temperatureSensor(PIN_TEMP_SENSOR);
 TemperatureData temperatureData(temperatureSensor, databaseHelper, acMode);
 ACControl acControl(infraredTransmitter, temperatureData, databaseHelper, acMode);
-WebServerHelper webServerHelper(acControl, temperatureSensor, temperatureData, timeHelper, databaseHelper, acMode);
+WebServerHelper webServerHelper(acControl, timeHelper);
 
 #if APP_IR_RECEIVER
 InfraredReceiver infraredReceiver(PIN_IR_RECEIVER, acControl, temperatureData);
@@ -88,12 +88,14 @@ void setup() {
   if (!sdHelper.setup()) {
     increaseErrorPreferencesCount();
 
-    while (true) {}
+    // wait for watchdog timer
+    delay(3600 * 1000);
   }
   if (!databaseHelper.setup()) {
     increaseErrorPreferencesCount();
 
-    while (true) {}
+    // wait for watchdog timer
+    delay(3600 * 1000);
   }
 
   // remove on successful initialization
@@ -124,6 +126,11 @@ void setup() {
     acControl.temperatureStop = preference->acTemperatureStop;
 #if APP_DEBUG
     Serial.printf("acControl.temperatureStop %d.\n", acControl.temperatureStop);
+#endif
+
+    acControl.turnOffInsteadOfStop = preference->acTurnOffInsteadOfStop;
+#if APP_DEBUG
+    Serial.printf("acControl.turnOffInsteadOfStop %d.\n", acControl.turnOffInsteadOfStop);
 #endif
 
     infraredTransmitter.lastACCommand = sToACCommand(preference->irLastACCommand.c_str());

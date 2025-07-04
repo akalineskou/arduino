@@ -313,7 +313,7 @@ PreferenceEntity* DatabaseHelper::selectPreference() {
 #endif
 
   sql = R"(
-SELECT acMode, acEnabled, acTemperatureStart, acTemperatureStop, irLastACCommand, irLightToggled, tdTemperatureTarget
+SELECT acMode, acEnabled, acTemperatureStart, acTemperatureStop, acTurnOffInsteadOfStop, irLastACCommand, irLightToggled, tdTemperatureTarget
 FROM preference
 LIMIT 1
 )";
@@ -334,9 +334,10 @@ LIMIT 1
     preference->acEnabled = sqlite3_column_int(statement, 1);
     preference->acTemperatureStart = sqlite3_column_int(statement, 2);
     preference->acTemperatureStop = sqlite3_column_int(statement, 3);
-    preference->irLastACCommand = std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 4)));
-    preference->irLightToggled = sqlite3_column_int(statement, 5);
-    preference->tdTemperatureTarget = sqlite3_column_int(statement, 6);
+    preference->acTurnOffInsteadOfStop = sqlite3_column_int(statement, 4);
+    preference->irLastACCommand = std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
+    preference->irLightToggled = sqlite3_column_int(statement, 6);
+    preference->tdTemperatureTarget = sqlite3_column_int(statement, 7);
   } else {
 #if APP_DEBUG
     Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
@@ -366,7 +367,7 @@ __PREFERENCE__ = ?1
   }
 
   if (preference == AcEnabled || preference == AcTemperatureStart || preference == AcTemperatureStop ||
-      preference == IrLightToggled || preference == TdTemperatureTarget) {
+      preference == IrLightToggled || preference == AcTurnOffInsteadOfStop || preference == TdTemperatureTarget) {
     sqlite3_bind_int(statement, 1, reinterpret_cast<int>(preferenceValue));
   } else if (preference == AcMode || preference == IrLastACCommand) {
     sqlite3_bind_text(

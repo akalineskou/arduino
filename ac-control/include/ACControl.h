@@ -6,19 +6,20 @@
 #include "TimeDelay.h"
 
 class ACControl {
+  TimeDelay turnOffTimeDelay;
+  TimeDelay temperatureChangeTimeDelay;
+
+ public:
   InfraredTransmitter &infraredTransmitter;
   TemperatureData &temperatureData;
   DatabaseHelper &databaseHelper;
   ACMode &acMode;
 
-  TimeDelay turnOffTimeDelay;
-  TimeDelay temperatureChangeTimeDelay;
-
- public:
   bool enabled;
   int temperatureStart;
   int temperatureStop;
   bool spamOff;
+  bool turnOffInsteadOfStop;
 
   ACControl(
     InfraredTransmitter &infraredTransmitter,
@@ -42,6 +43,8 @@ class ACControl {
   void changeMode();
 
   ACCommand lastACCommand() const;
+
+  void changeTurnOffInsteadOfStop();
 
  private:
   void control();

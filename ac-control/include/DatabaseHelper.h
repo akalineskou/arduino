@@ -38,6 +38,7 @@ struct PreferenceEntity {
   bool acEnabled = false;
   int acTemperatureStart = 0;
   int acTemperatureStop = 0;
+  bool acTurnOffInsteadOfStop = false;
   std::string irLastACCommand{};
   bool irLightToggled = false;
   int tdTemperatureTarget = 0;

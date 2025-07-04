@@ -2,20 +2,9 @@
 #include "Helper.h"
 #include "WebServerHelper.h"
 
-WebServerHelper::WebServerHelper(
-  ACControl &acControl,
-  TemperatureSensor &temperatureSensor,
-  TemperatureData &temperatureData,
-  TimeHelper &timeHelper,
-  DatabaseHelper &databaseHelper,
-  ACMode &acMode
-):
+WebServerHelper::WebServerHelper(ACControl &acControl, TimeHelper &timeHelper):
     acControl(acControl),
-    temperatureSensor(temperatureSensor),
-    temperatureData(temperatureData),
     timeHelper(timeHelper),
-    databaseHelper(databaseHelper),
-    acMode(acMode),
     webServer(80) {}
 
 void WebServerHelper::setup() {
@@ -65,6 +54,9 @@ void WebServerHelper::setup() {
   <p>
     A/C Mode: <code>__AC_MODE__</code> (<a href="/change-mode">__AC_MODE_CHANGE__</a>)
   </p>
+  <p>
+    Turn Off Instead Of Stop: <code>__IR_TURN_OFF_INSTEAD_OF_STOP__</code> (<a href="/change-turn-off-instead-of-stop">__IR_TURN_OFF_INSTEAD_OF_STOP_CHANGE__</a>)
+  </p>
   <br>
 
   <p>
@@ -107,6 +99,7 @@ void WebServerHelper::setup() {
         <th>AcEnabled</th>
         <th>AcTemperatureStart</th>
         <th>AcTemperatureStop</th>
+        <th>AcTurnOffInsteadOfStop</th>
         <th>IrLastACCommand</th>
         <th>IrLightToggled</th>
         <th>TdTemperatureTarget</th>
@@ -117,6 +110,7 @@ void WebServerHelper::setup() {
         <td><code>__PREFERENCE_AcEnabled__</code></td>
         <td><code>__PREFERENCE_AcTemperatureStart__</code></td>
         <td><code>__PREFERENCE_AcTemperatureStop__</code></td>
+        <td><code>__PREFERENCE_AcTurnOffInsteadOfStop__</code></td>
         <td><code>__PREFERENCE_IrLastACCommand__</code></td>
         <td><code>__PREFERENCE_IrLightToggled__</code></td>
         <td><code>__PREFERENCE_TdTemperatureTarget__</code></td>
@@ -155,22 +149,28 @@ void WebServerHelper::setup() {
                         : R"==(<b><code>Disabled</code></b> (<a href="/enable">Enable</a>))=="
     );
     stringReplace(html, "__LAST_AC_COMMAND__", ACCommands[acControl.lastACCommand()]);
-    stringReplace(html, "__AC_MODE__", ACModes[acMode]);
-    stringReplace(html, "__AC_MODE_CHANGE__", ACModes[ACModesOther[acMode]]);
+    stringReplace(html, "__AC_MODE__", ACModes[acControl.acMode]);
+    stringReplace(html, "__AC_MODE_CHANGE__", ACModes[ACModesOther[acControl.acMode]]);
+    stringReplace(html, "__IR_TURN_OFF_INSTEAD_OF_STOP__", acControl.turnOffInsteadOfStop ? "Yes" : "No");
+    stringReplace(html, "__IR_TURN_OFF_INSTEAD_OF_STOP_CHANGE__", acControl.turnOffInsteadOfStop ? "No" : "Yes");
 
     stringReplace(
       html,
       "__TEMPERATURE__",
-      TemperatureSensor::formatTemperature(temperatureSensor.getTemperature()).c_str()
+      TemperatureSensor::formatTemperature(acControl.temperatureData.temperatureSensor.getTemperature()).c_str()
     );
-    stringReplace(html, "__HUMIDITY__", TemperatureSensor::formatHumidity(temperatureSensor.getHumidity()).c_str());
+    stringReplace(
+      html,
+      "__HUMIDITY__",
+      TemperatureSensor::formatHumidity(acControl.temperatureData.temperatureSensor.getHumidity()).c_str()
+    );
 
     stringReplace(
       html,
       "__TEMPERATURE_TARGET__",
-      TemperatureSensor::formatTemperature(temperatureData.temperatureTarget).c_str()
+      TemperatureSensor::formatTemperature(acControl.temperatureData.temperatureTarget).c_str()
     );
-    if (acMode == Cold) {
+    if (acControl.acMode == Cold) {
       stringReplace(html, "__TEMPERATURE_START_OP__", "&ge;");
       stringReplace(html, "__TEMPERATURE_STOP_OP__", "&le;");
     } else {
@@ -180,27 +180,29 @@ void WebServerHelper::setup() {
     stringReplace(
       html,
       "__TEMPERATURE_START__",
-      TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStart()).c_str()
+      TemperatureSensor::formatTemperature(acControl.temperatureData.temperatureTargetStart()).c_str()
     );
     stringReplace(
       html,
       "__TEMPERATURE_STOP__",
-      TemperatureSensor::formatTemperature(temperatureData.temperatureTargetStop()).c_str()
+      TemperatureSensor::formatTemperature(acControl.temperatureData.temperatureTargetStop()).c_str()
     );
     stringReplace(
       html,
       "__TARGET_TEMPERATURE_INCREASE__",
-      TemperatureSensor::formatTemperature(temperatureData.temperatureTarget + static_cast<int>(0.5 * 10)).c_str()
+      TemperatureSensor::formatTemperature(acControl.temperatureData.temperatureTarget + static_cast<int>(0.5 * 10))
+        .c_str()
     );
     stringReplace(
       html,
       "__TARGET_TEMPERATURE_DECREASE__",
-      TemperatureSensor::formatTemperature(temperatureData.temperatureTarget - static_cast<int>(0.5 * 10)).c_str()
+      TemperatureSensor::formatTemperature(acControl.temperatureData.temperatureTarget - static_cast<int>(0.5 * 10))
+        .c_str()
     );
 
     auto commandRows = std::string();
 
-    const auto commands = databaseHelper.selectCommands(10);
+    const auto commands = acControl.databaseHelper.selectCommands(10);
     if (commands != nullptr) {
       for (auto i = 0; i < commands->numRows; ++i) {
         const auto command = commands->commands[i];
@@ -234,12 +236,13 @@ void WebServerHelper::setup() {
 
     stringReplace(html, "__COMMANDS_ROWS__", commandRows.c_str());
 
-    const auto preference = databaseHelper.selectPreference();
+    const auto preference = acControl.databaseHelper.selectPreference();
 
     stringReplace(html, "__PREFERENCE_AcMode__", preference->acMode.c_str());
     stringReplace(html, "__PREFERENCE_AcEnabled__", preference->acEnabled ? "Yes" : "No");
     stringReplace(html, "__PREFERENCE_AcTemperatureStart__", std::to_string(preference->acTemperatureStart).c_str());
     stringReplace(html, "__PREFERENCE_AcTemperatureStop__", std::to_string(preference->acTemperatureStop).c_str());
+    stringReplace(html, "__PREFERENCE_AcTurnOffInsteadOfStop__", preference->acTurnOffInsteadOfStop ? "Yes" : "No");
     stringReplace(html, "__PREFERENCE_IrLastACCommand__", preference->irLastACCommand.c_str());
     stringReplace(html, "__PREFERENCE_IrLightToggled__", preference->irLightToggled ? "Yes" : "No");
     stringReplace(html, "__PREFERENCE_TdTemperatureTarget__", std::to_string(preference->tdTemperatureTarget).c_str());
@@ -290,7 +293,7 @@ void WebServerHelper::setup() {
     Serial.println("GET /increase-target");
 #endif
 
-    temperatureData.temperatureTargetIncrease();
+    acControl.temperatureData.temperatureTargetIncrease();
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
@@ -300,7 +303,7 @@ void WebServerHelper::setup() {
     Serial.println("GET /decrease-target");
 #endif
 
-    temperatureData.temperatureTargetDecrease();
+    acControl.temperatureData.temperatureTargetDecrease();
 
     webServer.sendHeader("Location", "/", true);
     webServer.send(302);
@@ -338,6 +341,17 @@ void WebServerHelper::setup() {
     webServer.send(302);
   });
 
+  webServer.on("/change-turn-off-instead-of-stop", HTTP_GET, [this] {
+#if APP_DEBUG
+    Serial.println("GET /change-turn-off-instead-of-stop");
+#endif
+
+    acControl.changeTurnOffInsteadOfStop();
+
+    webServer.sendHeader("Location", "/", true);
+    webServer.send(302);
+  });
+
   webServer.on("/temperature-history", HTTP_GET, [this] {
 #if APP_DEBUG
     Serial.println("GET /temperature-history");
@@ -368,7 +382,8 @@ void WebServerHelper::setup() {
     int humidityMin = temperatureMin;
     int humidityMax = temperatureMax;
 
-    const TemperatureReadingsDto* temperatureReadings = databaseHelper.selectTemperatureReadings(startTime, endTime);
+    const TemperatureReadingsDto* temperatureReadings =
+      acControl.databaseHelper.selectTemperatureReadings(startTime, endTime);
 
     if (temperatureReadings != nullptr) {
       for (auto i = 0; i < temperatureReadings->numRows; ++i) {
@@ -601,14 +616,14 @@ void WebServerHelper::setup() {
     stringReplace(
       html,
       "__TEMPERATURE_TARGET_START__",
-      std::to_string(temperatureData.temperatureTargetStart() / 10.0).c_str()
+      std::to_string(acControl.temperatureData.temperatureTargetStart() / 10.0).c_str()
     );
     stringReplace(
       html,
       "__TEMPERATURE_TARGET_STOP__",
-      std::to_string(temperatureData.temperatureTargetStop() / 10.0).c_str()
+      std::to_string(acControl.temperatureData.temperatureTargetStop() / 10.0).c_str()
     );
-    if (acMode == Cold) {
+    if (acControl.acMode == Cold) {
       stringReplace(html, "__TEMPERATURE_TARGET_START_COLOR__", "green");
       stringReplace(html, "__TEMPERATURE_TARGET_STOP_COLOR__", "red");
 

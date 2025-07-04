@@ -5,7 +5,6 @@
 #include "TemperatureSensor.h"
 
 class TemperatureData {
-  TemperatureSensor &temperatureSensor;
   DatabaseHelper &databaseHelper;
   ACMode &acMode;
 
@@ -15,6 +14,8 @@ class TemperatureData {
   int temperatureStop;
 
  public:
+  TemperatureSensor &temperatureSensor;
+
   int temperatureTarget;
 
   explicit TemperatureData(TemperatureSensor &temperatureSensor, DatabaseHelper &databaseHelper, ACMode &acMode);

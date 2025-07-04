@@ -3,4 +3,5 @@
 
 include/Secrets.h
 
-db.sqlite
+!db.sqlite.example
+db.sqlite*
