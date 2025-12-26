@@ -28,12 +28,13 @@ TimeHelper timeHelper;
 SdHelper sdHelper(PIN_SD_SCK, PIN_SD_MISO, PIN_SD_MOSI, PIN_SD_SS);
 DatabaseHelper databaseHelper(timeHelper);
 
+WifiHelper wifiHelper(databaseHelper);
 ACMode acMode(Heat);
 InfraredTransmitter infraredTransmitter(PIN_IR_TRANSMITTER, databaseHelper, acMode);
-TemperatureSensor temperatureSensor(PIN_TEMP_SENSOR);
+TemperatureSensor temperatureSensor(PIN_TEMP_SENSOR, databaseHelper);
 TemperatureData temperatureData(temperatureSensor, databaseHelper, acMode);
 ACControl acControl(infraredTransmitter, temperatureData, databaseHelper, acMode);
-WebServerHelper webServerHelper(acControl, timeHelper);
+WebServerHelper webServerHelper(acControl, timeHelper, databaseHelper);
 
 #if APP_IR_RECEIVER
 InfraredReceiver infraredReceiver(PIN_IR_RECEIVER, acControl, temperatureData);
@@ -82,8 +83,6 @@ void setup() {
     errorPreferences.remove("count");
   }
 
-  WifiHelper::setup();
-  webServerHelper.setup();
   timeHelper.setup();
   if (!sdHelper.setup()) {
     increaseErrorPreferencesCount();
@@ -97,53 +96,72 @@ void setup() {
     // wait for watchdog timer
     delay(3600 * 1000);
   }
+  wifiHelper.setup();
+  webServerHelper.setup();
 
   // remove on successful initialization
   errorPreferences.remove("count");
 
   const auto preference = databaseHelper.selectPreference();
   if (preference != nullptr) {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "Restoring data...");
 #if APP_DEBUG
     Serial.println();
     Serial.println("Restoring data...");
 #endif
 
     acMode = sToACMode(preference->acMode.c_str());
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "acMode %s.", ACModes[acMode]);
 #if APP_DEBUG
     Serial.printf("acMode %s.\n", ACModes[acMode]);
 #endif
 
     acControl.enabled = preference->acEnabled;
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "acControl.enabled %d.", acControl.enabled);
 #if APP_DEBUG
     Serial.printf("acControl.enabled %d.\n", acControl.enabled);
 #endif
 
     acControl.temperatureStart = preference->acTemperatureStart;
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "acControl.acTemperatureStart %d.", acControl.temperatureStart);
 #if APP_DEBUG
     Serial.printf("acControl.acTemperatureStart %d.\n", acControl.temperatureStart);
 #endif
 
     acControl.temperatureStop = preference->acTemperatureStop;
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "acControl.temperatureStop %d.", acControl.temperatureStop);
 #if APP_DEBUG
     Serial.printf("acControl.temperatureStop %d.\n", acControl.temperatureStop);
 #endif
 
     acControl.turnOffInsteadOfStop = preference->acTurnOffInsteadOfStop;
+    databaseHelper
+      .insertLog(__FILENAME__, __LINE__, "acControl.turnOffInsteadOfStop %d.", acControl.turnOffInsteadOfStop);
 #if APP_DEBUG
     Serial.printf("acControl.turnOffInsteadOfStop %d.\n", acControl.turnOffInsteadOfStop);
 #endif
 
     infraredTransmitter.lastACCommand = sToACCommand(preference->irLastACCommand.c_str());
+    databaseHelper.insertLog(
+      __FILENAME__,
+      __LINE__,
+      "infraredTransmitter.lastACCommand %s.",
+      ACCommands[infraredTransmitter.lastACCommand]
+    );
 #if APP_DEBUG
     Serial.printf("infraredTransmitter.lastACCommand %s.\n", ACCommands[infraredTransmitter.lastACCommand]);
 #endif
 
     infraredTransmitter.lightToggled = preference->irLightToggled;
+    databaseHelper
+      .insertLog(__FILENAME__, __LINE__, "infraredTransmitter.lightToggled %d.", infraredTransmitter.lightToggled);
 #if APP_DEBUG
     Serial.printf("infraredTransmitter.lightToggled %d.\n", infraredTransmitter.lightToggled);
 #endif
 
     temperatureData.temperatureTarget = preference->tdTemperatureTarget;
+    databaseHelper
+      .insertLog(__FILENAME__, __LINE__, "temperatureData.temperatureTarget %d.", temperatureData.temperatureTarget);
 #if APP_DEBUG
     Serial.printf("temperatureData.temperatureTarget %d.\n", temperatureData.temperatureTarget);
 #endif
@@ -158,6 +176,7 @@ void setup() {
 
 void loop() {
   if (rebootTimeDelay.delayPassed()) {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "Rebooting...");
 #if APP_DEBUG
     Serial.println("Rebooting...");
     Serial.println();
@@ -184,8 +203,17 @@ void loop() {
     );
   }
 
-#if APP_DEBUG && APP_DEBUG_HEAP
+#if APP_DEBUG_HEAP
   if (debugHeapTimeDelay.delayPassed()) {
+    databaseHelper.insertLog(
+      __FILENAME__,
+      __LINE__,
+      "Heap size: %d, Free Heap: %d, Min Free Heap: %d, Max Alloc Heap: %d",
+      ESP.getHeapSize(),
+      heap_caps_get_free_size(MALLOC_CAP_8BIT),
+      heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT),
+    );
+  #if APP_DEBUG
     Serial.printf(
       "\nHeap size: %d, Free Heap: %d, Min Free Heap: %d, Max Alloc Heap: %d\n",
       ESP.getHeapSize(),
@@ -193,6 +221,7 @@ void loop() {
       heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT),
       heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)
     );
+  #endif
   }
 #endif
 }

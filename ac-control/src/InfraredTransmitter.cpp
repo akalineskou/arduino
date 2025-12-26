@@ -109,6 +109,7 @@ void InfraredTransmitter::sendCommand(ACCommand acCommand) {
   irSend.send();
 #endif
 
+  databaseHelper.insertLog(__FILENAME__, __LINE__, "Sending A/C command: %s.", ACCommands[acCommand]);
 #if APP_DEBUG
   Serial.printf("Sending A/C command: %s.\n", ACCommands[acCommand]);
   Serial.println(irSend.toString().c_str());

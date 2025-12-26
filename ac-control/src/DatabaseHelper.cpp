@@ -393,6 +393,107 @@ __PREFERENCE__ = ?1
   sqlite3_finalize(statement);
 }
 
+void DatabaseHelper::insertLog(const char* filename, const int line, const char* format, ...) {
+  char log[256];
+
+  va_list args;
+  va_start(args, format);
+  vsnprintf(log, 256, format, args);
+  va_end(args);
+
+#if APP_DEBUG
+  Serial.println(log);
+#endif
+
+#if APP_DEBUG
+  Serial.println("Inserting log");
+#endif
+
+  sql = R"(
+INSERT INTO logs (id, log, filename, line, time)
+VALUES (null, ?1, ?2, ?3, ?4)
+)";
+
+  if (prepare() != SQLITE_OK) {
+    return;
+  }
+
+  sqlite3_bind_text(statement, 1, log, static_cast<int>(strlen(log)), SQLITE_STATIC);
+  sqlite3_bind_text(statement, 2, filename, static_cast<int>(strlen(filename)), SQLITE_STATIC);
+  sqlite3_bind_int(statement, 3, line);
+  sqlite3_bind_int(statement, 4, timeHelper.currentTime);
+
+#if APP_DEBUG
+  expandSql();
+#endif
+
+  if ((responseCode = sqlite3_step(statement)) == SQLITE_ERROR) {
+#if APP_DEBUG
+    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
+#endif
+  }
+
+  sqlite3_clear_bindings(statement);
+  sqlite3_finalize(statement);
+}
+
+LogsDto* DatabaseHelper::selectLogs(const int maxRows) {
+#if APP_DEBUG
+  Serial.println("Selecting logs");
+#endif
+
+  sql = R"(
+SELECT id, log, filename, line, time
+FROM logs
+ORDER BY time DESC, id DESC
+LIMIT ?1
+)";
+
+  if (prepare() != SQLITE_OK) {
+    return nullptr;
+  }
+
+  sqlite3_bind_int(statement, 1, maxRows);
+
+#if APP_DEBUG
+  expandSql();
+#endif
+
+  auto logs = new LogsDto{};
+  logs->logs = new LogEntity[maxRows];
+
+  int i = 0;
+  while ((responseCode = sqlite3_step(statement)) == SQLITE_ROW) {
+    logs->logs[i].id = sqlite3_column_int(statement, 0);
+    logs->logs[i].log = std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
+    logs->logs[i].filename = std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 2)));
+    logs->logs[i].line = sqlite3_column_int(statement, 3);
+    logs->logs[i].time = sqlite3_column_int(statement, 4);
+
+    i++;
+  }
+
+  if (responseCode != SQLITE_DONE) {
+#if APP_DEBUG
+    Serial.printf("SQL step error: %s (%d)\n", sqlite3_errmsg(database), responseCode);
+#endif
+  }
+
+  if (i > 0) {
+    logs->numRows = i;
+  } else {
+    delete[] logs->logs;
+    delete logs;
+
+    logs = nullptr;
+  }
+
+  sqlite3_clear_bindings(statement);
+  sqlite3_finalize(statement);
+
+  return logs;
+}
+
 int DatabaseHelper::prepare() {
   responseCode = sqlite3_prepare_v2(database, sql.c_str(), -1, &statement, nullptr);
   if (responseCode != SQLITE_OK) {

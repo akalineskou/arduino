@@ -1,11 +1,12 @@
 #include "Directive.h"
 #include "TemperatureSensor.h"
 
-TemperatureSensor::TemperatureSensor(const int pin):
+TemperatureSensor::TemperatureSensor(const int pin, DatabaseHelper &databaseHelper):
     pin(pin),
     dht(pin, DHT_TYPE),
     temperatureTimeDelay(TimeDelay(APP_TEMPERATURE_SENSOR_TEMPERATURE_DELAY, true)),
-    humidityTimeDelay(TimeDelay(APP_TEMPERATURE_SENSOR_HUMIDITY_DELAY, true)) {
+    humidityTimeDelay(TimeDelay(APP_TEMPERATURE_SENSOR_HUMIDITY_DELAY, true)),
+    databaseHelper(databaseHelper) {
   sensorFails = 0;
   temperature = 0;
   humidity = 0;
@@ -66,6 +67,7 @@ void TemperatureSensor::readTemperature(const bool forceTimeDelay) {
 
   const float temperatureFloat = dht.readTemperature();
   if (isnan(temperatureFloat)) {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "Failed to read temperature from sensor %d", pin);
 #if APP_DEBUG
     Serial.printf("Failed to read temperature from sensor %d!\n", pin);
 #endif
@@ -110,6 +112,7 @@ void TemperatureSensor::readHumidity(const bool forceTimeDelay) {
 
   const float humidityFloat = dht.readHumidity();
   if (isnan(humidityFloat)) {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "Failed to read humidity from sensor %d", pin);
 #if APP_DEBUG
     Serial.printf("Failed to read humidity from sensor %d!\n", pin);
 #endif

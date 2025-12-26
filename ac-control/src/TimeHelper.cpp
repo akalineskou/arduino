@@ -12,10 +12,6 @@ void TimeHelper::setup() {
 
   setTime();
 
-#if APP_DEBUG
-  Serial.printf("Current UTC time: %d (%s)\n", currentTime, formatForHuman(currentTime).c_str());
-#endif
-
   yield();
 }
 
@@ -43,6 +39,10 @@ void TimeHelper::setTime() {
 
   setenv("TZ", "UTC0", 1);
   tzset();
+
+#if APP_DEBUG
+  Serial.printf("Current UTC time: %d (%s)\n", currentTime, formatForHuman(currentTime).c_str());
+#endif
 }
 
 std::string TimeHelper::format(const time_t time, const char* format) {

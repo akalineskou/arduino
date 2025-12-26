@@ -1,6 +1,12 @@
 #pragma once
 
+#include "DatabaseHelper.h"
+
 class WifiHelper {
+  DatabaseHelper &databaseHelper;
+
  public:
-  static void setup();
+  explicit WifiHelper(DatabaseHelper &databaseHelper);
+
+  void setup();
 };

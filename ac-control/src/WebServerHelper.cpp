@@ -2,15 +2,17 @@
 #include "Helper.h"
 #include "WebServerHelper.h"
 
-WebServerHelper::WebServerHelper(ACControl &acControl, TimeHelper &timeHelper):
+WebServerHelper::WebServerHelper(ACControl &acControl, TimeHelper &timeHelper, DatabaseHelper &databaseHelper):
     acControl(acControl),
     timeHelper(timeHelper),
+    databaseHelper(databaseHelper),
     webServer(80) {}
 
 void WebServerHelper::setup() {
   webServer.begin();
 
   webServer.on("/", HTTP_GET, [this] {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "GET /");
 #if APP_DEBUG
     Serial.println("GET /");
 #endif
@@ -89,6 +91,19 @@ void WebServerHelper::setup() {
       </tr>
 
     __COMMANDS_ROWS__
+    </table>
+  </p>
+  <br>
+
+  <p>
+    <table style="width: 100%;">
+      <tr>
+        <th>Log</th>
+        <th>Filename</th>
+        <th>Time</th>
+      </tr>
+
+    __LOGS_ROWS__
     </table>
   </p>
 
@@ -236,6 +251,33 @@ void WebServerHelper::setup() {
 
     stringReplace(html, "__COMMANDS_ROWS__", commandRows.c_str());
 
+    auto logRows = std::string();
+
+    const auto logs = acControl.databaseHelper.selectLogs(10);
+    if (logs != nullptr) {
+      for (auto i = 0; i < logs->numRows; ++i) {
+        const auto log = logs->logs[i];
+
+        logRows += std::string(R"==(
+<tr>
+  <td><code>__LOG_ROW_LOG__</code></td>
+  <td><code>__LOG_ROW_FILENAME__:__LOG_ROW_LINE__</code></td>
+  <td><code>__LOG_ROW_DATE_TIME__</code></td>
+</tr>
+)==");
+
+        stringReplace(logRows, "__LOG_ROW_LOG__", log.log.c_str());
+        stringReplace(logRows, "__LOG_ROW_FILENAME__", log.filename.c_str());
+        stringReplace(logRows, "__LOG_ROW_LINE__", std::to_string(log.line).c_str());
+        stringReplace(logRows, "__LOG_ROW_DATE_TIME__", TimeHelper::formatForHuman(log.time).c_str());
+      }
+
+      delete[] logs->logs;
+      delete logs;
+    }
+
+    stringReplace(html, "__LOGS_ROWS__", logRows.c_str());
+
     const auto preference = acControl.databaseHelper.selectPreference();
 
     stringReplace(html, "__PREFERENCE_AcMode__", preference->acMode.c_str());
@@ -268,6 +310,7 @@ void WebServerHelper::setup() {
   });
 
   webServer.on("/enable", HTTP_GET, [this] {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "GET /enable");
 #if APP_DEBUG
     Serial.println("GET /enable");
 #endif
@@ -278,6 +321,7 @@ void WebServerHelper::setup() {
     webServer.send(302);
   });
   webServer.on("/disable", HTTP_GET, [this] {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "GET /disable");
 #if APP_DEBUG
     Serial.println("GET /disable");
 #endif
@@ -289,6 +333,7 @@ void WebServerHelper::setup() {
   });
 
   webServer.on("/increase-target", HTTP_GET, [this] {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "GET /increase-target");
 #if APP_DEBUG
     Serial.println("GET /increase-target");
 #endif
@@ -299,6 +344,7 @@ void WebServerHelper::setup() {
     webServer.send(302);
   });
   webServer.on("/decrease-target", HTTP_GET, [this] {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "GET /decrease-target");
 #if APP_DEBUG
     Serial.println("GET /decrease-target");
 #endif
@@ -310,6 +356,7 @@ void WebServerHelper::setup() {
   });
 
   webServer.on("/force-ac-start", HTTP_GET, [this] {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "GET /force-ac-start");
 #if APP_DEBUG
     Serial.println("GET /force-ac-start");
 #endif
@@ -320,6 +367,7 @@ void WebServerHelper::setup() {
     webServer.send(302);
   });
   webServer.on("/force-ac-stop", HTTP_GET, [this] {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "GET /force-ac-stop");
 #if APP_DEBUG
     Serial.println("GET /force-ac-stop");
 #endif
@@ -331,6 +379,7 @@ void WebServerHelper::setup() {
   });
 
   webServer.on("/change-mode", HTTP_GET, [this] {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "GET /change-mode");
 #if APP_DEBUG
     Serial.println("GET /change-mode");
 #endif
@@ -342,6 +391,7 @@ void WebServerHelper::setup() {
   });
 
   webServer.on("/change-turn-off-instead-of-stop", HTTP_GET, [this] {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "GET /change-turn-off-instead-of-stop");
 #if APP_DEBUG
     Serial.println("GET /change-turn-off-instead-of-stop");
 #endif
@@ -353,6 +403,7 @@ void WebServerHelper::setup() {
   });
 
   webServer.on("/temperature-history", HTTP_GET, [this] {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "GET /temperature-history");
 #if APP_DEBUG
     Serial.println("GET /temperature-history");
 #endif

@@ -8,11 +8,12 @@
 class WebServerHelper {
   ACControl &acControl;
   TimeHelper &timeHelper;
+  DatabaseHelper &databaseHelper;
 
   WebServer webServer;
 
  public:
-  explicit WebServerHelper(ACControl &acControl, TimeHelper &timeHelper);
+  explicit WebServerHelper(ACControl &acControl, TimeHelper &timeHelper, DatabaseHelper &databaseHelper);
 
   void setup();
 

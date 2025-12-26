@@ -2,6 +2,7 @@
 
 #include <DHT.h>
 
+#include "DatabaseHelper.h"
 #include "TimeDelay.h"
 
 class TemperatureSensor {
@@ -15,7 +16,9 @@ class TemperatureSensor {
   int humidity;
 
  public:
-  explicit TemperatureSensor(int pin);
+  DatabaseHelper &databaseHelper;
+
+  explicit TemperatureSensor(int pin, DatabaseHelper &databaseHelper);
 
   void setup();
 

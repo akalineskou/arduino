@@ -44,6 +44,19 @@ struct PreferenceEntity {
   int tdTemperatureTarget = 0;
 };
 
+struct LogEntity {
+  int id = 0;
+  std::string log{};
+  std::string filename{};
+  int line = 0;
+  long int time = 0;
+};
+
+struct LogsDto {
+  int numRows = 0;
+  LogEntity* logs = nullptr;
+};
+
 class DatabaseHelper {
   TimeHelper &timeHelper;
 
@@ -70,6 +83,10 @@ class DatabaseHelper {
   PreferenceEntity* selectPreference();
 
   void updatePreferenceByType(Preference preference, const void* preferenceValue);
+
+  void insertLog(const char* filename, int line, const char* format, ...);
+
+  LogsDto* selectLogs(int maxRows = 25);
 
  private:
   int prepare();

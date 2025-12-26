@@ -67,6 +67,12 @@ int TemperatureData::temperatureStartReached(int temperatureCheck, const bool eq
   }
 
   if (temperatureStartReached) {
+    databaseHelper.insertLog(
+      __FILENAME__,
+      __LINE__,
+      "Temperature start %s reached.",
+      TemperatureSensor::formatTemperature(temperatureTargetStart()).c_str()
+    );
 #if APP_DEBUG
     Serial.printf(
       "Temperature start %s reached.\n",
@@ -100,6 +106,12 @@ int TemperatureData::temperatureStopReached(int temperatureCheck, const bool equ
   }
 
   if (temperatureStopReached) {
+    databaseHelper.insertLog(
+      __FILENAME__,
+      __LINE__,
+      "Temperature stop %s reached.",
+      TemperatureSensor::formatTemperature(temperatureTargetStop()).c_str()
+    );
 #if APP_DEBUG
     Serial.printf(
       "Temperature stop %s reached.\n",

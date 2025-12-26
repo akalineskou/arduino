@@ -34,6 +34,7 @@ void ACControl::enable() {
 
   databaseHelper.updatePreferenceByType(AcEnabled, reinterpret_cast<void*>(enabled));
 
+  databaseHelper.insertLog(__FILENAME__, __LINE__, "A/C control enabled.");
 #if APP_DEBUG
   Serial.println("A/C control enabled.");
 #endif
@@ -46,6 +47,7 @@ void ACControl::disable() {
 
   databaseHelper.updatePreferenceByType(AcEnabled, reinterpret_cast<void*>(enabled));
 
+  databaseHelper.insertLog(__FILENAME__, __LINE__, "A/C control disabled.");
 #if APP_DEBUG
   Serial.println("A/C control disabled.");
 #endif
@@ -126,6 +128,7 @@ void ACControl::control() {
   }
 
   if (temperatureData.temperatureSensorFailed()) {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "Temperature sensor failed.");
 #if APP_DEBUG
     Serial.println("Temperature sensor failed.");
 #endif
@@ -135,6 +138,7 @@ void ACControl::control() {
   }
 
   if (turnOffTimeDelay.delayPassed()) {
+    databaseHelper.insertLog(__FILENAME__, __LINE__, "Turn off time delay passed.");
 #if APP_DEBUG
     Serial.println("Turn off time delay passed.");
 #endif
@@ -153,6 +157,7 @@ void ACControl::control() {
         // still not running, set to Stop before rebooting
         databaseHelper.updatePreferenceByType(IrLastACCommand, ACCommands[Stop]);
 
+        databaseHelper.insertLog(__FILENAME__, __LINE__, "Temperature change not detected, rebooting...");
 #if APP_DEBUG
         Serial.println("Temperature change not detected, rebooting...");
 #endif
@@ -170,6 +175,7 @@ void ACControl::control() {
         // still running, set to Start before rebooting
         databaseHelper.updatePreferenceByType(IrLastACCommand, ACCommands[Start]);
 
+        databaseHelper.insertLog(__FILENAME__, __LINE__, "Temperature change not detected, rebooting...");
 #if APP_DEBUG
         Serial.println("Temperature change not detected, rebooting...");
 #endif
