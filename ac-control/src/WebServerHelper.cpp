@@ -253,7 +253,7 @@ void WebServerHelper::setup() {
 
     auto logRows = std::string();
 
-    const auto logs = acControl.databaseHelper.selectLogs(10);
+    const auto logs = acControl.databaseHelper.selectLogs(20);
     if (logs != nullptr) {
       for (auto i = 0; i < logs->numRows; ++i) {
         const auto log = logs->logs[i];
