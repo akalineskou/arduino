@@ -18,7 +18,6 @@ ACControl::ACControl(
   enabled = false;
   temperatureStart = -1;
   temperatureStop = -1;
-  spamOff = false;
   turnOffInsteadOfStop = false;
 }
 
@@ -115,14 +114,6 @@ void ACControl::changeTurnOffInsteadOfStop() {
 }
 
 void ACControl::control() {
-  if (spamOff) {
-    if (enabled) {
-      disable();
-    } else {
-      infraredTransmitter.sendCommand(Off);
-    }
-  }
-
   if (!enabled) {
     return;
   }
@@ -155,7 +146,7 @@ void ACControl::control() {
     if (infraredTransmitter.lastACCommand == Start && temperatureStart != -1) {
       if (temperatureData.temperatureStartReached(temperatureStart, false)) {
         // still not running, set to Stop before rebooting
-        databaseHelper.updatePreferenceByType(IrLastACCommand, ACCommands[Stop]);
+        databaseHelper.updatePreferenceByType(IrLastACCommand, ACCommands[turnOffInsteadOfStop ? Off : Stop]);
 
         databaseHelper.insertLog(__FILENAME__, __LINE__, "Temperature change not detected, rebooting...");
 #if APP_DEBUG
@@ -170,7 +161,7 @@ void ACControl::control() {
 
         databaseHelper.updatePreferenceByType(AcTemperatureStart, reinterpret_cast<void*>(temperatureStart));
       }
-    } else if (infraredTransmitter.lastACCommand == Stop && temperatureStop != -1) {
+    } else if (infraredTransmitter.lastACCommand != Start && temperatureStop != -1) {
       if (temperatureData.temperatureStopReached(temperatureStop, false)) {
         // still running, set to Start before rebooting
         databaseHelper.updatePreferenceByType(IrLastACCommand, ACCommands[Start]);

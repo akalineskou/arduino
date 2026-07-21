@@ -2,7 +2,7 @@
 
 #include "Directive.h"
 
-#if APP_ENV == APP_ENV_LIVIN_ROOM
+#if APP_ENV == APP_ENV_LIVING_ROOM
 auto wifiSSID = "";
 auto wifiPassword = "";
 #elif APP_ENV == APP_ENV_BEDROOM

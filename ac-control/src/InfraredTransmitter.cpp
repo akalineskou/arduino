@@ -16,11 +16,12 @@ void InfraredTransmitter::setup() {
   irSend.begin();
 }
 
-void InfraredTransmitter::sendCommand(ACCommand acCommand) {
+void InfraredTransmitter::sendCommand(const ACCommand acCommand) {
   lastACCommand = acCommand;
 
-#if APP_ENV == APP_ENV_LIVIN_ROOM
+#if APP_ENV == APP_ENV_LIVING_ROOM
   irSend.setFan(kHaierAcYrw02FanHigh);
+  irSend.setTurbo(true);
 
   if (acMode == Cold) {
     irSend.setMode(kHaierAcYrw02Cool);
@@ -31,6 +32,7 @@ void InfraredTransmitter::sendCommand(ACCommand acCommand) {
   }
 #elif APP_ENV == APP_ENV_BEDROOM
   irSend.setFan(kHaierAcYrw02FanHigh);
+  irSend.setTurbo(true);
 
   if (acCommand == Stop) {
     // set fan to low since fan does not turn off
@@ -69,14 +71,14 @@ void InfraredTransmitter::sendCommand(ACCommand acCommand) {
     }
 
     // Power: Off
-#if APP_ENV == APP_ENV_LIVIN_ROOM || APP_ENV == APP_ENV_BEDROOM
+#if APP_ENV == APP_ENV_LIVING_ROOM || APP_ENV == APP_ENV_BEDROOM
     irSend.off();
 #elif APP_ENV == APP_ENV_OTHER
     irSend.setPower(false);
 #endif
   } else {
     // Power: On
-#if APP_ENV == APP_ENV_LIVIN_ROOM || APP_ENV == APP_ENV_BEDROOM
+#if APP_ENV == APP_ENV_LIVING_ROOM || APP_ENV == APP_ENV_BEDROOM
     irSend.on();
 #elif APP_ENV == APP_ENV_OTHER
     irSend.setPower(true);
@@ -96,7 +98,7 @@ void InfraredTransmitter::sendCommand(ACCommand acCommand) {
     lightToggled = false;
   } else {
     if (!lightToggled) {
-#if APP_ENV == APP_ENV_LIVIN_ROOM
+#if APP_ENV == APP_ENV_LIVING_ROOM
       // only needs to happen the first time it is turned on
       irSend.setLightToggle(true);
 #endif
