@@ -40,23 +40,6 @@
   #include <ir_Haier.h>
   #define IR_SEND_CLASS IRHaierAC160
 #elif APP_ENV == APP_ENV_BEDROOM
-  #define APP_IR_RECEIVER false
-
-  #define PIN_TEMP_SENSOR GPIO_NUM_32
-
-  #define PIN_IR_TRANSMITTER GPIO_NUM_22
-  #define PIN_IR_RECEIVER GPIO_NUM_34
-
-  #define PIN_SD_SCK GPIO_NUM_18
-  #define PIN_SD_MISO GPIO_NUM_19
-  #define PIN_SD_MOSI GPIO_NUM_23
-  #define PIN_SD_SS GPIO_NUM_5
-
-  #define DHT_TYPE DHT22
-
-  #include <ir_Haier.h>
-  #define IR_SEND_CLASS IRHaierACYRW02
-#elif APP_ENV == APP_ENV_OTHER
   #define APP_IR_RECEIVER true
 
   #define PIN_ONBOARD_LED GPIO_NUM_38
@@ -70,6 +53,23 @@
   #define PIN_SD_MISO GPIO_NUM_37
   #define PIN_SD_MOSI GPIO_NUM_35
   #define PIN_SD_SS GPIO_NUM_39
+
+  #define DHT_TYPE DHT22
+
+  #include <ir_Haier.h>
+  #define IR_SEND_CLASS IRHaierACYRW02
+#elif APP_ENV == APP_ENV_OTHER
+  #define APP_IR_RECEIVER false
+
+  #define PIN_TEMP_SENSOR GPIO_NUM_32
+
+  #define PIN_IR_TRANSMITTER GPIO_NUM_22
+  #define PIN_IR_RECEIVER GPIO_NUM_34
+
+  #define PIN_SD_SCK GPIO_NUM_18
+  #define PIN_SD_MISO GPIO_NUM_19
+  #define PIN_SD_MOSI GPIO_NUM_23
+  #define PIN_SD_SS GPIO_NUM_5
 
   #define DHT_TYPE DHT11
 

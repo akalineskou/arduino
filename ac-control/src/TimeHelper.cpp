@@ -41,7 +41,7 @@ void TimeHelper::setTime() {
   tzset();
 
 #if APP_DEBUG
-  Serial.printf("Current UTC time: %d (%s)\n", currentTime, formatForHuman(currentTime).c_str());
+  // Serial.printf("Current UTC time: %d (%s)\n", currentTime, formatForHuman(currentTime).c_str());
 #endif
 }
 
